@@ -123,17 +123,26 @@ WSGI_APPLICATION = "config.wsgi.application"
 #     }
 # }
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': config('DATABASE_ENGINE', default='django.db.backends.postgresql'),
+#         'NAME': config('DATABASE_NAME', default='seguridadteckdb'),
+#         'USER': config('DATABASE_USER', default='seguridadteckuser'),
+#         'PASSWORD': config('DATABASE_PASSWORD', default='1798'),
+#         'HOST': config('DATABASE_HOST', default='localhost'),
+#         'PORT': config('DATABASE_PORT', default='5432', cast=int),
+#     }
+# }
 DATABASES = {
     'default': {
         'ENGINE': config('DATABASE_ENGINE', default='django.db.backends.postgresql'),
-        'NAME': config('DATABASE_NAME', default='seguridadteckdb'),
-        'USER': config('DATABASE_USER', default='seguridadteckuser'),
-        'PASSWORD': config('DATABASE_PASSWORD', default='1798'),
-        'HOST': config('DATABASE_HOST', default='localhost'),
-        'PORT': config('DATABASE_PORT', default='5432', cast=int),
+        'NAME': config('DATABASE_NAME', default='bd11ha9dqsbkxfsakwqf'),
+        'USER': config('DATABASE_USER', default='usf91ey6pfw3q0dpgqvw'),
+        'PASSWORD': config('DATABASE_PASSWORD', default='cqs9N19373YdO8bhc1sGNRW0nBLFRz'),
+        'HOST': config('DATABASE_HOST', default='bd11ha9dqsbkxfsakwqf-postgresql.services.clever-cloud.com'),
+        'PORT': config('DATABASE_PORT', default='50013', cast=int),
     }
 }
-
 
 
 
