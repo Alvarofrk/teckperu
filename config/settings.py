@@ -34,6 +34,7 @@ CSRF_TRUSTED_ORIGINS = [
     'https://*.ngrok-free.app',
     'https://seguridadteckperu.ngrok.app',
     'https://seguridadteckperu-409461866393.us-central1.run.app',
+    'https://teckperu.onrender.com/',
     # Puedes agregar más URLs de Ngrok si es necesario
 ]
 # ALLOWED_HOSTS = ["127.0.0.1", "adilmohak1.pythonanywhere.com"]
