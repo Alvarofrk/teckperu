@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %} {% trans "Página de Progreso" %} | {% trans 'Sistema de gestión de aprendizaje' %} {% endblock %}
+{% block description %} {% trans "Página de Progreso del Usuario" %} {% endblock %}
+
+{% block content %}
+
+<nav style="--bs-breadcrumb-divider: '>';" aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="/">{% trans 'Inicio' %}</a></li>
+        <li class="breadcrumb-item active" aria-current="page">{% trans 'Página de Progreso' %}</li>
+    </ol>
+</nav>
+
+<p class="title-1"><i class="fas fa-record-vinyl"></i>{% trans 'Evaluaciones' %}</p>
+
+  {% if cat_scores %}
+
+  <div class="header-title text-center">{% trans "Puntuaciones por Categoría de Pregunta" %}</div>
+  <div class="title-line"></div>
+
+  <table class="table table-bordered table-striped">
+
+	<thead>
+	  <tr>
+		<th>{% trans "Categoría" %}</th>
+		<th>{% trans "Respondidas Correctamente" %}</th>
+		<th>{% trans "Incorrectas" %}</th>
+		<th>%</th>
+	  </tr>
+	</thead>
+
+	<tbody>
+
+	  {% for cat, value in cat_scores.items %}
+	  <tr>
+		<td>{{ cat }}</td>
+		<td>{{ value.0 }}</td>
+		<td>{{ value.1 }}</td>
+		<td>{{ value.2 }}</td>
+	  </tr>
+
+	  {% endfor %}
+
+	</tbody>
+
+  </table>
+
+  {% endif %}
+
+  {% if exams %}
+
+  <!-- <div class="header-title-xl">{% trans "Exámenes Anteriores" %}</div> -->
+  <p class="lead fw-bold">
+	{% if request.user.is_superuser %}
+	{% trans "Resultados de los exámenes de los trabajadores" %}
+	{% else %}
+	{% trans "A continuación se muestran los resultados de los cursos finalizados" %}
+	{% endif %}
+  </p>
+  <!-- <div class="text-light bg-secondary mb-2 p-1">{% trans  'Total de exámenes completados:' %} {{ exams_counter }}</div> -->
+  <div class="table-responsive">
+    <table class="table table-bordered table-striped">
+
+		<thead>
+		  <tr>
+			
+			<th>{% trans "Título del Cuestionario" %}</th>
+			<th>{% trans "Puntuación Obetenida" %}</th>
+			<th>{% trans "Puntuación Máxima" %}</th>
+			<th>{% trans 'Porcentaje' %}</th>
+			<th>{% trans 'Estado de Registro' %}</th>  <!-- Nueva columna -->
+			<th>{% trans 'Certificados' %}</th>
+		  </tr>
+		</thead>
+	
+		<tbody>
+	
+			{% for exam in exams %}
+				{% if exam.get_percent_correct >= 80 %}
+				<tr>
+					
+					<td>{{ exam.quiz.title }}</td>
+					<td>{{ exam.current_score|add:exam.current_score }}</td>
+					<td>{{ exam.get_max_score|add:exam.get_max_score }}</td>
+					<td>{{ exam.get_percent_correct }}%</td>
+	
+					<!-- Columna de Estado de Registro -->
+					<td>
+						{% if exam.get_percent_correct >= 80 %}
+							<span style="color: green;">Curso completado</span>  <!-- Si el progreso es 100% -->
+						{% else %}
+							<span style="color: orange;">En progreso</span>  <!-- Si no ha completado el curso -->
+						{% endif %}
+					</td>
+	
+					<td>
+						<a href="{% url 'generar_certificado' exam.id %}" class="btn" style="background-color: #007bff; color: white; border-color: #007bff">
+							{% trans "Descargar Certificado" %}
+						</a>
+					</td>
+				</tr>
+				{% endif %}
+			{% endfor %}
+	
+		</tbody>
+	
+	</table>
+	
+</div>
+  {% endif %}
+  {% if not cat_scores and not exams %}
+  <h4 class="text-center mt-5 py-5 text-muted">
+	  <i class="fa-regular fa-folder-open me-2"></i>{% trans 'Los registros de progreso aparecerán aquí' %}
+  </h4>
+  {% endif %}
+  
+{% endblock %}
