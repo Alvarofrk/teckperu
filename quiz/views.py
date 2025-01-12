@@ -12,6 +12,7 @@ from django.contrib.auth.decorators import login_required
 from django.db import transaction
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.decorators import method_decorator
+from babel.dates import format_datetime 
 from django.views.generic import (
     CreateView,
     DetailView,
@@ -72,7 +73,12 @@ def generar_certificado(request, sitting_id):
     p.drawCentredString(479, 198, f"{int(sitting.get_percent_correct / 5)}")
     
     locale.setlocale(locale.LC_TIME, 'es_ES.utf8')
-    fecha_actual = datetime.now().strftime("%d de %B del %Y")
+    #fecha_actual = datetime.now().strftime("%d de %B del %Y")
+    fecha_actual = format_datetime(
+        datetime.now(),
+        "d 'de' MMMM 'del' y",
+        locale='es'
+    )
      # Formato dd/mm/yyyy
     p.drawString(585, 220, f"{fecha_actual}")  # Ajusta la posición según sea necesario
 
