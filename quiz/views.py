@@ -72,7 +72,7 @@ def generar_certificado(request, sitting_id):
     p.setFont("Helvetica-Bold", 14)
     p.drawCentredString(479, 198, f"{int(sitting.get_percent_correct / 5)}")
     
-    locale.setlocale(locale.LC_TIME, 'es_ES.utf8')
+    #locale.setlocale(locale.LC_TIME, 'es_ES.utf8')
     #fecha_actual = datetime.now().strftime("%d de %B del %Y")
     fecha_actual = format_datetime(
         datetime.now(),
