@@ -60,21 +60,29 @@
 	{% endif %}
   </p>
   <!-- <div class="text-light bg-secondary mb-2 p-1">{% trans  'Total de exámenes completados:' %} {{ exams_counter }}</div> -->
+ 
+  <div class="mb-3">
+    <a href="{% url 'descargar_certificados' %}" class="btn" style="background-color: #BA6022; color: white; border-color: #BA6022;">
+        {% trans "Descargar Consolidado" %}
+    </a>
+</div>
+ 
   <div class="table-responsive">
     <table class="table table-bordered table-striped">
 
 		<thead>
 		  <tr>
 			
-			<th>{% trans "Título del Cuestionario" %}</th>
-			<th>{% trans "Puntuación Obetenida" %}</th>
+			<th>{% trans "Curso" %}</th>
+			<th>{% trans "Puntuación Obtenida" %}</th>
 			<th>{% trans "Puntuación Máxima" %}</th>
 			<th>{% trans 'Porcentaje' %}</th>
 			<th>{% trans 'Estado de Registro' %}</th>  <!-- Nueva columna -->
+			<th>{% trans "Fecha de Aprobación" %}</th>
 			<th>{% trans 'Certificados' %}</th>
 		  </tr>
 		</thead>
-	
+	 
 		<tbody>
 	
 			{% for exam in exams %}
@@ -94,7 +102,13 @@
 							<span style="color: orange;">En progreso</span>  <!-- Si no ha completado el curso -->
 						{% endif %}
 					</td>
-	
+					<td>
+						{% if exam.fecha_aprobacion %}
+						  {{ exam.fecha_aprobacion|date:"d/m/Y" }}
+						{% else %}
+						  {% trans "No disponible" %}
+						{% endif %}
+					  </td>
 					<td>
 						<a href="{% url 'generar_certificado' exam.id %}" class="btn" style="background-color: #007bff; color: white; border-color: #007bff">
 							{% trans "Descargar Certificado" %}

@@ -565,8 +565,8 @@ def download_courses_pdf(request):
     data = []
     
     # Fechas fijas
-    fixed_enrollment_date = "15/11/2024"
-    fixed_expiration_date = "15/11/2025"
+    fixed_enrollment_date = "12/01/2025"
+    fixed_expiration_date = "12/02/2026"
     
     # Agregar los detalles de cada curso
     for taken_course in taken_courses:

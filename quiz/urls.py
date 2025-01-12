@@ -21,6 +21,8 @@ urlpatterns = [
         name="mc_create",
     ),
     path('certificado/<int:sitting_id>/', views.generar_certificado, name='generar_certificado'),
+    path('descargar-certificados/', views.descargar_tabla_pdf, name='descargar_certificados'),
+    
    
     # path('mc-question/add/<int:pk>/<quiz_pk>/', MCQuestionCreate.as_view(), name='mc_create'),
 ]

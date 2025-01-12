@@ -263,6 +263,7 @@ class Sitting(models.Model):
     )
     start = models.DateTimeField(auto_now_add=True, verbose_name=_("Start"))
     end = models.DateTimeField(null=True, blank=True, verbose_name=_("End"))
+    fecha_aprobacion = models.DateTimeField(null=True, blank=True, verbose_name=_("Fecha de Aprobación"))  # Nuevo campo
 
     objects = SittingManager()
 
@@ -304,6 +305,9 @@ class Sitting(models.Model):
     def mark_quiz_complete(self):
         self.complete = True
         self.end = now()
+        # Establecer fecha_aprobacion si el usuario ha aprobado
+        if self.check_if_passed:
+            self.fecha_aprobacion = now()
         self.save()
 
     def add_incorrect_question(self, question):

@@ -5,14 +5,20 @@ from datetime import datetime
 from PyPDF2 import PdfReader, PdfWriter
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import landscape,A4
-from django.http import FileResponse
+from django.http import FileResponse, Http404, HttpResponse 
+from django.utils.translation import gettext as _ 
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.decorators import method_decorator
-from babel.dates import format_datetime 
+from babel.dates import format_datetime
+from reportlab.lib import colors
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+from reportlab.lib.styles import getSampleStyleSheet
+from babel.dates import format_datetime
+from .models import Sitting 
 from django.views.generic import (
     CreateView,
     DetailView,
@@ -110,6 +116,109 @@ def generar_certificado(request, sitting_id):
 
     # Devolver el PDF combinado como respuesta
     return FileResponse(resultado, as_attachment=True, filename='certificado.pdf')
+
+
+def descargar_tabla_pdf(request):
+    # Obtener todos los exámenes aprobados por el usuario
+    exams = Sitting.objects.filter(user=request.user, fecha_aprobacion__isnull=False)
+
+    if not exams.exists():
+        return HttpResponse(_("No hay certificados para descargar."), status=404)
+
+
+    # Crear un buffer de memoria
+    buffer = io.BytesIO()
+
+    # Configurar el documento PDF
+    doc = SimpleDocTemplate(buffer, pagesize=landscape(A4))
+    elements = []
+
+    # Estilos para el PDF
+    styles = getSampleStyleSheet()
+    title = Paragraph(_("Consolidado de cursos aprobados"), styles['Title'])
+    elements.append(title)
+    elements.append(Spacer(1, 12))
+
+    # Encabezados de la tabla
+    data = [
+        [
+            _("Nombre del curso"),
+            _("Puntuación Obtenida"),
+            _("Puntuación Máxima"),
+            _("Porcentaje"),
+            _("Estado de Registro"),
+            _("Fecha de Aprobación"),
+        ]
+    ]
+
+    # Rellenar los datos de la tabla
+    for exam in exams:
+        # Formatear la fecha usando Babel
+        fecha_aprobacion = format_datetime(
+            exam.fecha_aprobacion,  # Asegúrate de que tienes este campo en tu modelo
+            "d 'de' MMMM 'del' y",
+            locale='es'
+        )
+
+        estado_registro = _("Curso completado") if exam.get_percent_correct >= 80 else _("En progreso")
+
+        data.append([
+            exam.quiz.title,
+            exam.current_score,
+            exam.get_max_score,
+            f"{exam.get_percent_correct}%",
+            estado_registro,
+            fecha_aprobacion
+        ])
+
+    # Crear la tabla
+    table = Table(data, repeatRows=1)
+
+    # Definir los colores personalizados
+    primary_color = colors.HexColor("#BA6022")  # Color principal
+    white = colors.white
+    black = colors.black
+    light_grey = colors.HexColor("#f2f2f2")    # Para filas alternas o resaltes
+
+    # Estilo de la tabla
+    style = TableStyle([
+        # Estilo del encabezado
+        ('BACKGROUND', (0, 0), (-1, 0), primary_color),
+        ('TEXTCOLOR', (0, 0), (-1, 0), white),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, 0), 12),
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+
+        # Estilo de las filas de datos
+        ('BACKGROUND', (0, 1), (-1, -1), white),
+        ('TEXTCOLOR', (0, 1), (-1, -1), black),
+        ('GRID', (0, 0), (-1, -1), 0.5, black),
+
+        # Agregar alternancia de colores para mejorar la legibilidad
+        ('BACKGROUND', (0, 1), (-1, -1), white),
+    ])
+
+    # Aplicar estilos condicionales
+    for i, exam in enumerate(exams, start=1):
+        porcentaje = exam.get_percent_correct
+
+        # Resaltar filas con porcentaje >= 80% en color principal con texto blanco
+        if porcentaje >= 80:
+            style.add('BACKGROUND', (0, i), (-1, i), primary_color)
+            style.add('TEXTCOLOR', (0, i), (-1, i), white)
+        # Puedes añadir más condiciones si lo deseas
+    table.setStyle(style)
+
+    # Añadir la tabla al contenido
+    elements.append(table)
+
+    # Construir el PDF
+    doc.build(elements)
+
+    # Preparar la respuesta
+    buffer.seek(0)
+    return FileResponse(buffer, as_attachment=True, filename='consolidado.pdf')
 
 @method_decorator([login_required, lecturer_required], name="dispatch")
 class QuizCreateView(CreateView):
