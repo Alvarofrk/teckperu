@@ -129,6 +129,149 @@ class StaffAddForm(UserCreationForm):
         return user
 
 
+# class StudentAddForm(UserCreationForm):
+#     username = forms.CharField(
+#         max_length=30,
+#         widget=forms.TextInput(
+#             attrs={"type": "text", "class": "form-control", "id": "username_id"}
+#         ),
+#         label="Username",
+#         required=False,
+#     )
+#     address = forms.CharField(
+#         max_length=30,
+#         widget=forms.TextInput(
+#             attrs={
+#                 "type": "text",
+#                 "class": "form-control",
+#             }
+#         ),
+#         label="Address",
+#     )
+
+#     phone = forms.CharField(
+#         max_length=30,
+#         widget=forms.TextInput(
+#             attrs={
+#                 "type": "text",
+#                 "class": "form-control",
+#             }
+#         ),
+#         label="Mobile No.",
+#     )
+
+#     first_name = forms.CharField(
+#         max_length=30,
+#         widget=forms.TextInput(
+#             attrs={
+#                 "type": "text",
+#                 "class": "form-control",
+#             }
+#         ),
+#         label="First name",
+#     )
+
+#     last_name = forms.CharField(
+#         max_length=30,
+#         widget=forms.TextInput(
+#             attrs={
+#                 "type": "text",
+#                 "class": "form-control",
+#             }
+#         ),
+#         label="Last name",
+#     )
+
+#     gender = forms.CharField(
+#         widget=forms.Select(
+#             choices=GENDERS,
+#             attrs={
+#                 "class": "browser-default custom-select form-control",
+#             },
+#         ),
+#     )
+
+#     level = forms.CharField(
+#         widget=forms.Select(
+#             choices=LEVEL,
+#             attrs={
+#                 "class": "browser-default custom-select form-control",
+#             },
+#         ),
+#     )
+
+#     program = forms.ModelChoiceField(
+#         queryset=Program.objects.all(),
+#         widget=forms.Select(
+#             attrs={"class": "browser-default custom-select form-control"}
+#         ),
+#         label="Program",
+#     )
+
+#     email = forms.EmailField(
+#         widget=forms.TextInput(
+#             attrs={
+#                 "type": "email",
+#                 "class": "form-control",
+#             }
+#         ),
+#         label="Email Address",
+#     )
+
+#     password1 = forms.CharField(
+#         max_length=30,
+#         widget=forms.TextInput(
+#             attrs={
+#                 "type": "password",
+#                 "class": "form-control",
+#             }
+#         ),
+#         label="Password",
+#         required=False,
+#     )
+
+#     password2 = forms.CharField(
+#         max_length=30,
+#         widget=forms.TextInput(
+#             attrs={
+#                 "type": "password",
+#                 "class": "form-control",
+#             }
+#         ),
+#         label="Password Confirmation",
+#         required=False,
+#     )
+
+#     # def validate_email(self):
+#     #     email = self.cleaned_data['email']
+#     #     if User.objects.filter(email__iexact=email, is_active=True).exists():
+#     #         raise forms.ValidationError("Email has taken, try another email address. ")
+
+#     class Meta(UserCreationForm.Meta):
+#         model = User
+
+#     @transaction.atomic()
+#     def save(self, commit=True):
+#         user = super().save(commit=False)
+#         user.is_student = True
+#         user.first_name = self.cleaned_data.get("first_name")
+#         user.last_name = self.cleaned_data.get("last_name")
+#         user.gender = self.cleaned_data.get("gender")
+#         user.address = self.cleaned_data.get("address")
+#         user.phone = self.cleaned_data.get("phone")
+#         user.address = self.cleaned_data.get("address")
+#         user.email = self.cleaned_data.get("email")
+
+#         if commit:
+#             user.save()
+#             Student.objects.create(
+#                 student=user,
+#                 level=self.cleaned_data.get("level"),
+#                 program=self.cleaned_data.get("program"),
+#             )
+
+#         return user
+
 class StudentAddForm(UserCreationForm):
     username = forms.CharField(
         max_length=30,
@@ -148,7 +291,6 @@ class StudentAddForm(UserCreationForm):
         ),
         label="Address",
     )
-
     phone = forms.CharField(
         max_length=30,
         widget=forms.TextInput(
@@ -162,24 +304,14 @@ class StudentAddForm(UserCreationForm):
 
     first_name = forms.CharField(
         max_length=30,
-        widget=forms.TextInput(
-            attrs={
-                "type": "text",
-                "class": "form-control",
-            }
-        ),
-        label="First name",
+        widget=forms.TextInput(attrs={"type": "text", "class": "form-control"}),
+        label="First Name",
     )
 
     last_name = forms.CharField(
         max_length=30,
-        widget=forms.TextInput(
-            attrs={
-                "type": "text",
-                "class": "form-control",
-            }
-        ),
-        label="Last name",
+        widget=forms.TextInput(attrs={"type": "text", "class": "form-control"}),
+        label="Last Name",
     )
 
     gender = forms.CharField(
@@ -191,61 +323,44 @@ class StudentAddForm(UserCreationForm):
         ),
     )
 
-    level = forms.CharField(
-        widget=forms.Select(
-            choices=LEVEL,
-            attrs={
-                "class": "browser-default custom-select form-control",
-            },
-        ),
+    # Cambiamos 'level' a 'cargo' y lo hacemos un campo de texto
+    cargo = forms.CharField(
+        max_length=100,
+        widget=forms.TextInput(attrs={"type": "text", "class": "form-control"}),
+        label="Cargo",
+    )
+
+    # Nuevo campo: empresa
+    empresa = forms.CharField(
+        max_length=100,
+        widget=forms.TextInput(attrs={"type": "text", "class": "form-control"}),
+        label="Empresa",
     )
 
     program = forms.ModelChoiceField(
         queryset=Program.objects.all(),
-        widget=forms.Select(
-            attrs={"class": "browser-default custom-select form-control"}
-        ),
+        widget=forms.Select(attrs={"class": "browser-default custom-select form-control"}),
         label="Program",
     )
 
     email = forms.EmailField(
-        widget=forms.TextInput(
-            attrs={
-                "type": "email",
-                "class": "form-control",
-            }
-        ),
+        widget=forms.TextInput(attrs={"type": "email", "class": "form-control"}),
         label="Email Address",
     )
 
     password1 = forms.CharField(
         max_length=30,
-        widget=forms.TextInput(
-            attrs={
-                "type": "password",
-                "class": "form-control",
-            }
-        ),
+        widget=forms.TextInput(attrs={"type": "password", "class": "form-control"}),
         label="Password",
         required=False,
     )
 
     password2 = forms.CharField(
         max_length=30,
-        widget=forms.TextInput(
-            attrs={
-                "type": "password",
-                "class": "form-control",
-            }
-        ),
+        widget=forms.TextInput(attrs={"type": "password", "class": "form-control"}),
         label="Password Confirmation",
         required=False,
     )
-
-    # def validate_email(self):
-    #     email = self.cleaned_data['email']
-    #     if User.objects.filter(email__iexact=email, is_active=True).exists():
-    #         raise forms.ValidationError("Email has taken, try another email address. ")
 
     class Meta(UserCreationForm.Meta):
         model = User
@@ -259,18 +374,22 @@ class StudentAddForm(UserCreationForm):
         user.gender = self.cleaned_data.get("gender")
         user.address = self.cleaned_data.get("address")
         user.phone = self.cleaned_data.get("phone")
-        user.address = self.cleaned_data.get("address")
         user.email = self.cleaned_data.get("email")
 
         if commit:
             user.save()
-            Student.objects.create(
+
+            # Crear el estudiante con los nuevos campos 'cargo' y 'empresa'
+            student = Student.objects.create(
                 student=user,
-                level=self.cleaned_data.get("level"),
+                cargo=self.cleaned_data.get("cargo"),
+                empresa=self.cleaned_data.get("empresa"),
                 program=self.cleaned_data.get("program"),
             )
+            student.save()
 
         return user
+
 
 
 class ProfileUpdateForm(UserChangeForm):
@@ -288,7 +407,7 @@ class ProfileUpdateForm(UserChangeForm):
         widget=forms.TextInput(
             attrs={
                 "type": "text",
-                "class": "form-control",
+                "class": "form-control", 
             }
         ),
         label="Nombres",

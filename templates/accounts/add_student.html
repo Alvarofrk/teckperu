@@ -39,7 +39,10 @@
                 <p class="form-title">{% trans 'Otros' %}</p>
                 <div class="card-body">
                     {{ form.program|as_crispy_field }}
-                    {{ form.level|as_crispy_field }}
+                    <!-- Cambié level a cargo -->
+                    {{ form.cargo|as_crispy_field }}
+                    <!-- También revisa si quieres mostrar el campo de empresa -->
+                    {{ form.empresa|as_crispy_field }}
                 </div>
             </div>
         </div>

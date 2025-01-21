@@ -96,13 +96,14 @@ def profile(request):
         student = get_object_or_404(Student, student__pk=request.user.id)
         parent = Parent.objects.filter(student=student).first()
         courses = TakenCourse.objects.filter(
-            student__student__id=request.user.id, course__level=student.level
-        )
+        student__student__id=request.user.id
+        ).select_related('course')  # Esto optimiza la consulta para acceder a la relación 'course'.
+
         context.update(
             {
                 "parent": parent,
                 "courses": courses,
-                "level": student.level,
+                "cargo": student.cargo,
             }
         )
         return render(request, "accounts/profile.html", context)
@@ -146,8 +147,9 @@ def profile_single(request, user_id):
     elif user.is_student:
         student = get_object_or_404(Student, student__pk=user_id)
         courses = TakenCourse.objects.filter(
-            student__student__id=user_id, course__level=student.level
-        )
+        student__student__id=request.user.id
+        ).select_related('course')  # Esto optimiza la consulta para acceder a la relación 'course'.
+
         context.update(
             {
                 "user_type": "Student",
