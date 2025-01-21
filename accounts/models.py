@@ -153,10 +153,11 @@ class StudentManager(models.Manager):
 
 class Student(models.Model):
     student = models.OneToOneField(User, on_delete=models.CASCADE)
-    # Cambiar 'level' por 'cargo' y 'empresa'
-    cargo = models.CharField(max_length=100, null=True, blank=True)  # Nuevo campo: cargo
-    empresa = models.CharField(max_length=100, null=True, blank=True)  # Nuevo campo: empresa
+    # id_number = models.CharField(max_length=20, unique=True, blank=True)
+    level = models.CharField(max_length=25, choices=LEVEL, null=True)
     program = models.ForeignKey(Program, on_delete=models.CASCADE, null=True)
+
+    objects = StudentManager()
 
     class Meta:
         ordering = ("-student__date_joined",)
