@@ -5,8 +5,9 @@ from django.conf import settings
 from core.utils import send_html_email
 
 
-def generate_password():
-    return "123"
+def generate_password(username):
+    return username
+    #return "123"
     # return get_user_model().objects.make_random_password()
 
 
