@@ -102,7 +102,8 @@ def profile(request):
             {
                 "parent": parent,
                 "courses": courses,
-                "level": student.level,
+                "student": student,
+
             }
         )
         return render(request, "accounts/profile.html", context)
@@ -305,7 +306,7 @@ def student_add_view(request):
             email = student.email
             messages.success(
                 request,
-                f"Account for {full_name} has been created. "
+                f"Cuenta para  {full_name} ha si do creada. "
                 f"An email with account credentials will be sent to {email} within a minute.",
             )
             return redirect("student_list")

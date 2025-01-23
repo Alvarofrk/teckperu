@@ -156,6 +156,10 @@ class Student(models.Model):
     # id_number = models.CharField(max_length=20, unique=True, blank=True)
     level = models.CharField(max_length=25, choices=LEVEL, null=True)
     program = models.ForeignKey(Program, on_delete=models.CASCADE, null=True)
+    cargo = models.CharField(max_length=100, blank=True, null=True)  # Campo cargo
+    empresa = models.CharField(max_length=100, blank=True, null=True)  # Campo empresa
+
+
 
     objects = StudentManager()
 

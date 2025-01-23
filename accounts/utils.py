@@ -10,12 +10,12 @@ def generate_password():
     # return get_user_model().objects.make_random_password()
 
 
-def generate_student_id():
-    # Generate a username based on first and last name and registration date
-    registered_year = datetime.now().strftime("%Y")
-    students_count = get_user_model().objects.filter(is_student=True).count()
-    return f"teck-{settings.STUDENT_ID_PREFIX}-{registered_year}-{students_count}"
-    #return f"{registered_year}-trabajadorteck-{students_count}"
+# def generate_student_id():
+#     # Generate a username based on first and last name and registration date
+#     registered_year = datetime.now().strftime("%Y")
+#     students_count = get_user_model().objects.filter(is_student=True).count()
+#     return f"teck-{settings.STUDENT_ID_PREFIX}-{registered_year}-{students_count}"
+#     #return f"{registered_year}-trabajadorteck-{students_count}"
 
 def generate_lecturer_id():
     # Generate a username based on first and last name and registration date
@@ -24,9 +24,9 @@ def generate_lecturer_id():
     #return f"teck-{settings.LECTURER_ID_PREFIX}-{registered_year}-{lecturers_count}"
     return f"{registered_year}-instructorteck-{lecturers_count}"
 
-def generate_student_credentials():
-    return generate_student_id(), generate_password()
-    #return generate_student_id(), generate_student_id()
+# def generate_student_credentials():
+#     return generate_student_id(), generate_password()
+#     #return generate_student_id(), generate_student_id()
 
 
 def generate_lecturer_credentials():

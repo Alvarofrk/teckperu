@@ -13,3 +13,4 @@ class ASCIIUsernameValidator(validators.RegexValidator):
         "numbers, and @/./+/-/_ characters."
     )
     flags = re.ASCII
+

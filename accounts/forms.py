@@ -136,7 +136,7 @@ class StudentAddForm(UserCreationForm):
             attrs={"type": "text", "class": "form-control", "id": "username_id"}
         ),
         label="Username",
-        required=False,
+        required=True,
     )
     address = forms.CharField(
         max_length=30,
@@ -189,6 +189,29 @@ class StudentAddForm(UserCreationForm):
                 "class": "browser-default custom-select form-control",
             },
         ),
+    )
+
+    cargo = forms.CharField(
+        max_length=100,
+        widget=forms.TextInput(
+            attrs={
+                "type": "text",
+                "class": "form-control",
+            }
+        ),
+        label="Cargo",
+    )
+
+    # Campo 'empresa' que añadimos
+    empresa = forms.CharField(
+        max_length=100,
+        widget=forms.TextInput(
+            attrs={
+                "type": "text",
+                "class": "form-control",
+            }
+        ),
+        label="Empresa",
     )
 
     level = forms.CharField(
@@ -263,10 +286,12 @@ class StudentAddForm(UserCreationForm):
         user.email = self.cleaned_data.get("email")
 
         if commit:
-            user.save()
+            user.save() 
             Student.objects.create(
                 student=user,
                 level=self.cleaned_data.get("level"),
+                cargo=self.cleaned_data.get("cargo"),
+                empresa=self.cleaned_data.get("empresa"),
                 program=self.cleaned_data.get("program"),
             )
 
@@ -288,7 +313,7 @@ class ProfileUpdateForm(UserChangeForm):
         widget=forms.TextInput(
             attrs={
                 "type": "text",
-                "class": "form-control",
+                "class": "form-control", 
             }
         ),
         label="Nombres",
