@@ -48,7 +48,7 @@ from .models import (
 
 
 # ########################################################
-# Quiz Views
+# Quiz Views 
 # ########################################################
 def generar_certificado(request, sitting_id):
     # Ruta de la plantilla de certificado en la carpeta `static/pdfs`
