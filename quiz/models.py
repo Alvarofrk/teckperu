@@ -264,11 +264,27 @@ class Sitting(models.Model):
     start = models.DateTimeField(auto_now_add=True, verbose_name=_("Start"))
     end = models.DateTimeField(null=True, blank=True, verbose_name=_("End"))
     fecha_aprobacion = models.DateTimeField(null=True, blank=True, verbose_name=_("Fecha de Aprobación"))  # Nuevo campo
-
+    certificate_code = models.CharField(max_length=10, blank=True, null=True)  # Nuevo campo para el código del certificado
+    
     objects = SittingManager()
 
     class Meta:
         permissions = (("view_sittings", _("Can see completed exams.")),)
+
+    def save(self, *args, **kwargs):
+        # Si no tiene un código de certificado asignado, generarlo
+        if not self.certificate_code:
+            # Obtener el último código de certificado generado para el curso
+            new_code = self.course.last_cert_code + 1  # Incrementar el último código
+            # Generar un código con 3 dígitos
+            certificate_code = str(new_code).zfill(3)
+            self.certificate_code = certificate_code
+
+            # Actualizar el último código utilizado para este curso
+            self.course.last_cert_code = new_code
+            self.course.save()  # Guardamos el curso con el último código actualizado
+            
+        super(Sitting, self).save(*args, **kwargs)
 
     def get_first_question(self):
         if not self.question_list:

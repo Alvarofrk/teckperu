@@ -6,6 +6,7 @@ from PyPDF2 import PdfReader, PdfWriter
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import landscape,A4
 from django.http import FileResponse, Http404, HttpResponse 
+from django.db.models import Max
 from django.utils.translation import gettext as _ 
 from django.conf import settings
 from django.contrib import messages
@@ -50,62 +51,226 @@ from .models import (
 # ########################################################
 # Quiz Views 
 # ########################################################
+# def generar_certificado(request, sitting_id):
+#     # Ruta de la plantilla de certificado en la carpeta `static/pdfs`
+#     plantilla_path = os.path.join(settings.BASE_DIR, 'static', 'pdfs', 'certificado_template.pdf')
+
+#     # Obtener el examen y validar que el usuario tiene permiso
+#     sitting = get_object_or_404(Sitting, id=sitting_id, user=request.user)
+    
+#     # Verifica la puntuación antes de continuar
+#     if sitting.get_percent_correct <= 80:
+#         raise Http404("No se puede generar el certificado, la puntuación es menor al 80%.")
+
+#     # Crear un buffer de memoria para el contenido que vamos a superponer
+#     buffer = io.BytesIO()
+#     p = canvas.Canvas(buffer, pagesize=landscape(A4))
+#     ancho_pagina, alto_pagina = landscape(A4)
+#     # Añadir el contenido de texto sobre la plantilla
+#     # Ajusta la fuente, tamaño y color del texto
+#     p.setFont("Helvetica-Bold", 30)  # Aumenta el tamaño de la fuente
+#     p.setFillColorRGB(0.85, 0.64, 0.13)  # Color dorado en RGB
+
+
+#     # Ajusta la posición del texto más abajo y centra el texto
+#     p.drawCentredString(ancho_pagina / 2, 315, f"{request.user.first_name} {request.user.last_name}")
+#     #p.drawCentredString(300, 370, f"Título del Examen: {sitting.quiz.title}")
+#     p.setFillColorRGB(0.051, 0.231, 0.4)
+#     p.setFont("Helvetica-Bold", 14)
+#     p.drawCentredString(479, 198, f"{int(sitting.get_percent_correct / 5)}")
+    
+#     #locale.setlocale(locale.LC_TIME, 'es_ES.utf8')
+#     #fecha_actual = datetime.now().strftime("%d de %B del %Y")
+#     fecha_actual = format_datetime(
+#         datetime.now(),
+#         "d 'de' MMMM 'del' y",
+#         locale='es'
+#     )
+#      # Formato dd/mm/yyyy
+#     p.drawString(585, 220, f"{fecha_actual}")  # Ajusta la posición según sea necesario
+
+#     p.setFont("Helvetica", 16)
+#     p.setFillColorRGB(0.051, 0.231, 0.4)  # Color negro
+#     p.drawString(485, 273, f"{request.user.username}")  
+
+#     # Finalizar el contenido del buffer
+#     p.showPage()
+#     p.save()
+#     buffer.seek(0)
+
+#     # Cargar la plantilla de certificado
+#     plantilla_pdf = PdfReader(plantilla_path)
+#     pagina_plantilla = plantilla_pdf.pages[0]
+
+#     # Crear un nuevo PDF con la plantilla y el contenido superpuesto
+#     contenido_pdf = PdfReader(buffer)
+#     writer = PdfWriter()
+    
+#     # Superponer la plantilla y el contenido nuevo
+#     pagina_plantilla.merge_page(contenido_pdf.pages[0])
+#     writer.add_page(pagina_plantilla)
+
+#     # Guardar el PDF combinado en un nuevo buffer
+#     resultado = io.BytesIO()
+#     writer.write(resultado)
+#     resultado.seek(0)
+
+#     # Devolver el PDF combinado como respuesta
+#     return FileResponse(resultado, as_attachment=True, filename='certificado.pdf')
+
+# views.py
+
+# views.py
+
+# views.py
+
 def generar_certificado(request, sitting_id):
     # Ruta de la plantilla de certificado en la carpeta `static/pdfs`
     plantilla_path = os.path.join(settings.BASE_DIR, 'static', 'pdfs', 'certificado_template.pdf')
 
     # Obtener el examen y validar que el usuario tiene permiso
     sitting = get_object_or_404(Sitting, id=sitting_id, user=request.user)
-    
+
     # Verifica la puntuación antes de continuar
     if sitting.get_percent_correct <= 80:
         raise Http404("No se puede generar el certificado, la puntuación es menor al 80%.")
 
-    # Crear un buffer de memoria para el contenido que vamos a superponer
-    buffer = io.BytesIO()
-    p = canvas.Canvas(buffer, pagesize=landscape(A4))
-    ancho_pagina, alto_pagina = landscape(A4)
-    # Añadir el contenido de texto sobre la plantilla
-    # Ajusta la fuente, tamaño y color del texto
-    p.setFont("Helvetica-Bold", 30)  # Aumenta el tamaño de la fuente
-    p.setFillColorRGB(0.85, 0.64, 0.13)  # Color dorado en RGB
-
-
-    # Ajusta la posición del texto más abajo y centra el texto
-    p.drawCentredString(ancho_pagina / 2, 315, f"{request.user.first_name} {request.user.last_name}")
-    #p.drawCentredString(300, 370, f"Título del Examen: {sitting.quiz.title}")
-    p.setFillColorRGB(0.051, 0.231, 0.4)
-    p.setFont("Helvetica-Bold", 14)
-    p.drawCentredString(479, 198, f"{int(sitting.get_percent_correct / 5)}")
-    
-    #locale.setlocale(locale.LC_TIME, 'es_ES.utf8')
-    #fecha_actual = datetime.now().strftime("%d de %B del %Y")
+    # Datos comunes
+    nombre_estudiante = f"{request.user.first_name} {request.user.last_name}"
+    puntaje = int(sitting.get_percent_correct / 5)
     fecha_actual = format_datetime(
         datetime.now(),
         "d 'de' MMMM 'del' y",
         locale='es'
     )
-     # Formato dd/mm/yyyy
-    p.drawString(585, 220, f"{fecha_actual}")  # Ajusta la posición según sea necesario
+    nombre_usuario = request.user.username
+    certificate_code = sitting.certificate_code
 
+    # Determinar la plantilla de certificado según el código del curso
+    if sitting.quiz.course.code == "0001":
+        plantilla_path = os.path.join(settings.BASE_DIR, 'static', 'pdfs', 'certificado_0001.pdf')
+        # Personalización de posiciones para este curso
+        pos_nombre_estudiante = 305
+        pos_puntaje = (728, 188)
+        pos_fecha = (140, 188)
+        pos_nombre_usuario = (525, 263)
+        pos_codigo_certificado = (679, 466)
+    elif sitting.quiz.course.code == "0002":
+        plantilla_path = os.path.join(settings.BASE_DIR, 'static', 'pdfs', 'certificado_0002.pdf')
+        # Personalización de posiciones para este curso
+        pos_nombre_estudiante = 305
+        pos_puntaje = (138, 167)
+        pos_fecha = (230, 188)
+        pos_nombre_usuario = (525, 263)
+        pos_codigo_certificado = (679, 466)
+    elif sitting.quiz.course.code == "0003":
+        plantilla_path = os.path.join(settings.BASE_DIR, 'static', 'pdfs', 'certificado_0003.pdf')
+        # Personalización de posiciones para este curso
+        pos_nombre_estudiante = 305
+        pos_puntaje = (738, 188)
+        pos_fecha = (110, 188)
+        pos_nombre_usuario = (525, 263)
+        pos_codigo_certificado = (679, 466)
+    elif sitting.quiz.course.code == "0004":
+        plantilla_path = os.path.join(settings.BASE_DIR, 'static', 'pdfs', 'certificado_0004.pdf')
+        # Personalización de posiciones para este curso
+        pos_nombre_estudiante = 305
+        pos_puntaje = (329, 188)
+        pos_fecha = (397, 210)
+        pos_nombre_usuario = (525, 263)
+        pos_codigo_certificado = (679, 466)
+    elif sitting.quiz.course.code == "0005":
+        plantilla_path = os.path.join(settings.BASE_DIR, 'static', 'pdfs', 'certificado_0005.pdf')
+        # Personalización de posiciones para este curso
+        pos_nombre_estudiante = 305
+        pos_puntaje = (702, 190)
+        pos_fecha = (111, 190)
+        pos_nombre_usuario = (525, 263)
+        pos_codigo_certificado = (679, 466)
+    elif sitting.quiz.course.code == "0006":
+        plantilla_path = os.path.join(settings.BASE_DIR, 'static', 'pdfs', 'certificado_0006.pdf')
+        # Personalización de posiciones para este curso
+        pos_nombre_estudiante = 305
+        pos_puntaje = (463, 184)
+        pos_fecha = (561, 206)
+        pos_nombre_usuario = (525, 263)
+        pos_codigo_certificado = (679, 466)
+    elif sitting.quiz.course.code == "0007":
+        plantilla_path = os.path.join(settings.BASE_DIR, 'static', 'pdfs', 'certificado_0007.pdf')
+        # Personalización de posiciones para este curso
+        pos_nombre_estudiante = 305
+        pos_puntaje = (331, 183)
+        pos_fecha = (380, 205)
+        pos_nombre_usuario = (525, 263)
+        pos_codigo_certificado = (679, 466)
+    elif sitting.quiz.course.code == "0008":
+        plantilla_path = os.path.join(settings.BASE_DIR, 'static', 'pdfs', 'certificado_0008.pdf')
+        # Personalización de posiciones para este curso
+        pos_nombre_estudiante = 305
+        pos_puntaje = (329, 183)
+        pos_fecha = (461, 205)
+        pos_nombre_usuario = (525, 263)
+        pos_codigo_certificado = (679, 466)
+    elif sitting.quiz.course.code == "0009":
+        plantilla_path = os.path.join(settings.BASE_DIR, 'static', 'pdfs', 'certificado_0009.pdf')
+        # Personalización de posiciones para este curso
+        pos_nombre_estudiante = 305
+        pos_puntaje = (465, 184.5)
+        pos_fecha = (565, 206)
+        pos_nombre_usuario = (525, 263)
+        pos_codigo_certificado = (679, 466)
+    
+    else:
+        plantilla_path = os.path.join(settings.BASE_DIR, 'static', 'pdfs', 'certificado_default.pdf')
+        pos_nombre_estudiante = 430
+        pos_puntaje = (479, 198)
+        pos_fecha = (585, 220)
+        pos_nombre_usuario = (485, 273)
+
+    # Crear un buffer de memoria para el contenido que vamos a superponer
+    buffer = io.BytesIO()
+    p = canvas.Canvas(buffer, pagesize=landscape(A4))
+    ancho_pagina, alto_pagina = landscape(A4)
+
+    # Mantenemos los mismos colores y valores que usas en tu plantilla original
+    p.setFont("Helvetica-Bold", 30)
+    p.setFillColorRGB(0.85, 0.64, 0.13)  # Color dorado (como en tu plantilla original)
+    
+    # Centrar el nombre del estudiante en el eje X
+    p.drawCentredString(ancho_pagina / 2, pos_nombre_estudiante, nombre_estudiante)
+
+    # Puntaje, fecha y nombre de usuario con posiciones fijas en ambos ejes
+    p.setFillColorRGB(0.051, 0.231, 0.4)  # Color azul (como en tu plantilla original)
+    p.setFont("Helvetica-Bold", 14)
+    p.drawString(pos_puntaje[0], pos_puntaje[1], f"{puntaje}")
+
+    # Fecha
     p.setFont("Helvetica", 16)
-    p.setFillColorRGB(0.051, 0.231, 0.4)  # Color negro
-    p.drawString(485, 273, f"{request.user.username}")  
+    p.setFillColorRGB(0.051, 0.231, 0.4)  # Color azul (como en tu plantilla original)
+    p.drawString(pos_fecha[0], pos_fecha[1], f"{fecha_actual}")
+
+    # Nombre de usuario
+    p.setFont("Helvetica", 16)
+    p.setFillColorRGB(0.051, 0.231, 0.4)  # Color azul (como en tu plantilla original)
+    p.drawString(pos_nombre_usuario[0], pos_nombre_usuario[1], f"{nombre_usuario}")
+
+    # Código del certificado
+    p.setFont("Helvetica-Bold", 16)
+    p.setFillColorRGB(0.051, 0.231, 0.4)  # Color azul (como en tu plantilla original)
+    p.drawString(pos_codigo_certificado[0], pos_codigo_certificado[1], f"{certificate_code}")
 
     # Finalizar el contenido del buffer
     p.showPage()
     p.save()
     buffer.seek(0)
 
-    # Cargar la plantilla de certificado
+    # Cargar la plantilla del certificado
     plantilla_pdf = PdfReader(plantilla_path)
     pagina_plantilla = plantilla_pdf.pages[0]
 
     # Crear un nuevo PDF con la plantilla y el contenido superpuesto
     contenido_pdf = PdfReader(buffer)
     writer = PdfWriter()
-    
-    # Superponer la plantilla y el contenido nuevo
     pagina_plantilla.merge_page(contenido_pdf.pages[0])
     writer.add_page(pagina_plantilla)
 
@@ -116,6 +281,7 @@ def generar_certificado(request, sitting_id):
 
     # Devolver el PDF combinado como respuesta
     return FileResponse(resultado, as_attachment=True, filename='certificado.pdf')
+
 
 
 def descargar_tabla_pdf(request):
@@ -152,24 +318,33 @@ def descargar_tabla_pdf(request):
     ]
 
     # Rellenar los datos de la tabla
-    for exam in exams:
-        # Formatear la fecha usando Babel
-        fecha_aprobacion = format_datetime(
-            exam.fecha_aprobacion,  # Asegúrate de que tienes este campo en tu modelo
-            "d 'de' MMMM 'del' y",
-            locale='es'
-        )
 
-        estado_registro = _("Curso completado") if exam.get_percent_correct >= 80 else _("En progreso")
+    latest_exams = exams.values('quiz').annotate(max_score=Max('current_score'))
 
-        data.append([
-            exam.quiz.title,
-            exam.current_score,
-            exam.get_max_score,
-            f"{exam.get_percent_correct}%",
-            estado_registro,
-            fecha_aprobacion
-        ])
+
+    for exam_data in latest_exams:
+        # Obtener el último examen aprobado para ese curso
+        exam = exams.filter(quiz_id=exam_data['quiz'], current_score=exam_data['max_score']) \
+                    .order_by('-fecha_aprobacion').first()  # Si hay varios con la misma puntuación, tomamos el más reciente
+
+        if exam:
+            # Formatear la fecha usando Babel
+            fecha_aprobacion = format_datetime(
+                exam.fecha_aprobacion,  # Asegúrate de que tienes este campo en tu modelo
+                "d 'de' MMMM 'del' y",
+                locale='es'
+            )
+
+            estado_registro = _("Curso completado") if exam.get_percent_correct >= 80 else _("En progreso")
+
+            data.append([
+                exam.quiz.title,
+                2*exam.current_score,
+                2*exam.get_max_score,
+                f"{exam.get_percent_correct}%",
+                estado_registro,
+                fecha_aprobacion
+            ])
 
     # Crear la tabla
     table = Table(data, repeatRows=1)

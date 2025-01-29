@@ -75,6 +75,8 @@ class Course(models.Model):
     is_elective = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
 
+    last_cert_code = models.IntegerField(default=0)
+
     objects = CourseManager()
 
     def __str__(self):
@@ -121,7 +123,7 @@ class CourseAllocation(models.Model):
     session = models.ForeignKey(
         "core.Session", on_delete=models.CASCADE, blank=True, null=True
     )
-
+ 
     def __str__(self):
         return self.lecturer.get_full_name
 

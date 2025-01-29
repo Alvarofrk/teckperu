@@ -67,62 +67,51 @@
     </a>
 </div>
  
-  <div class="table-responsive">
+<div class="table-responsive">
     <table class="table table-bordered table-striped">
-
-		<thead>
-		  <tr>
-			
-			<th>{% trans "Curso" %}</th>
-			<th>{% trans "Puntuación Obtenida" %}</th>
-			<th>{% trans "Puntuación Máxima" %}</th>
-			<th>{% trans 'Porcentaje' %}</th>
-			<th>{% trans 'Estado de Registro' %}</th>  <!-- Nueva columna -->
-			<th>{% trans "Fecha de Aprobación" %}</th>
-			<th>{% trans 'Certificados' %}</th>
-		  </tr>
-		</thead>
-	 
-		<tbody>
-	
-			{% for exam in exams %}
-				{% if exam.get_percent_correct >= 80 %}
-				<tr>
-					
-					<td>{{ exam.quiz.title }}</td>
-					<td>{{ exam.current_score|add:exam.current_score }}</td>
-					<td>{{ exam.get_max_score|add:exam.get_max_score }}</td>
-					<td>{{ exam.get_percent_correct }}%</td>
-	
-					<!-- Columna de Estado de Registro -->
-					<td>
-						{% if exam.get_percent_correct >= 80 %}
-							<span style="color: green;">Curso completado</span>  <!-- Si el progreso es 100% -->
-						{% else %}
-							<span style="color: orange;">En progreso</span>  <!-- Si no ha completado el curso -->
-						{% endif %}
-					</td>
-					<td>
-						{% if exam.fecha_aprobacion %}
-						  {{ exam.fecha_aprobacion|date:"d/m/Y" }}
-						{% else %}
-						  {% trans "No disponible" %}
-						{% endif %}
-					  </td>
-					<td>
-						<a href="{% url 'generar_certificado' exam.id %}" class="btn" style="background-color: #007bff; color: white; border-color: #007bff">
-							{% trans "Descargar Certificado" %}
-						</a>
-					</td>
-				</tr>
-				{% endif %}
-			{% endfor %}
-	
-		</tbody>
-	
-	</table>
-	
+        <thead>
+            <tr>
+                <th>{% trans "Curso" %}</th>
+                <th>{% trans "Puntuación Obtenida" %}</th>
+                <th>{% trans "Puntuación Máxima" %}</th>
+                <th>{% trans 'Porcentaje' %}</th>
+                <th>{% trans 'Estado de Registro' %}</th>
+                <th>{% trans "Fecha de Aprobación" %}</th>
+                <th>{% trans 'Certificados' %}</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% regroup exams by quiz.title as exams_by_course %}
+            
+            {% for course in exams_by_course %}
+                {% with course.list|dictsortreversed:"get_percent_correct"|first as exam %}
+                    <tr>
+                        <td>{{ exam.quiz.title }}</td>
+                        <td>{{ exam.current_score|add:exam.current_score }}</td>
+						<td>{{ exam.get_max_score|add:exam.get_max_score }}</td>
+                        <td>{{ exam.get_percent_correct }}%</td>
+                        <td>
+                            <span style="color: green;">Curso completado</span>
+                        </td>
+                        <td>
+                            {% if exam.fecha_aprobacion %}
+                                {{ exam.fecha_aprobacion|date:"d/m/Y" }}
+                            {% else %}
+                                {% trans "No disponible" %}
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="{% url 'generar_certificado' exam.id %}" class="btn" style="background-color: #007bff; color: white; border-color: #007bff">
+                                {% trans "Descargar Certificado" %}
+                            </a>
+                        </td>
+                    </tr>
+                {% endwith %}
+            {% endfor %}
+        </tbody>
+    </table>
 </div>
+
   {% endif %}
   {% if not cat_scores and not exams %}
   <h4 class="text-center mt-5 py-5 text-muted">
