@@ -20,6 +20,9 @@ from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, 
 from reportlab.lib.styles import getSampleStyleSheet
 from babel.dates import format_datetime
 from .models import Sitting 
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import TTFont
+from .forms import AnexoForm
 from django.views.generic import (
     CreateView,
     DetailView,
@@ -138,11 +141,8 @@ def generar_certificado(request, sitting_id):
     # Datos comunes
     nombre_estudiante = f"{request.user.first_name} {request.user.last_name}"
     puntaje = int(sitting.get_percent_correct / 5)
-    fecha_actual = format_datetime(
-        datetime.now(),
-        "d 'de' MMMM 'del' y",
-        locale='es'
-    )
+    fecha_aprobacion_formateada = obtener_fecha_aprobacion(sitting)
+
     nombre_usuario = request.user.username
     certificate_code = sitting.certificate_code
 
@@ -247,7 +247,7 @@ def generar_certificado(request, sitting_id):
     # Fecha
     p.setFont("Helvetica", 16)
     p.setFillColorRGB(0.051, 0.231, 0.4)  # Color azul (como en tu plantilla original)
-    p.drawString(pos_fecha[0], pos_fecha[1], f"{fecha_actual}")
+    p.drawString(pos_fecha[0], pos_fecha[1], f"{fecha_aprobacion_formateada}")
 
     # Nombre de usuario
     p.setFont("Helvetica", 16)
@@ -281,8 +281,124 @@ def generar_certificado(request, sitting_id):
 
     # Devolver el PDF combinado como respuesta
     return FileResponse(resultado, as_attachment=True, filename='certificado.pdf')
+    
+def anexo_form(request, sitting_id):
+    if request.method == 'POST':
+        form = AnexoForm(request.POST)
+        if form.is_valid():
+            # Obtener los datos del formulario
+            fecha_ingreso = form.cleaned_data['fecha_ingreso']
+            ocupacion = form.cleaned_data['ocupacion']
+            area_trabajo = form.cleaned_data['area_trabajo']
+            empresa = form.cleaned_data['empresa']  # Nuevo campo
+            distrito = form.cleaned_data['distrito']  # Nuevo campo
+            provincia = form.cleaned_data['provincia']  # Nuevo campo
+
+            # Generar el anexo con los datos del formulario
+            return generar_anexo4(request, sitting_id, fecha_ingreso, ocupacion, area_trabajo, empresa, distrito, provincia)
+    else:
+        form = AnexoForm()
+
+    return render(request, 'quiz/anexo_form.html', {'form': form})
+
+def generar_anexo4(request, sitting_id, fecha_ingreso, ocupacion, area_trabajo, empresa, distrito, provincia):
+    # Obtener el examen y validar que el usuario tiene permiso
+    sitting = get_object_or_404(Sitting, id=sitting_id, user=request.user)
+
+    # Obtener la fecha de aprobación
+    fecha_aprobacion = obtener_fecha_aprobacion(sitting)
+
+ 
+    # Ruta del anexo
+    anexo_path = os.path.join(settings.BASE_DIR, 'static', 'pdfs', 'anexo4.pdf')
+
+    # Crear un buffer para el anexo
+    buffer_anexo = io.BytesIO()
+    p_anexo = canvas.Canvas(buffer_anexo, pagesize=A4)  # Cambiar a A4 para orientación vertical
+    ancho_pagina_anexo, alto_pagina_anexo = A4  # Obtener dimensiones de A4 en vertical
+
+    # Personaliza el contenido del anexo
+    p_anexo.setFont("Helvetica", 11)  # Cambiar a un tamaño de fuente más pequeño
+    p_anexo.setFillColorRGB(0, 0, 0)  # Color negro
+
+    #mifuente nueva para firmas
+    pdfmetrics.registerFont(TTFont('MiFuenteCursiva', os.path.join(settings.BASE_DIR, 'static', 'fonts', 'MiFuenteCursiva.ttf')))
+
+    # Dibujar el nombre del usuario
+    p_anexo.drawString(370, alto_pagina_anexo - 150, f"{sitting.user.first_name} {sitting.user.last_name}")
+    
+    # Dibujar el DNI (nombre de usuario)
+    p_anexo.drawString(475, alto_pagina_anexo - 193, f"{sitting.user.username}")
+
+    # Agregar los datos del formulario
+    p_anexo.drawString(403, alto_pagina_anexo - 171.5, f"{fecha_ingreso}")
+    p_anexo.drawString(379, alto_pagina_anexo - 213, f"{ocupacion}")
+    p_anexo.drawString(400, alto_pagina_anexo - 233.5, f"{area_trabajo}")
+
+    # Agregar los nuevos datos
+    p_anexo.drawString(126.5, alto_pagina_anexo -171.5, f"{empresa}")
+    p_anexo.drawString(68.2, alto_pagina_anexo - 214, f"{distrito}")
+    p_anexo.drawString(79, alto_pagina_anexo - 235, f"{provincia}")
+    
+    # Agregar la fecha de aprobación sin formatear
+    p_anexo.drawString(391, alto_pagina_anexo - 641, f"{fecha_aprobacion}")
+
+    # Usar la fuente personalizada para la firma
+    p_anexo.setFont("MiFuenteCursiva", 13)  # Cambiar a la fuente personalizada
+    p_anexo.drawString(69, 115, f"{sitting.user.first_name} {sitting.user.last_name}")  # Ajusta la posición según sea necesario
+
+    # Finalizar el contenido del buffer del anexo
+    p_anexo.showPage()
+    p_anexo.save()
+    buffer_anexo.seek(0)
+
+    # Cargar el anexo
+    anexo_pdf = PdfReader(anexo_path)
+    pagina_anexo = anexo_pdf.pages[0]
+
+    # Crear un nuevo PDF con el contenido del anexo
+    contenido_anexo_pdf = PdfReader(buffer_anexo)
+    writer_anexo = PdfWriter()
+    pagina_anexo.merge_page(contenido_anexo_pdf.pages[0])
+    writer_anexo.add_page(pagina_anexo)
+
+    # Guardar el PDF combinado en un nuevo buffer
+    resultado_anexo = io.BytesIO()
+    writer_anexo.write(resultado_anexo)
+    resultado_anexo.seek(0)
+
+    # Devolver el PDF del anexo como respuesta
+    return FileResponse(resultado_anexo, as_attachment=True, filename='anexo4.pdf')
 
 
+
+def obtener_fecha_aprobacion(exam):
+    # Obtener la fecha de aprobación
+    fecha_aprobacion = exam.fecha_aprobacion
+
+    # Crear un diccionario para los nombres de los meses
+    meses = {
+        1: "enero",
+        2: "febrero",
+        3: "marzo",
+        4: "abril",
+        5: "mayo",
+        6: "junio",
+        7: "julio",
+        8: "agosto",
+        9: "septiembre",
+        10: "octubre",
+        11: "noviembre",
+        12: "diciembre"
+    }
+
+    # Formatear el día con un cero delante si es necesario
+    dia = f"{fecha_aprobacion.day:02d}"  # Formato con cero delante
+    mes = meses[fecha_aprobacion.month]  # Obtener el nombre del mes
+    año = fecha_aprobacion.year
+
+    # Crear el string formateado
+    return f"{dia} de {mes} del {año}"
 
 def descargar_tabla_pdf(request):
     # Obtener todos los exámenes aprobados por el usuario
@@ -290,7 +406,6 @@ def descargar_tabla_pdf(request):
 
     if not exams.exists():
         return HttpResponse(_("No hay certificados para descargar."), status=404)
-
 
     # Crear un buffer de memoria
     buffer = io.BytesIO()
@@ -318,9 +433,7 @@ def descargar_tabla_pdf(request):
     ]
 
     # Rellenar los datos de la tabla
-
     latest_exams = exams.values('quiz').annotate(max_score=Max('current_score'))
-
 
     for exam_data in latest_exams:
         # Obtener el último examen aprobado para ese curso
@@ -328,19 +441,15 @@ def descargar_tabla_pdf(request):
                     .order_by('-fecha_aprobacion').first()  # Si hay varios con la misma puntuación, tomamos el más reciente
 
         if exam:
-            # Formatear la fecha usando Babel
-            fecha_aprobacion = format_datetime(
-                exam.fecha_aprobacion,  # Asegúrate de que tienes este campo en tu modelo
-                "d 'de' MMMM 'del' y",
-                locale='es'
-            )
+            # Usar la función auxiliar para obtener la fecha de aprobación formateada
+            fecha_aprobacion = obtener_fecha_aprobacion(exam)
 
             estado_registro = _("Curso completado") if exam.get_percent_correct >= 80 else _("En progreso")
 
             data.append([
                 exam.quiz.title,
-                2*exam.current_score,
-                2*exam.get_max_score,
+                2 * exam.current_score,
+                2 * exam.get_max_score,
                 f"{exam.get_percent_correct}%",
                 estado_registro,
                 fecha_aprobacion
@@ -360,7 +469,7 @@ def descargar_tabla_pdf(request):
         # Estilo del encabezado
         ('BACKGROUND', (0, 0), (-1, 0), primary_color),
         ('TEXTCOLOR', (0, 0), (-1, 0), white),
-        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+ ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
         ('FONTSIZE', (0, 0), (-1, 0), 12),
         ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
         ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
@@ -394,6 +503,7 @@ def descargar_tabla_pdf(request):
     # Preparar la respuesta
     buffer.seek(0)
     return FileResponse(buffer, as_attachment=True, filename='consolidado.pdf')
+
 
 @method_decorator([login_required, lecturer_required], name="dispatch")
 class QuizCreateView(CreateView):

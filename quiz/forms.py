@@ -15,6 +15,14 @@ class QuestionForm(forms.Form):
         )
 
 
+class AnexoForm(forms.Form):
+    fecha_ingreso = forms.DateField(widget=forms.TextInput(attrs={'type': 'date'}), label="Fecha de Ingreso")
+    ocupacion = forms.CharField(max_length=100, label="Ocupación")
+    area_trabajo = forms.CharField(max_length=100, label="Área de Trabajo")
+    empresa = forms.CharField(max_length=100, label="E.C.M./CONEXAS")
+    distrito = forms.CharField(max_length=100, label="Distrito")
+    provincia = forms.CharField(max_length=100, label="Provincia")
+
 class EssayForm(forms.Form):
     def __init__(self, question, *args, **kwargs):
         super(EssayForm, self).__init__(*args, **kwargs)
