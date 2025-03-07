@@ -135,8 +135,8 @@ def generar_certificado(request, sitting_id):
     sitting = get_object_or_404(Sitting, id=sitting_id, user=request.user)
 
     # Verifica la puntuación antes de continuar
-    if sitting.get_percent_correct <= 80:
-        raise Http404("No se puede generar el certificado, la puntuación es menor al 80%.")
+    # if sitting.get_percent_correct <= 80:
+    #     raise Http404("No se puede generar el certificado, la puntuación es menor al 80%.")
 
     # Datos comunes
     nombre_estudiante = f"{request.user.first_name} {request.user.last_name}"
