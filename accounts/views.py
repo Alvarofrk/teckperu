@@ -339,7 +339,7 @@ def edit_student(request, pk):
 
 @method_decorator([login_required, admin_required], name="dispatch")
 class StudentListView(FilterView):
-    queryset = Student.objects.all()
+    queryset = Student.objects.select_related('student', 'program').all()
     filterset_class = StudentFilter
     template_name = "accounts/student_list.html"
     paginate_by = 10

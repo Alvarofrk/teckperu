@@ -40,7 +40,7 @@
             </tr>
         </thead>
         <tbody>
-            {% for student in filter.qs %}
+            {% for student in object_list %}
             <tr>
                 <td>{{ forloop.counter }}.</td>
                 <td>{{ student.student.username }}</td>
@@ -84,4 +84,155 @@
         </tbody>
     </table>
 </div>
+
+<!-- Paginación personalizada -->
+{% if is_paginated %}
+<div class="pagination-container mt-4">
+    <nav aria-label="Paginación de trabajadores">
+        <ul class="pagination justify-content-center">
+            {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link custom-page-link" href="?page=1{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">
+                        <i class="fas fa-angle-double-left"></i> {% trans 'Primera' %}
+                    </a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link custom-page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">
+                        <i class="fas fa-angle-left"></i> {% trans 'Anterior' %}
+                    </a>
+                </li>
+            {% else %}
+                <li class="page-item disabled">
+                    <span class="page-link custom-page-link disabled">
+                        <i class="fas fa-angle-double-left"></i> {% trans 'Primera' %}
+                    </span>
+                </li>
+                <li class="page-item disabled">
+                    <span class="page-link custom-page-link disabled">
+                        <i class="fas fa-angle-left"></i> {% trans 'Anterior' %}
+                    </span>
+                </li>
+            {% endif %}
+
+            <li class="page-item active">
+                <span class="page-link custom-page-link active">
+                    <i class="fas fa-circle"></i> {% trans 'Página' %} {{ page_obj.number }} {% trans 'de' %} {{ page_obj.paginator.num_pages }}
+                </span>
+            </li>
+
+            {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link custom-page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">
+                        {% trans 'Siguiente' %} <i class="fas fa-angle-right"></i>
+                    </a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link custom-page-link" href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">
+                        {% trans 'Última' %} <i class="fas fa-angle-double-right"></i>
+                    </a>
+                </li>
+            {% else %}
+                <li class="page-item disabled">
+                    <span class="page-link custom-page-link disabled">
+                        {% trans 'Siguiente' %} <i class="fas fa-angle-right"></i>
+                    </span>
+                </li>
+                <li class="page-item disabled">
+                    <span class="page-link custom-page-link disabled">
+                        {% trans 'Última' %} <i class="fas fa-angle-double-right"></i>
+                    </span>
+                </li>
+            {% endif %}
+        </ul>
+    </nav>
+</div>
+
+<style>
+.pagination-container {
+    margin-top: 2rem;
+    margin-bottom: 2rem;
+}
+
+.pagination {
+    gap: 5px;
+}
+
+.page-link.custom-page-link {
+    color: #BA6022;
+    background-color: #fff;
+    border: 2px solid #BA6022;
+    border-radius: 25px;
+    padding: 10px 20px;
+    font-weight: 500;
+    font-family: "Rubik", sans-serif;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 120px;
+    justify-content: center;
+}
+
+.page-link.custom-page-link:hover {
+    background-color: #BA6022;
+    color: #fff;
+    border-color: #BA6022;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(186, 96, 34, 0.3);
+}
+
+.page-link.custom-page-link:focus {
+    box-shadow: 0 0 0 0.2rem rgba(186, 96, 34, 0.25);
+    outline: none;
+}
+
+.page-link.custom-page-link.active {
+    background-color: #BA6022;
+    color: #fff;
+    border-color: #BA6022;
+    box-shadow: 0 4px 15px rgba(186, 96, 34, 0.3);
+}
+
+.page-link.custom-page-link.disabled {
+    color: #6c757d;
+    background-color: #f8f9fa;
+    border-color: #dee2e6;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.page-link.custom-page-link.disabled:hover {
+    background-color: #f8f9fa;
+    color: #6c757d;
+    border-color: #dee2e6;
+    transform: none;
+    box-shadow: none;
+}
+
+.page-item.active .page-link.custom-page-link {
+    background-color: #BA6022;
+    color: #fff;
+    border-color: #BA6022;
+}
+
+.pagination .page-item {
+    margin: 0 2px;
+}
+
+@media (max-width: 768px) {
+    .page-link.custom-page-link {
+        padding: 8px 15px;
+        font-size: 14px;
+        min-width: 100px;
+    }
+    
+    .pagination {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+}
+</style>
+{% endif %}
+
 {% endblock content %}

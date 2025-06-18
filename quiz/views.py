@@ -160,7 +160,7 @@ def generar_certificado(request, sitting_id):
         # Personalización de posiciones para este curso
         pos_nombre_estudiante = 305
         pos_puntaje = (138, 167)
-        pos_fecha = (230, 188)
+        pos_fecha = (230, 188) 
         pos_nombre_usuario = (525, 263)
         pos_codigo_certificado = (679, 466)
     elif sitting.quiz.course.code == "0003":
