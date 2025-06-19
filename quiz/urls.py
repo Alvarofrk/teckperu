@@ -22,9 +22,11 @@ urlpatterns = [
     ),
     path('certificado/<int:sitting_id>/', views.generar_certificado, name='generar_certificado'),
     path('descargar-certificados/', views.descargar_tabla_pdf, name='descargar_certificados'),
+    path('descargar-multiples/', views.descargar_certificados_multiples, name='descargar_certificados_multiples'),
     path('generar_anexo4/<int:sitting_id>/', views.generar_anexo4, name='generar_anexo4'),
     path('anexo_form/<int:sitting_id>/', views.anexo_form, name='anexo_form'),
-    
+    path('buscar-usuarios/', views.buscar_usuarios_ajax, name='buscar_usuarios_ajax'),
+    path('buscar-cuestionarios/', views.buscar_cuestionarios_ajax, name='buscar_cuestionarios_ajax'),
    
     # path('mc-question/add/<int:pk>/<quiz_pk>/', MCQuestionCreate.as_view(), name='mc_create'),
 ]

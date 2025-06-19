@@ -5,8 +5,8 @@ from datetime import datetime
 from PyPDF2 import PdfReader, PdfWriter
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import landscape,A4
-from django.http import FileResponse, Http404, HttpResponse 
-from django.db.models import Max
+from django.http import FileResponse, Http404, HttpResponse, JsonResponse
+from django.db.models import Max, F, Q
 from django.utils.translation import gettext as _ 
 from django.conf import settings
 from django.contrib import messages
@@ -49,6 +49,8 @@ from .models import (
     Quiz,
     Sitting,
 )
+from course.models import CourseAllocation
+from django.contrib.auth.models import User
 
 
 # ########################################################
@@ -127,23 +129,36 @@ from .models import (
 
 # views.py
 
+@login_required
 def generar_certificado(request, sitting_id):
     # Ruta de la plantilla de certificado en la carpeta `static/pdfs`
     plantilla_path = os.path.join(settings.BASE_DIR, 'static', 'pdfs', 'certificado_template.pdf')
 
-    # Obtener el examen y validar que el usuario tiene permiso
-    sitting = get_object_or_404(Sitting, id=sitting_id, user=request.user)
-
-    # Verifica la puntuación antes de continuar
+    # Obtener el examen
+    sitting = get_object_or_404(Sitting, id=sitting_id)
+    
+    # Validar permisos: el usuario puede ser el estudiante o un instructor del curso
+    if request.user != sitting.user:
+        # Si no es el estudiante, verificar que sea instructor del curso
+        if not request.user.is_superuser:
+            # Verificar que el instructor tenga asignado este curso
+            has_permission = CourseAllocation.objects.filter(
+                lecturer=request.user,
+                courses=sitting.quiz.course
+            ).exists()
+            
+            if not has_permission:
+                raise Http404("No tienes permisos para acceder a este certificado.")
+    
+    # Verifica la puntuación antes de continuar (opcional, comentado)
     # if sitting.get_percent_correct <= 80:
     #     raise Http404("No se puede generar el certificado, la puntuación es menor al 80%.")
 
-    # Datos comunes
-    nombre_estudiante = f"{request.user.first_name} {request.user.last_name}"
+    # Datos comunes - usar los datos del estudiante, no del usuario actual
+    nombre_estudiante = f"{sitting.user.first_name} {sitting.user.last_name}"
     puntaje = int(sitting.get_percent_correct / 5)
     fecha_aprobacion_formateada = obtener_fecha_aprobacion(sitting)
-
-    nombre_usuario = request.user.username
+    nombre_usuario = sitting.user.username
     certificate_code = sitting.certificate_code
 
     # Determinar la plantilla de certificado según el código del curso
@@ -649,21 +664,148 @@ class QuizUserProgressView(TemplateView):
 @method_decorator([login_required, lecturer_required], name="dispatch")
 class QuizMarkingList(ListView):
     model = Sitting
-    template_name = "quiz/quiz_marking_list.html"
+    template_name = "quiz/sitting_list.html"
+    paginate_by = 10  # Mostrar 10 exámenes por página
+    context_object_name = 'sitting_list'
 
     def get_queryset(self):
-        queryset = Sitting.objects.filter(complete=True)
+        queryset = Sitting.objects.filter(complete=True).select_related(
+            'user', 'quiz', 'course'
+        ).order_by('-end')
+        
         if not self.request.user.is_superuser:
             queryset = queryset.filter(
                 quiz__course__allocated_course__lecturer__pk=self.request.user.id
             )
+        
+        # Filtros de búsqueda
         quiz_filter = self.request.GET.get("quiz_filter")
         if quiz_filter:
-            queryset = queryset.filter(quiz__title__icontains=quiz_filter)
+            # Buscar por título y descripción del cuestionario
+            queryset = queryset.filter(
+                Q(quiz__title__icontains=quiz_filter) |
+                Q(quiz__description__icontains=quiz_filter) |
+                Q(quiz__course__title__icontains=quiz_filter)
+            )
+        
         user_filter = self.request.GET.get("user_filter")
         if user_filter:
-            queryset = queryset.filter(user__username__icontains=user_filter)
+            # Buscar por nombre completo, apellido y username
+            queryset = queryset.filter(
+                Q(user__first_name__icontains=user_filter) |
+                Q(user__last_name__icontains=user_filter) |
+                Q(user__username__icontains=user_filter) |
+                Q(user__email__icontains=user_filter)
+            )
+        
+        # Filtro por fecha
+        date_filter = self.request.GET.get("date_filter")
+        if date_filter:
+            queryset = queryset.filter(end__date=date_filter)
+        
+        # Filtro por porcentaje mínimo
+        min_score = self.request.GET.get("min_score")
+        if min_score and min_score.isdigit():
+            min_score = int(min_score)
+            # Convertir a lista para filtrar por porcentaje
+            queryset = [s for s in queryset if s.get_percent_correct >= min_score]
+        
         return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        
+        # Agregar estadísticas
+        queryset = self.get_queryset()
+        
+        # Manejar tanto QuerySet como lista
+        if isinstance(queryset, list):
+            # Es una lista
+            context['total_exams'] = len(queryset)
+        else:
+            # Es un QuerySet
+            context['total_exams'] = queryset.count()
+        
+        # Contar exámenes aprobados usando el método check_if_passed
+        passed_count = 0
+        failed_count = 0
+        total_score = 0
+        total_possible = 0
+        certificates_generated = 0
+        certificates_available = 0
+        
+        for sitting in queryset:
+            if sitting.check_if_passed:
+                passed_count += 1
+            else:
+                failed_count += 1
+            
+            # Contar certificados
+            if sitting.certificate_code:
+                certificates_generated += 1
+                if sitting.check_if_passed:
+                    certificates_available += 1
+            
+            total_score += sitting.current_score
+            total_possible += sitting.get_max_score
+        
+        context['passed_exams'] = passed_count
+        context['failed_exams'] = failed_count
+        context['certificates_generated'] = certificates_generated
+        context['certificates_available'] = certificates_available
+        
+        # Calcular promedio de puntuación
+        if context['total_exams'] > 0 and total_possible > 0:
+            context['average_score'] = round((total_score / total_possible) * 100, 2)
+        else:
+            context['average_score'] = 0
+        
+        # Mantener los filtros en la paginación
+        context['current_filters'] = {
+            'quiz_filter': self.request.GET.get("quiz_filter", ""),
+            'user_filter': self.request.GET.get("user_filter", ""),
+            'date_filter': self.request.GET.get("date_filter", ""),
+            'min_score': self.request.GET.get("min_score", ""),
+        }
+        
+        # Agregar lista de cursos disponibles para el filtro
+        if self.request.user.is_superuser:
+            # Administrador ve todos los cursos
+            available_courses = Course.objects.filter(is_active=True).order_by('title')
+            # print(f"SUPERUSER - Cursos totales: {available_courses.count()}")
+        else:
+            # Instructor ve solo sus cursos asignados - usar la misma lógica que la tabla
+            available_courses = Course.objects.filter(
+                allocated_course__lecturer__pk=self.request.user.id,
+                is_active=True
+            ).distinct().order_by('title')
+            # print(f"INSTRUCTOR - Usuario: {self.request.user.username}")
+            # print(f"INSTRUCTOR - ID: {self.request.user.id}")
+            # print(f"INSTRUCTOR - Cursos encontrados: {available_courses.count()}")
+            
+            # Debug adicional: verificar si hay asignaciones
+            allocations = CourseAllocation.objects.filter(lecturer=self.request.user)
+            # print(f"INSTRUCTOR - Asignaciones totales: {allocations.count()}")
+            for alloc in allocations:
+                # Manejar tanto QuerySet como lista para alloc.courses
+                if isinstance(alloc.courses, list):
+                    courses_count = len(alloc.courses)
+                else:
+                    courses_count = alloc.courses.count()
+                # print(f"  - Asignación {alloc.id}: {courses_count} cursos")
+                for course in alloc.courses.all():
+                    # print(f"    * {course.title} ({course.code}) - Activo: {course.is_active}")
+                    pass
+        
+        # Debug final
+        # print(f"CURSOS FINALES: {available_courses.count()}")
+        for course in available_courses:
+            # print(f"  - {course.title} ({course.code})")
+            pass
+        
+        context['available_courses'] = available_courses
+        
+        return context
 
 
 @method_decorator([login_required, lecturer_required], name="dispatch")
@@ -803,3 +945,149 @@ class QuizTake(FormView):
             self.sitting.delete()
 
         return render(self.request, self.result_template_name, results)
+
+@login_required
+@lecturer_required
+def descargar_certificados_multiples(request):
+    """Descargar múltiples certificados como archivo ZIP"""
+    from zipfile import ZipFile
+    from io import BytesIO
+    
+    # Obtener los IDs de los certificados a descargar
+    sitting_ids = request.GET.getlist('sitting_ids')
+    if not sitting_ids:
+        messages.error(request, "No se seleccionaron certificados para descargar.")
+        return redirect('quiz_marking')
+    
+    # Crear un archivo ZIP en memoria
+    zip_buffer = BytesIO()
+    with ZipFile(zip_buffer, 'w') as zip_file:
+        for sitting_id in sitting_ids:
+            try:
+                sitting = Sitting.objects.get(id=sitting_id)
+                
+                # Verificar permisos del instructor
+                if not request.user.is_superuser:
+                    if not CourseAllocation.objects.filter(
+                        lecturer=request.user,
+                        courses=sitting.quiz.course
+                    ).exists():
+                        continue
+                
+                # Generar el certificado individual
+                if sitting.certificate_code and sitting.check_if_passed:
+                    # Aquí reutilizaríamos la lógica de generar_certificado
+                    # Por simplicidad, creamos un archivo de texto con la información
+                    cert_info = f"""
+Certificado: {sitting.certificate_code}
+Estudiante: {sitting.user.get_full_name()}
+Curso: {sitting.quiz.course.title}
+Puntuación: {sitting.get_percent_correct}%
+Fecha: {sitting.end.strftime('%d/%m/%Y') if sitting.end else 'N/A'}
+                    """.strip()
+                    
+                    filename = f"certificado_{sitting.certificate_code}_{sitting.user.username}.txt"
+                    zip_file.writestr(filename, cert_info)
+                    
+            except Sitting.DoesNotExist:
+                continue
+    
+    zip_buffer.seek(0)
+    
+    # Devolver el archivo ZIP
+    response = HttpResponse(zip_buffer.getvalue(), content_type='application/zip')
+    response['Content-Disposition'] = 'attachment; filename="certificados.zip"'
+    return response
+
+@login_required
+@lecturer_required
+def buscar_usuarios_ajax(request):
+    """Vista AJAX para búsqueda de usuarios en tiempo real"""
+    query = request.GET.get('q', '').strip()
+    
+    if len(query) < 2:  # Mínimo 2 caracteres para buscar
+        return JsonResponse({'usuarios': []})
+    
+    # Obtener usuarios que han completado exámenes
+    if request.user.is_superuser:
+        # Administrador ve todos los usuarios
+        usuarios = User.objects.filter(
+            Q(first_name__icontains=query) |
+            Q(last_name__icontains=query) |
+            Q(username__icontains=query) |
+            Q(email__icontains=query),
+            sitting__complete=True
+        ).distinct().values('id', 'first_name', 'last_name', 'username', 'email')[:10]
+    else:
+        # Instructor ve solo usuarios de sus cursos asignados
+        usuarios = User.objects.filter(
+            Q(first_name__icontains=query) |
+            Q(last_name__icontains=query) |
+            Q(username__icontains=query) |
+            Q(email__icontains=query),
+            sitting__complete=True,
+            sitting__quiz__course__allocated_course__lecturer=request.user
+        ).distinct().values('id', 'first_name', 'last_name', 'username', 'email')[:10]
+    
+    # Formatear resultados
+    resultados = []
+    for usuario in usuarios:
+        nombre_completo = f"{usuario['first_name']} {usuario['last_name']}".strip()
+        if not nombre_completo:
+            nombre_completo = usuario['username']
+        
+        resultados.append({
+            'id': usuario['id'],
+            'nombre_completo': nombre_completo,
+            'username': usuario['username'],
+            'email': usuario['email'],
+            'texto_busqueda': f"{nombre_completo} ({usuario['username']})"
+        })
+    
+    return JsonResponse({'usuarios': resultados})
+
+@login_required
+@lecturer_required
+def buscar_cuestionarios_ajax(request):
+    """Vista AJAX para búsqueda de cuestionarios en tiempo real"""
+    query = request.GET.get('q', '').strip()
+    
+    if len(query) < 2:  # Mínimo 2 caracteres para buscar
+        return JsonResponse({'cuestionarios': []})
+    
+    # Obtener cuestionarios que tienen exámenes completados
+    if request.user.is_superuser:
+        # Administrador ve todos los cuestionarios
+        cuestionarios = Quiz.objects.filter(
+            Q(title__icontains=query) |
+            Q(description__icontains=query) |
+            Q(course__title__icontains=query),
+            sitting__complete=True
+        ).distinct().values('id', 'title', 'description', 'course__title', 'course__code')[:10]
+    else:
+        # Instructor ve solo cuestionarios de sus cursos asignados
+        cuestionarios = Quiz.objects.filter(
+            Q(title__icontains=query) |
+            Q(description__icontains=query) |
+            Q(course__title__icontains=query),
+            sitting__complete=True,
+            course__allocated_course__lecturer=request.user
+        ).distinct().values('id', 'title', 'description', 'course__title', 'course__code')[:10]
+    
+    # Formatear resultados
+    resultados = []
+    for cuestionario in cuestionarios:
+        descripcion = cuestionario['description'] or ''
+        if len(descripcion) > 50:
+            descripcion = descripcion[:50] + '...'
+        
+        resultados.append({
+            'id': cuestionario['id'],
+            'titulo': cuestionario['title'],
+            'descripcion': descripcion,
+            'curso': cuestionario['course__title'],
+            'codigo_curso': cuestionario['course__code'],
+            'texto_busqueda': f"{cuestionario['title']} - {cuestionario['course__title']}"
+        })
+    
+    return JsonResponse({'cuestionarios': resultados})

@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 {% load i18n %}
-{% block title %}{% trans "Todos los Cuestionarios" %} | {% trans 'Sistema de gestión de aprendizaje' %}{% endblock %}
+{% block title %}{% trans "Exámenes Completos" %} | {% trans 'Sistema de gestión de aprendizaje' %}{% endblock %}
 
 {% block content %}
 
@@ -11,53 +11,1107 @@
 	</ol>
 </nav>
 
-<div class="title-1"><i class="fas fa-calendar-alt"></i>{% trans "Lista de exámenes completos" %}</div>
+<div class="title-1"><i class="fas fa-check-double"></i>{% trans "Exámenes Completos" %}</div>
 
-{% for student in students %}<h3>{{ student.student.user.get_full_name }}</h3>{% endfor %}
-{% for marking in marking_list %}<h3>{{ marking }} <small>{{ forloop.counter }}</small></h3>{% endfor %}
+<!-- Estadísticas -->
+<div class="row mb-4">
+    <div class="col-md-2">
+        <div class="card bg-primary text-white">
+            <div class="card-body text-center">
+                <h4>{{ total_exams }}</h4>
+                <p class="mb-0">{% trans "Total Exámenes" %}</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card bg-success text-white">
+            <div class="card-body text-center">
+                <h4>{{ passed_exams }}</h4>
+                <p class="mb-0">{% trans "Aprobados" %}</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card bg-danger text-white">
+            <div class="card-body text-center">
+                <h4>{{ failed_exams }}</h4>
+                <p class="mb-0">{% trans "Reprobados" %}</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card bg-info text-white">
+            <div class="card-body text-center">
+                <h4>{{ average_score }}%</h4>
+                <p class="mb-0">{% trans "Promedio" %}</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card bg-warning text-white">
+            <div class="card-body text-center">
+                <h4>{{ certificates_generated }}</h4>
+                <p class="mb-0">{% trans "Certificados Generados" %}</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card bg-secondary text-white">
+            <div class="card-body text-center">
+                <h4>{{ certificates_available }}</h4>
+                <p class="mb-0">{% trans "Certificados Disponibles" %}</p>
+            </div>
+        </div>
+    </div>
+</div>
 
-<form action="" method="GET" class="form-inline justify-content-center bg-white p-4 my-3 d-flex gap-3">
-	<input type="text" name="user_filter" class="form-control" placeholder="{% trans 'Usuario' %}" value="{{ request.GET.user_filter }}">
-	<input type="text" name="quiz_filter" class="form-control" placeholder="{% trans 'Cuestionario' %}" value="{{ request.GET.quiz_filter }}">
-	<button type="submit" class="btn btn-outline-secondary">{% trans "Filtrar" %}</button>
+<!-- Filtros mejorados -->
+<div class="card mb-4 border-0 shadow-sm">
+    <div class="card-header bg-gradient-primary text-white border-0">
+        <div class="d-flex align-items-center">
+            <i class="fas fa-search me-2"></i>
+            <h5 class="mb-0">{% trans "Filtros de búsqueda avanzada" %}</h5>
+        </div>
+    </div>
+    <div class="card-body p-4">
+        <form action="" method="GET">
+            <div class="row g-3">
+                <!-- Filtro de Usuario -->
+                <div class="col-lg-3 col-md-6">
+                    <label for="user_filter" class="form-label fw-bold text-muted">
+                        <i class="fas fa-user me-1"></i>{% trans "Usuario" %}
+                    </label>
+                    <div class="position-relative">
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border-end-0">
+                                <i class="fas fa-search text-muted"></i>
+                            </span>
+                            <input type="text" name="user_filter" id="user_filter" 
+                                   class="form-control border-start-0 ps-0" 
+                                   placeholder="{% trans 'Buscar por usuario...' %}" 
+                                   value="{{ current_filters.user_filter }}"
+                                   autocomplete="off">
+                        </div>
+                        <div id="user_suggestions" class="position-absolute w-100 bg-white border rounded shadow-lg" 
+                             style="top: 100%; left: 0; z-index: 1000; display: none; max-height: 200px; overflow-y: auto;">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Filtro de Cuestionario -->
+                <div class="col-lg-3 col-md-6">
+                    <label for="quiz_filter" class="form-label fw-bold text-muted">
+                        <i class="fas fa-question-circle me-1"></i>{% trans "Cuestionario" %}
+                    </label>
+                    <div class="position-relative">
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border-end-0">
+                                <i class="fas fa-search text-muted"></i>
+                            </span>
+                            <input type="text" name="quiz_filter" id="quiz_filter" 
+                                   class="form-control border-start-0 ps-0" 
+                                   placeholder="{% trans 'Buscar por cuestionario...' %}" 
+                                   value="{{ current_filters.quiz_filter }}"
+                                   autocomplete="off">
+                        </div>
+                        <div id="quiz_suggestions" class="position-absolute w-100 bg-white border rounded shadow-lg" 
+                             style="top: 100%; left: 0; z-index: 1000; display: none; max-height: 200px; overflow-y: auto;">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Filtro de Fecha -->
+                <div class="col-lg-2 col-md-6">
+                    <label for="date_filter" class="form-label fw-bold text-muted">
+                        <i class="fas fa-calendar me-1"></i>{% trans "Fecha" %}
+                    </label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light border-end-0">
+                            <i class="fas fa-calendar-alt text-muted"></i>
+                        </span>
+                        <input type="date" name="date_filter" id="date_filter" 
+                               class="form-control border-start-0 ps-0" 
+                               value="{{ current_filters.date_filter }}">
+                    </div>
+                </div>
+
+                <!-- Filtro de Puntuación -->
+                <div class="col-lg-2 col-md-6">
+                    <label for="min_score" class="form-label fw-bold text-muted">
+                        <i class="fas fa-percentage me-1"></i>{% trans "Puntuación mín." %}
+                    </label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light border-end-0">
+                            <i class="fas fa-chart-line text-muted"></i>
+                        </span>
+                        <input type="number" name="min_score" id="min_score" 
+                               class="form-control border-start-0 ps-0" 
+                               placeholder="0-100" min="0" max="100" 
+                               value="{{ current_filters.min_score }}">
+                    </div>
+                </div>
+
+                <!-- Botones de acción -->
+                <div class="col-lg-2 col-md-12">
+                    <label class="form-label fw-bold text-muted">
+                        <i class="fas fa-cogs me-1"></i>{% trans "Acciones" %}
+                    </label>
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary btn-sm flex-fill shadow-sm">
+                            <i class="fas fa-filter me-1"></i>
+                            <span class="d-none d-md-inline">{% trans "Filtrar" %}</span>
+                        </button>
+                        <a href="{% url 'quiz_marking' %}" class="btn btn-outline-secondary btn-sm shadow-sm" 
+                           title="{% trans 'Limpiar filtros' %}">
+                            <i class="fas fa-times"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Indicadores de filtros activos -->
+            {% if current_filters.user_filter or current_filters.quiz_filter or current_filters.date_filter or current_filters.min_score %}
+            <div class="mt-3 pt-3 border-top">
+                <div class="d-flex align-items-center flex-wrap gap-2">
+                    <small class="text-muted fw-bold">
+                        <i class="fas fa-info-circle me-1"></i>{% trans "Filtros activos:" %}
+                    </small>
+                    {% if current_filters.user_filter %}
+                        <span class="badge bg-primary">
+                            <i class="fas fa-user me-1"></i>{{ current_filters.user_filter }}
+                            <a href="?{% if current_filters.quiz_filter %}quiz_filter={{ current_filters.quiz_filter }}{% endif %}{% if current_filters.date_filter %}&date_filter={{ current_filters.date_filter }}{% endif %}{% if current_filters.min_score %}&min_score={{ current_filters.min_score }}{% endif %}" 
+                               class="text-white text-decoration-none ms-1">×</a>
+                        </span>
+                    {% endif %}
+                    {% if current_filters.quiz_filter %}
+                        <span class="badge bg-info">
+                            <i class="fas fa-question-circle me-1"></i>{{ current_filters.quiz_filter }}
+                            <a href="?{% if current_filters.user_filter %}user_filter={{ current_filters.user_filter }}{% endif %}{% if current_filters.date_filter %}&date_filter={{ current_filters.date_filter }}{% endif %}{% if current_filters.min_score %}&min_score={{ current_filters.min_score }}{% endif %}" 
+                               class="text-white text-decoration-none ms-1">×</a>
+                        </span>
+                    {% endif %}
+                    {% if current_filters.date_filter %}
+                        <span class="badge bg-success">
+                            <i class="fas fa-calendar me-1"></i>{{ current_filters.date_filter }}
+                            <a href="?{% if current_filters.user_filter %}user_filter={{ current_filters.user_filter }}{% endif %}{% if current_filters.quiz_filter %}&quiz_filter={{ current_filters.quiz_filter }}{% endif %}{% if current_filters.min_score %}&min_score={{ current_filters.min_score }}{% endif %}" 
+                               class="text-white text-decoration-none ms-1">×</a>
+                        </span>
+                    {% endif %}
+                    {% if current_filters.min_score %}
+                        <span class="badge bg-warning text-dark">
+                            <i class="fas fa-percentage me-1"></i>≥ {{ current_filters.min_score }}%
+                            <a href="?{% if current_filters.user_filter %}user_filter={{ current_filters.user_filter }}{% endif %}{% if current_filters.quiz_filter %}&quiz_filter={{ current_filters.quiz_filter }}{% endif %}{% if current_filters.date_filter %}&date_filter={{ current_filters.date_filter }}{% endif %}" 
+                               class="text-dark text-decoration-none ms-1">×</a>
+                        </span>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
 </form>
+    </div>
+</div>
 
+<!-- Tabla de resultados -->
 {% if sitting_list %}
-
-	<div class="text-light bg-secondary p-1 my-2">{% trans 'Total de exámenes completos' %}: {{ sitting_list.count }}</div>
-
-	<table class="table table-bordered table-striped">
-		<thead>
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">
+                <i class="fas fa-list"></i> {% trans "Resultados" %}
+                <span class="badge bg-secondary ms-2">{{ page_obj.paginator.count }}</span>
+            </h5>
+            <div class="d-flex align-items-center gap-2">
+                {% comment %}
+                {% if certificates_available > 0 %}
+                    <a href="#" class="btn btn-success btn-sm" 
+                       title="{% trans 'Descargar todos los certificados disponibles' %}">
+                        <i class="fas fa-download"></i> {% trans "Descargar Todos" %}
+                    </a>
+                {% endif %}
+                {% endcomment %}
+                <small class="text-muted">
+                    {% trans "Mostrando" %} {{ page_obj.start_index }}-{{ page_obj.end_index }} 
+                    {% trans "de" %} {{ page_obj.paginator.count }}
+                </small>
+            </div>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
 			<tr>
 				<th>#</th>
 				<th>{% trans "Usuario" %}</th>
 				<th>{% trans "Curso" %}</th>
 				<th>{% trans "Cuestionario" %}</th>
 				<th>{% trans "Completado" %}</th>
-				<th>{% trans "Puntuación" %}(%)</th>
-				<th></th>
+                            <th>{% trans "Puntuación" %}</th>
+                            <th>{% trans "Estado" %}</th>
+                            <th>{% trans "Certificado" %}</th>
+                            <th>{% trans "Acciones" %}</th>
 			</tr>
 		</thead>
 		<tbody>
 		{% for sitting in sitting_list %}
 		<tr>
-			<td>{{ forloop.counter }}</td>
-			<td>{{ sitting.user }}</td>
-			<td>{{ sitting.quiz.course }}</td>
-			<td>{{ sitting.quiz }}</td>
-			<td>{{ sitting.end|date }}</td>
-			<td>{{ sitting.get_percent_correct }}%</td>
-			<td>
-			<a href="{% url 'quiz_marking_detail' pk=sitting.id %}">
-				{% trans "Ver detalles" %}
-			</a>
+                        <td>
+                            {% if is_paginated %}
+                                {{ page_obj.start_index|add:forloop.counter0 }}
+                            {% else %}
+                                {{ forloop.counter }}
+                            {% endif %}
+                        </td>
+                        <td>
+                            <strong>{{ sitting.user.get_full_name }}</strong>
+                            <br><small class="text-muted">{{ sitting.user.username }}</small>
+                        </td>
+                        <td>{{ sitting.quiz.course.title }}</td>
+                        <td>{{ sitting.quiz.title }}</td>
+                        <td>
+                            <small class="text-muted">{{ sitting.end|date:"d/m/Y" }}</small>
+                            <br><small class="text-muted">{{ sitting.end|time:"H:i" }}</small>
+                        </td>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <div class="progress flex-grow-1 me-2" style="height: 6px;">
+                                    <div class="progress-bar {% if sitting.get_percent_correct >= 80 %}bg-success{% elif sitting.get_percent_correct >= 60 %}bg-warning{% else %}bg-danger{% endif %}" 
+                                         style="width: {{ sitting.get_percent_correct }}%"></div>
+                                </div>
+                                <span class="badge {% if sitting.get_percent_correct >= 80 %}bg-success{% elif sitting.get_percent_correct >= 60 %}bg-warning{% else %}bg-danger{% endif %}">
+                                    {{ sitting.get_percent_correct }}%
+                                </span>
+                            </div>
+                        </td>
+                        <td>
+                            {% if sitting.check_if_passed %}
+                                <span class="badge bg-success">{% trans "Aprobado" %}</span>
+                            {% else %}
+                                <span class="badge bg-danger">{% trans "Reprobado" %}</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if sitting.certificate_code %}
+                                <div class="text-center">
+                                    <code class="badge bg-info">{{ sitting.certificate_code }}</code>
+                                    <br>
+                                    {% if sitting.check_if_passed %}
+                                        <small class="text-success">
+                                            <i class="fas fa-check-circle"></i> {% trans "Aprobado" %}
+                                        </small>
+                                        <br>
+                                        <small class="text-muted">
+                                            {% if sitting.fecha_aprobacion %}
+                                                {{ sitting.fecha_aprobacion|date:"d/m/Y" }}
+                                            {% else %}
+                                                {% trans "Fecha pendiente" %}
+                                            {% endif %}
+                                        </small>
+                                    {% else %}
+                                        <small class="text-danger">
+                                            <i class="fas fa-times-circle"></i> {% trans "No aprobado" %}
+                                        </small>
+                                        <br>
+                                        <small class="text-muted">{% trans "No disponible" %}</small>
+                                    {% endif %}
+                                </div>
+                            {% else %}
+                                <div class="text-center">
+                                    <span class="text-muted">
+                                        <i class="fas fa-clock"></i>
+                                        <br>{% trans "Pendiente" %}
+                                    </span>
+                                </div>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="btn-group btn-group-sm" role="group">
+                                <a href="{% url 'quiz_marking_detail' pk=sitting.id %}" 
+                                   class="btn btn-outline-primary" title="{% trans 'Ver detalles' %}">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                {% if sitting.certificate_code %}
+                                    {% if sitting.check_if_passed %}
+                                        <a href="{% url 'generar_certificado' sitting.id %}" 
+                                           class="btn btn-outline-success" 
+                                           title="{% trans 'Descargar certificado' %} - Código: {{ sitting.certificate_code }}">
+                                            <i class="fas fa-download"></i>
+                                        </a>
+                                    {% else %}
+                                        <span class="btn btn-outline-secondary" 
+                                              title="{% trans 'Certificado generado pero examen no aprobado' %} - Código: {{ sitting.certificate_code }}">
+                                            <i class="fas fa-certificate"></i>
+                                        </span>
+                                    {% endif %}
+                                {% else %}
+                                    <span class="btn btn-outline-warning" 
+                                          title="{% trans 'Certificado no generado aún' %}">
+                                        <i class="fas fa-clock"></i>
+                                    </span>
+                                {% endif %}
+                            </div>
 			</td>
 		</tr>
 		{% endfor %}
 		</tbody>
+                </table>
+            </div>
+        </div>
+    </div>
 
-	</table>
+    <!-- Paginación -->
+    {% if is_paginated %}
+    <nav aria-label="{% trans 'Navegación de páginas' %}" class="mt-4">
+        <ul class="pagination justify-content-center">
+            {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page=1{% if current_filters.user_filter %}&user_filter={{ current_filters.user_filter }}{% endif %}{% if current_filters.quiz_filter %}&quiz_filter={{ current_filters.quiz_filter }}{% endif %}{% if current_filters.date_filter %}&date_filter={{ current_filters.date_filter }}{% endif %}{% if current_filters.min_score %}&min_score={{ current_filters.min_score }}{% endif %}" title="{% trans 'Primera página' %}">
+                        <i class="fas fa-angle-double-left"></i>
+                    </a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if current_filters.user_filter %}&user_filter={{ current_filters.user_filter }}{% endif %}{% if current_filters.quiz_filter %}&quiz_filter={{ current_filters.quiz_filter }}{% endif %}{% if current_filters.date_filter %}&date_filter={{ current_filters.date_filter }}{% endif %}{% if current_filters.min_score %}&min_score={{ current_filters.min_score }}{% endif %}" title="{% trans 'Página anterior' %}">
+                        <i class="fas fa-angle-left"></i>
+                    </a>
+                </li>
+            {% endif %}
+
+            <!-- Mostrar primera página si no está en el rango visible -->
+            {% if page_obj.number > 4 %}
+                <li class="page-item">
+                    <a class="page-link" href="?page=1{% if current_filters.user_filter %}&user_filter={{ current_filters.user_filter }}{% endif %}{% if current_filters.quiz_filter %}&quiz_filter={{ current_filters.quiz_filter }}{% endif %}{% if current_filters.date_filter %}&date_filter={{ current_filters.date_filter }}{% endif %}{% if current_filters.min_score %}&min_score={{ current_filters.min_score }}{% endif %}">1</a>
+                </li>
+                {% if page_obj.number > 5 %}
+                    <li class="page-item disabled">
+                        <span class="page-link">...</span>
+                    </li>
+                {% endif %}
+            {% endif %}
+
+            <!-- Mostrar páginas alrededor de la página actual -->
+            {% for num in page_obj.paginator.page_range %}
+                {% if num >= page_obj.number|add:'-2' and num <= page_obj.number|add:'2' %}
+                    {% if page_obj.number == num %}
+                        <li class="page-item active">
+                            <span class="page-link">{{ num }}</span>
+                        </li>
+                    {% else %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ num }}{% if current_filters.user_filter %}&user_filter={{ current_filters.user_filter }}{% endif %}{% if current_filters.quiz_filter %}&quiz_filter={{ current_filters.quiz_filter }}{% endif %}{% if current_filters.date_filter %}&date_filter={{ current_filters.date_filter }}{% endif %}{% if current_filters.min_score %}&min_score={{ current_filters.min_score }}{% endif %}">{{ num }}</a>
+                        </li>
+                    {% endif %}
+                {% endif %}
+            {% endfor %}
+
+            <!-- Mostrar última página si no está en el rango visible -->
+            {% if page_obj.number < page_obj.paginator.num_pages|add:'-3' %}
+                {% if page_obj.number < page_obj.paginator.num_pages|add:'-4' %}
+                    <li class="page-item disabled">
+                        <span class="page-link">...</span>
+                    </li>
+                {% endif %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if current_filters.user_filter %}&user_filter={{ current_filters.user_filter }}{% endif %}{% if current_filters.quiz_filter %}&quiz_filter={{ current_filters.quiz_filter }}{% endif %}{% if current_filters.date_filter %}&date_filter={{ current_filters.date_filter }}{% endif %}{% if current_filters.min_score %}&min_score={{ current_filters.min_score }}{% endif %}">{{ page_obj.paginator.num_pages }}</a>
+                </li>
+            {% endif %}
+
+            {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if current_filters.user_filter %}&user_filter={{ current_filters.user_filter }}{% endif %}{% if current_filters.quiz_filter %}&quiz_filter={{ current_filters.quiz_filter }}{% endif %}{% if current_filters.date_filter %}&date_filter={{ current_filters.date_filter }}{% endif %}{% if current_filters.min_score %}&min_score={{ current_filters.min_score }}{% endif %}" title="{% trans 'Página siguiente' %}">
+                        <i class="fas fa-angle-right"></i>
+                    </a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if current_filters.user_filter %}&user_filter={{ current_filters.user_filter }}{% endif %}{% if current_filters.quiz_filter %}&quiz_filter={{ current_filters.quiz_filter }}{% endif %}{% if current_filters.date_filter %}&date_filter={{ current_filters.date_filter }}{% endif %}{% if current_filters.min_score %}&min_score={{ current_filters.min_score }}{% endif %}" title="{% trans 'Última página' %}">
+                        <i class="fas fa-angle-double-right"></i>
+                    </a>
+                </li>
+            {% endif %}
+        </ul>
+        
+        <!-- Información de paginación -->
+        <div class="text-center mt-3">
+            <small class="text-muted">
+                {% trans "Página" %} {{ page_obj.number }} {% trans "de" %} {{ page_obj.paginator.num_pages }}
+                {% if page_obj.paginator.count > 0 %}
+                    • {{ page_obj.paginator.count }} {% trans "resultados totales" %}
+                {% endif %}
+            </small>
+        </div>
+    </nav>
+    {% endif %}
+
 {% else %}
-	<p class="p-3 bg-light">{% trans "No hay exámenes completos para ti" %}.</p>
+    <div class="alert alert-info text-center">
+        <i class="fas fa-info-circle fa-2x mb-3"></i>
+        <h5>{% trans "No hay exámenes completos" %}</h5>
+        <p class="mb-0">{% trans "No se encontraron exámenes que coincidan con los filtros aplicados." %}</p>
+    </div>
 {% endif %}
+
+<!-- JavaScript para búsqueda en tiempo real -->
+<style>
+/* Estilos personalizados para los filtros */
+.bg-gradient-primary {
+    background: linear-gradient(135deg, #BA6022 0%, #FDBB5E 100%);
+}
+
+.card.shadow-sm {
+    transition: all 0.3s ease;
+}
+
+.card.shadow-sm:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+}
+
+.input-group-text {
+    border-color: #dee2e6;
+}
+
+.form-control:focus {
+    border-color: #BA6022;
+    box-shadow: 0 0 0 0.2rem rgba(186, 96, 34, 0.25);
+}
+
+.input-group:focus-within .input-group-text {
+    border-color: #BA6022;
+    background-color: #f8f9fa;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #BA6022 0%, #FDBB5E 100%);
+    border: none;
+    transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #A0521E 0%, #E6A94A 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 0.25rem 0.5rem rgba(186, 96, 34, 0.3);
+}
+
+.btn-outline-secondary {
+    transition: all 0.3s ease;
+}
+
+.btn-outline-secondary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 0.25rem 0.5rem rgba(108, 117, 125, 0.3);
+}
+
+.badge {
+    font-size: 0.75rem;
+    padding: 0.5rem 0.75rem;
+    transition: all 0.3s ease;
+}
+
+.badge a:hover {
+    opacity: 0.8;
+}
+
+/* Estilos para las sugerencias */
+#user_suggestions, #quiz_suggestions {
+    border: 1px solid #dee2e6;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+
+.user-suggestion, .quiz-suggestion {
+    transition: all 0.2s ease;
+}
+
+.user-suggestion:hover, .quiz-suggestion:hover {
+    background-color: #f8f9fa;
+}
+
+.user-suggestion:last-child, .quiz-suggestion:last-child {
+    border-bottom: none !important;
+}
+
+/* Responsive improvements */
+@media (max-width: 768px) {
+    .card-body {
+        padding: 1rem !important;
+    }
+    
+    .btn span {
+        display: none;
+    }
+    
+    .badge {
+        font-size: 0.7rem;
+        padding: 0.4rem 0.6rem;
+    }
+}
+
+/* Animaciones suaves */
+.form-label {
+    transition: color 0.3s ease;
+}
+
+.form-control:focus + .form-label {
+    color: #BA6022;
+}
+
+/* Mejoras para el estado activo */
+.form-control:focus {
+    background-color: #fff;
+}
+
+.input-group:focus-within {
+    box-shadow: 0 0 0 0.2rem rgba(186, 96, 34, 0.25);
+    border-radius: 0.375rem;
+}
+
+/* Colores específicos para badges de filtros activos */
+.badge.bg-primary {
+    background-color: #BA6022 !important;
+}
+
+.badge.bg-info {
+    background-color: #FDBB5E !important;
+    color: #333 !important;
+}
+
+.badge.bg-success {
+    background-color: #28a745 !important;
+}
+
+.badge.bg-warning {
+    background-color: #ffc107 !important;
+    color: #333 !important;
+}
+
+/* Hover effects para badges */
+.badge:hover {
+    transform: scale(1.05);
+}
+
+/* Estilos para botones outline-primary */
+.btn-outline-primary {
+    color: #BA6022;
+    border-color: #BA6022;
+    transition: all 0.3s ease;
+}
+
+.btn-outline-primary:hover {
+    background-color: #BA6022;
+    border-color: #BA6022;
+    color: white;
+    transform: translateY(-1px);
+    box-shadow: 0 0.25rem 0.5rem rgba(186, 96, 34, 0.3);
+}
+
+/* Estilos para paginación */
+.page-link {
+    color: #BA6022;
+    border-color: #dee2e6;
+    transition: all 0.3s ease;
+}
+
+.page-link:hover {
+    color: #A0521E;
+    background-color: #f8f9fa;
+    border-color: #BA6022;
+}
+
+.page-item.active .page-link {
+    background-color: #BA6022;
+    border-color: #BA6022;
+}
+
+/* Estilos para alertas */
+.alert-info {
+    background-color: rgba(186, 96, 34, 0.1);
+    border-color: #FDBB5E;
+    color: #333;
+}
+
+/* Estilos para el header de la tabla */
+.table thead th {
+    background-color: #f8f9fa;
+    border-bottom: 2px solid #BA6022;
+    color: #333;
+    font-weight: 600;
+}
+
+/* Estilos para filas de tabla al hacer hover */
+.table tbody tr:hover {
+    background-color: rgba(186, 96, 34, 0.05);
+}
+
+/* Estilos para el código del certificado */
+code.badge {
+    background-color: #FDBB5E !important;
+    color: #333 !important;
+    font-family: 'Courier New', monospace;
+    font-size: 0.7rem;
+}
+
+/* ===== ESTILOS MODERNOS PARA LA TABLA ===== */
+
+/* Contenedor de la tabla */
+.table-responsive {
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+    background: white;
+}
+
+/* Estilos generales de la tabla */
+.table {
+    margin-bottom: 0;
+    border-collapse: separate;
+    border-spacing: 0;
+    background: white;
+}
+
+/* Header de la tabla */
+.table thead th {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border: none;
+    padding: 1rem 0.75rem;
+    font-weight: 600;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #495057;
+    position: relative;
+    border-bottom: 3px solid #BA6022;
+}
+
+.table thead th:first-child {
+    border-top-left-radius: 12px;
+}
+
+.table thead th:last-child {
+    border-top-right-radius: 12px;
+}
+
+/* Filas del cuerpo */
+.table tbody tr {
+    transition: all 0.3s ease;
+    border-bottom: 1px solid #f1f3f4;
+}
+
+.table tbody tr:last-child {
+    border-bottom: none;
+}
+
+.table tbody tr:hover {
+    background: linear-gradient(135deg, rgba(186, 96, 34, 0.03) 0%, rgba(253, 187, 94, 0.05) 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(186, 96, 34, 0.1);
+}
+
+/* Celdas del cuerpo */
+.table tbody td {
+    padding: 1rem 0.75rem;
+    vertical-align: middle;
+    border: none;
+    font-size: 0.9rem;
+    color: #495057;
+}
+
+/* Estilos para la columna de usuario */
+.table tbody td:nth-child(2) {
+    font-weight: 500;
+}
+
+/* Estilos para la columna de fecha */
+.table tbody td:nth-child(3) {
+    font-family: 'Courier New', monospace;
+    font-size: 0.85rem;
+}
+
+/* Estilos para la barra de progreso */
+.progress {
+    height: 8px !important;
+    border-radius: 10px;
+    background-color: #e9ecef;
+    overflow: hidden;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.progress-bar {
+    border-radius: 10px;
+    transition: width 0.6s ease;
+    position: relative;
+}
+
+.progress-bar::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.3) 50%, transparent 100%);
+    animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+}
+
+/* Badges mejorados */
+.badge {
+    font-size: 0.75rem;
+    padding: 0.5rem 0.75rem;
+    border-radius: 20px;
+    font-weight: 500;
+    letter-spacing: 0.3px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+.badge:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* Badge de código de certificado */
+code.badge {
+    background: linear-gradient(135deg, #FDBB5E 0%, #FFD700 100%) !important;
+    color: #333 !important;
+    font-family: 'Courier New', monospace;
+    font-size: 0.7rem;
+    font-weight: 600;
+    border: 1px solid rgba(186, 96, 34, 0.2);
+}
+
+/* Botones de acción */
+.btn-group-sm .btn {
+    padding: 0.375rem 0.5rem;
+    font-size: 0.8rem;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+    margin: 0 1px;
+}
+
+.btn-group-sm .btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* Iconos en botones */
+.btn i {
+    font-size: 0.9rem;
+}
+
+/* Estados de aprobación */
+.badge.bg-success {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%) !important;
+    color: white !important;
+}
+
+.badge.bg-danger {
+    background: linear-gradient(135deg, #dc3545 0%, #e74c3c 100%) !important;
+    color: white !important;
+}
+
+.badge.bg-warning {
+    background: linear-gradient(135deg, #ffc107 0%, #ffb347 100%) !important;
+    color: #333 !important;
+}
+
+/* Estilos para texto pequeño */
+small {
+    font-size: 0.8rem;
+    opacity: 0.8;
+}
+
+/* Estilos para iconos */
+.fas, .far {
+    margin-right: 0.25rem;
+}
+
+/* Responsive para móviles */
+@media (max-width: 768px) {
+    .table-responsive {
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+    
+    .table thead th {
+        padding: 0.75rem 0.5rem;
+        font-size: 0.8rem;
+    }
+    
+    .table tbody td {
+        padding: 0.75rem 0.5rem;
+        font-size: 0.85rem;
+    }
+    
+    .badge {
+        font-size: 0.7rem;
+        padding: 0.4rem 0.6rem;
+    }
+    
+    .btn-group-sm .btn {
+        padding: 0.25rem 0.4rem;
+        font-size: 0.75rem;
+    }
+}
+
+/* Animación de entrada para las filas */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.table tbody tr {
+    animation: fadeInUp 0.6s ease forwards;
+}
+
+.table tbody tr:nth-child(1) { animation-delay: 0.1s; }
+.table tbody tr:nth-child(2) { animation-delay: 0.2s; }
+.table tbody tr:nth-child(3) { animation-delay: 0.3s; }
+.table tbody tr:nth-child(4) { animation-delay: 0.4s; }
+.table tbody tr:nth-child(5) { animation-delay: 0.5s; }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Variables para búsqueda de usuarios
+    const userFilter = document.getElementById('user_filter');
+    const userSuggestions = document.getElementById('user_suggestions');
+    let userSearchTimeout;
+    let userSelectedIndex = -1;
+
+    // Variables para búsqueda de cuestionarios
+    const quizFilter = document.getElementById('quiz_filter');
+    const quizSuggestions = document.getElementById('quiz_suggestions');
+    let quizSearchTimeout;
+    let quizSelectedIndex = -1;
+
+    // ===== FUNCIONALIDAD PARA USUARIOS =====
+    
+    // Función para buscar usuarios
+    function buscarUsuarios(query) {
+        if (query.length < 2) {
+            userSuggestions.style.display = 'none';
+            return;
+        }
+
+        fetch(`{% url 'buscar_usuarios_ajax' %}?q=${encodeURIComponent(query)}`)
+            .then(response => response.json())
+            .then(data => {
+                mostrarSugerenciasUsuarios(data.usuarios);
+            })
+            .catch(error => {
+                console.error('Error en la búsqueda de usuarios:', error);
+            });
+    }
+
+    // Función para mostrar sugerencias de usuarios
+    function mostrarSugerenciasUsuarios(usuarios) {
+        if (usuarios.length === 0) {
+            userSuggestions.style.display = 'none';
+            return;
+        }
+
+        userSuggestions.innerHTML = '';
+        usuarios.forEach((usuario, index) => {
+            const div = document.createElement('div');
+            div.className = 'p-2 border-bottom cursor-pointer user-suggestion';
+            div.style.cursor = 'pointer';
+            div.innerHTML = `
+                <div class="fw-bold">${usuario.nombre_completo}</div>
+                <small class="text-muted">${usuario.username} - ${usuario.email}</small>
+            `;
+            
+            div.addEventListener('click', function() {
+                userFilter.value = usuario.texto_busqueda;
+                userSuggestions.style.display = 'none';
+                userFilter.closest('form').submit();
+            });
+
+            div.addEventListener('mouseenter', function() {
+                document.querySelectorAll('.user-suggestion').forEach(el => {
+                    el.classList.remove('bg-warning', 'text-dark');
+                });
+                this.classList.add('bg-warning', 'text-dark');
+                userSelectedIndex = index;
+            });
+
+            userSuggestions.appendChild(div);
+        });
+
+        userSuggestions.style.display = 'block';
+    }
+
+    // ===== FUNCIONALIDAD PARA CUESTIONARIOS =====
+    
+    // Función para buscar cuestionarios
+    function buscarCuestionarios(query) {
+        if (query.length < 2) {
+            quizSuggestions.style.display = 'none';
+            return;
+        }
+
+        fetch(`{% url 'buscar_cuestionarios_ajax' %}?q=${encodeURIComponent(query)}`)
+            .then(response => response.json())
+            .then(data => {
+                mostrarSugerenciasCuestionarios(data.cuestionarios);
+            })
+            .catch(error => {
+                console.error('Error en la búsqueda de cuestionarios:', error);
+            });
+    }
+
+    // Función para mostrar sugerencias de cuestionarios
+    function mostrarSugerenciasCuestionarios(cuestionarios) {
+        if (cuestionarios.length === 0) {
+            quizSuggestions.style.display = 'none';
+            return;
+        }
+
+        quizSuggestions.innerHTML = '';
+        cuestionarios.forEach((cuestionario, index) => {
+            const div = document.createElement('div');
+            div.className = 'p-2 border-bottom cursor-pointer quiz-suggestion';
+            div.style.cursor = 'pointer';
+            div.innerHTML = `
+                <div class="fw-bold">${cuestionario.titulo}</div>
+                <small class="text-muted">${cuestionario.curso} (${cuestionario.codigo_curso})</small>
+                ${cuestionario.descripcion ? `<br><small class="text-muted">${cuestionario.descripcion}</small>` : ''}
+            `;
+            
+            div.addEventListener('click', function() {
+                quizFilter.value = cuestionario.texto_busqueda;
+                quizSuggestions.style.display = 'none';
+                quizFilter.closest('form').submit();
+            });
+
+            div.addEventListener('mouseenter', function() {
+                document.querySelectorAll('.quiz-suggestion').forEach(el => {
+                    el.classList.remove('bg-warning', 'text-dark');
+                });
+                this.classList.add('bg-warning', 'text-dark');
+                quizSelectedIndex = index;
+            });
+
+            quizSuggestions.appendChild(div);
+        });
+
+        quizSuggestions.style.display = 'block';
+    }
+
+    // ===== EVENT LISTENERS PARA USUARIOS =====
+    
+    userFilter.addEventListener('input', function() {
+        clearTimeout(userSearchTimeout);
+        const query = this.value.trim();
+        
+        userSearchTimeout = setTimeout(() => {
+            buscarUsuarios(query);
+        }, 300);
+    });
+
+    userFilter.addEventListener('keydown', function(e) {
+        const suggestions = document.querySelectorAll('.user-suggestion');
+        
+        if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            userSelectedIndex = Math.min(userSelectedIndex + 1, suggestions.length - 1);
+            if (suggestions[userSelectedIndex]) {
+                suggestions[userSelectedIndex].classList.add('bg-warning', 'text-dark');
+            }
+        } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            userSelectedIndex = Math.max(userSelectedIndex - 1, -1);
+            suggestions.forEach(el => el.classList.remove('bg-warning', 'text-dark'));
+            if (userSelectedIndex >= 0 && suggestions[userSelectedIndex]) {
+                suggestions[userSelectedIndex].classList.add('bg-warning', 'text-dark');
+            }
+        } else if (e.key === 'Enter') {
+            e.preventDefault();
+            if (userSelectedIndex >= 0 && suggestions[userSelectedIndex]) {
+                suggestions[userSelectedIndex].click();
+            } else {
+                this.closest('form').submit();
+            }
+        } else if (e.key === 'Escape') {
+            userSuggestions.style.display = 'none';
+            userSelectedIndex = -1;
+        }
+    });
+
+    // ===== EVENT LISTENERS PARA CUESTIONARIOS =====
+    
+    quizFilter.addEventListener('input', function() {
+        clearTimeout(quizSearchTimeout);
+        const query = this.value.trim();
+        
+        quizSearchTimeout = setTimeout(() => {
+            buscarCuestionarios(query);
+        }, 300);
+    });
+
+    quizFilter.addEventListener('keydown', function(e) {
+        const suggestions = document.querySelectorAll('.quiz-suggestion');
+        
+        if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            quizSelectedIndex = Math.min(quizSelectedIndex + 1, suggestions.length - 1);
+            if (suggestions[quizSelectedIndex]) {
+                suggestions[quizSelectedIndex].classList.add('bg-warning', 'text-dark');
+            }
+        } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            quizSelectedIndex = Math.max(quizSelectedIndex - 1, -1);
+            suggestions.forEach(el => el.classList.remove('bg-warning', 'text-dark'));
+            if (quizSelectedIndex >= 0 && suggestions[quizSelectedIndex]) {
+                suggestions[quizSelectedIndex].classList.add('bg-warning', 'text-dark');
+            }
+        } else if (e.key === 'Enter') {
+            e.preventDefault();
+            if (quizSelectedIndex >= 0 && suggestions[quizSelectedIndex]) {
+                suggestions[quizSelectedIndex].click();
+            } else {
+                this.closest('form').submit();
+            }
+        } else if (e.key === 'Escape') {
+            quizSuggestions.style.display = 'none';
+            quizSelectedIndex = -1;
+        }
+    });
+
+    // ===== EVENT LISTENERS GLOBALES =====
+    
+    // Ocultar sugerencias al hacer clic fuera
+    document.addEventListener('click', function(e) {
+        if (!userFilter.contains(e.target) && !userSuggestions.contains(e.target)) {
+            userSuggestions.style.display = 'none';
+            userSelectedIndex = -1;
+        }
+        if (!quizFilter.contains(e.target) && !quizSuggestions.contains(e.target)) {
+            quizSuggestions.style.display = 'none';
+            quizSelectedIndex = -1;
+        }
+    });
+
+    // Ocultar sugerencias al perder el foco
+    userFilter.addEventListener('blur', function() {
+        setTimeout(() => {
+            userSuggestions.style.display = 'none';
+            userSelectedIndex = -1;
+        }, 200);
+    });
+
+    quizFilter.addEventListener('blur', function() {
+        setTimeout(() => {
+            quizSuggestions.style.display = 'none';
+            quizSelectedIndex = -1;
+        }, 200);
+    });
+});
+</script>
+
 {% endblock %}
