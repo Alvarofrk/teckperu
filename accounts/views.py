@@ -1,5 +1,5 @@
 from django.contrib import messages
-from django.contrib.auth import update_session_auth_hash
+from django.contrib.auth import update_session_auth_hash, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import PasswordChangeForm
 from django.http import HttpResponse, JsonResponse
@@ -64,6 +64,13 @@ def register(request):
     else:
         form = StudentAddForm()
     return render(request, "registration/register.html", {"form": form})
+
+
+def custom_logout(request):
+    """Custom logout view that accepts both GET and POST requests."""
+    logout(request)
+    messages.success(request, "You have been successfully logged out.")
+    return redirect("login")
 
 
 # ########################################################
