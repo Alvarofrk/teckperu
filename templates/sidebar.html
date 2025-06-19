@@ -3,21 +3,22 @@
 
 <div id="side-nav">
 	<div class="main-menu">
-		<div class="top-side text-center py-4" style="background-color: #BA6022;">
+		<div class="top-side text-center py-4">
 			<div class="desktop-hide">
 				<div class="toggle-btn" onclick="toggleSidebar()">
 					<i class="fas fa-times"></i>
 				</div>
 			</div>
-            <a href="/">
-                <img src="{% static 'img/brand.svg' %}" width="210px" alt="SkyLearn">
+            <a href="/" class="brand-link">
+                <img src="{% static 'img/brand.svg' %}" alt="TeckPeru" class="brand-logo">
             </a>
-            <p class="mt-2 small">
-                <mark class="bg-secondary text-light" style="border-radius: 2px; padding: 2px 5px;">
+            <p class="mt-3 mb-0">
+                <mark class="user-role-badge">
                     {{ request.user.get_user_role }}
                 </mark>
             </p>
         </div>
+        
         {% url 'home' as hom %} {% url 'dashboard' as dash %} {% url 'profile' as prof %}
         {% url 'lecturer_list' as lec %}
         {% url 'student_list' as stu %} {% url 'course_allocation_view' as cav %}
@@ -27,120 +28,152 @@
         {% url 'quiz_progress' as qpr %} {% url 'quiz_marking' as qce %} {% url 'user_course_list' as ucl %}
         {% url 'admin_panel' as admin_p %}
 
-        <ul>
+        <ul class="nav-menu">
             {% if request.user.is_superuser %}
-            <li class="{% if request.path == dash %}active{% endif %}">
-                <a href="{% url 'dashboard' %}"><i class="fas fa-tachometer-alt"></i>{% trans 'Panel de control' %}</a>
+            <li class="nav-item {% if request.path == dash %}active{% endif %}">
+                <a href="{% url 'dashboard' %}" class="nav-link">
+                    <i class="fas fa-tachometer-alt"></i>
+                    <span class="nav-text">{% trans 'Panel de control' %}</span>
+                </a>
             </li>
             {% endif %}
-            <li class="{% if request.path == hom %}active{% endif %}">
-                <a href="{% url 'home' %}"><i class="fas fa-home"></i>{% trans 'Inicio' %}</a>
+            
+            <li class="nav-item {% if request.path == hom %}active{% endif %}">
+                <a href="{% url 'home' %}" class="nav-link">
+                    <i class="fas fa-home"></i>
+                    <span class="nav-text">{% trans 'Inicio' %}</span>
+                </a>
             </li>
-            <li class="{% if request.path == prof %}active{% endif %}">
-                <a href="{% url 'profile' %}"><i class="fas fa-user"></i>{% trans 'Perfil' %}</a>
+            
+            <li class="nav-item {% if request.path == prof %}active{% endif %}">
+                <a href="{% url 'profile' %}" class="nav-link">
+                    <i class="fas fa-user"></i>
+                    <span class="nav-text">{% trans 'Perfil' %}</span>
+                </a>
             </li>
 
             {% if request.user.is_superuser %}
-            <li class="{% if request.path == admin_p %}active{% endif %}">
-                <a href="{% url 'admin_panel' %}"><i class="fas fa-user-tie"></i>{% trans 'Panel de administración' %}</a>
+            <li class="nav-item {% if request.path == admin_p %}active{% endif %}">
+                <a href="{% url 'admin_panel' %}" class="nav-link">
+                    <i class="fas fa-user-tie"></i>
+                    <span class="nav-text">{% trans 'Panel de administración' %}</span>
+                </a>
             </li>
-            <li class="{% if request.path == lec %}active{% endif %}">
-                <a href="{% url 'lecturer_list' %}"><i class="fas fa-chalkboard-teacher"></i>{% trans 'Instructores' %}</a>
+            
+            <li class="nav-item {% if request.path == lec %}active{% endif %}">
+                <a href="{% url 'lecturer_list' %}" class="nav-link">
+                    <i class="fas fa-chalkboard-teacher"></i>
+                    <span class="nav-text">{% trans 'Instructores' %}</span>
+                </a>
             </li>
-            <li class="{% if request.path == stu %}active{% endif %}">
-                <a href="{% url 'student_list' %}"><i class="fas fa-user-graduate"></i>{% trans 'Trabajadores' %}</a>
+            
+            <li class="nav-item {% if request.path == stu %}active{% endif %}">
+                <a href="{% url 'student_list' %}" class="nav-link">
+                    <i class="fas fa-user-graduate"></i>
+                    <span class="nav-text">{% trans 'Trabajadores' %}</span>
+                </a>
             </li>
             {% endif %}
 
             {% if request.user.is_lecturer or request.user.is_student %}
-            <li class="{% if request.path == ucl %}active{% endif %}">
-                <a href="{% url 'user_course_list' %}"><i class="fas fa-book"></i>{% trans 'Mis cursos' %}</a>
+            <li class="nav-item {% if request.path == ucl %}active{% endif %}">
+                <a href="{% url 'user_course_list' %}" class="nav-link">
+                    <i class="fas fa-book"></i>
+                    <span class="nav-text">{% trans 'Mis cursos' %}</span>
+                </a>
             </li>
             {% endif %}
 
             {% if request.user.is_superuser or request.user.is_lecturer %}
-            <li class="{% if request.path == pro %}active{% endif %}">
-                <a href="{% url 'programs' %}"><i class="fas fa-book-open"></i>{% trans 'Programas y cursos' %}</a>
+            <li class="nav-item {% if request.path == pro %}active{% endif %}">
+                <a href="{% url 'programs' %}" class="nav-link">
+                    <i class="fas fa-book-open"></i>
+                    <span class="nav-text">{% trans 'Programas y cursos' %}</span>
+                </a>
             </li>
             {% endif %}
 
             {% if request.user.is_superuser or request.user.is_lecturer %}
-            <li class="{% if request.path == qce %}active{% endif %}">
-                <a href="{% url 'quiz_marking' %}"><i class="fas fa-check-double"></i>{% trans 'Exámenes completos' %}</a>
+            <li class="nav-item {% if request.path == qce %}active{% endif %}">
+                <a href="{% url 'quiz_marking' %}" class="nav-link">
+                    <i class="fas fa-check-double"></i>
+                    <span class="nav-text">{% trans 'Exámenes completos' %}</span>
+                </a>
             </li>
             {% endif %}
 
             {% if request.user.is_superuser %}
-            <li class="{% if request.path == qpr %}active{% endif %}">
-                <a href="{% url 'quiz_progress' %}"><i class="fas fa-record-vinyl"></i>{% trans 'Registro de progreso de exámenes' %}</a>
+            <li class="nav-item {% if request.path == qpr %}active{% endif %}">
+                <a href="{% url 'quiz_progress' %}" class="nav-link">
+                    <i class="fas fa-record-vinyl"></i>
+                    <span class="nav-text">{% trans 'Registro de progreso de exámenes' %}</span>
+                </a>
             </li>
-            <li class="{% if request.path == cav %}active{% endif %}">
-                <a href="{% url 'course_allocation_view' %}"><i class="fas fa-tasks"></i>{% trans 'Asignación de cursos' %}</a>
+            
+            <li class="nav-item {% if request.path == cav %}active{% endif %}">
+                <a href="{% url 'course_allocation_view' %}" class="nav-link">
+                    <i class="fas fa-tasks"></i>
+                    <span class="nav-text">{% trans 'Asignación de cursos' %}</span>
+                </a>
             </li>
-            <li class="{% if request.path == sess %}active{% endif %}">
-                <a href="{% url 'session_list' %}"><i class="fas fa-calendar-week"></i>{% trans 'Gestión de sesiones' %}</a>
+            
+            <li class="nav-item {% if request.path == sess %}active{% endif %}">
+                <a href="{% url 'session_list' %}" class="nav-link">
+                    <i class="fas fa-calendar-week"></i>
+                    <span class="nav-text">{% trans 'Gestión de sesiones' %}</span>
+                </a>
             </li>
-            <li class="{% if request.path == sem %}active{% endif %}">
-                <a href="{% url 'semester_list' %}"><i class="fas fa-calendar-alt"></i>{% trans 'Gestión de grupos' %}</a>
+            
+            <li class="nav-item {% if request.path == sem %}active{% endif %}">
+                <a href="{% url 'semester_list' %}" class="nav-link">
+                    <i class="fas fa-calendar-alt"></i>
+                    <span class="nav-text">{% trans 'Gestión de grupos' %}</span>
+                </a>
             </li>
             {% endif %}
-
-            <!-- {% if request.user.is_lecturer %}
-            <li class="{% if request.path == ascore %}active{% endif %}">
-                <a href="{% url 'add_score' %}"><i class="fas fa-table"></i>{% trans 'Gestión de calificaciones' %}</a>
-            </li>
-            {% endif %} -->
 
             {% if request.user.is_student %}
-            <li class="{% if request.path == qpr %}active{% endif %}">
-                <a href="{% url 'quiz_progress' %}"><i class="fas fa-record-vinyl"></i>{% trans 'Registro de progreso de exámenes' %}</a>
+            <li class="nav-item {% if request.path == qpr %}active{% endif %}">
+                <a href="{% url 'quiz_progress' %}" class="nav-link">
+                    <i class="fas fa-record-vinyl"></i>
+                    <span class="nav-text">{% trans 'Registro de progreso de exámenes' %}</span>
+                </a>
             </li>
-            <!-- <li class="{% if request.path == vr %}active{% endif %}">
-                <a href="{% url 'grade_results' %}"><i class="fa fa-spell-check"></i>{% trans 'Resultados de calificaciones' %}</a>
-            </li>
-            <li class="{% if request.path == ar %}active{% endif %}">
-                <a href="{% url 'ass_results' %}"><i class="fa fa-list-ol"></i> {% trans 'Resultados de evaluaciones' %}</a>
-            </li> -->
-            <li class="{% if request.path == cr %}active{% endif %}">
-                <a href="{% url 'course_registration' %}"><i class="fas fa-plus"></i>{% trans 'Agregar' %} &amp; {% trans 'Eliminar curso' %}</a>
+            
+            <li class="nav-item {% if request.path == cr %}active{% endif %}">
+                <a href="{% url 'course_registration' %}" class="nav-link">
+                    <i class="fas fa-plus"></i>
+                    <span class="nav-text">{% trans 'Agregar' %} &amp; {% trans 'Eliminar curso' %}</span>
+                </a>
             </li>
             {% endif %}
-            <br />
-            <p class="ms-3 text-secondary">&RightArrow; Otros</p>
-            <li class="{% if request.path == ep %}active{% endif %}">
-                <a href="{% url 'edit_profile' %}"><i class="fas fa-cogs"></i>{% trans 'Configuración de cuenta' %}</a>
+            
+            <!-- Separador -->
+            <li class="nav-separator">
+                <p class="separator-text">{% trans 'Otros' %}</p>
             </li>
-            <li class="{% if request.path == cp %}active{% endif %}">
-                <a href="{% url 'change_password' %}"><i class="fas fa-key"></i>{% trans 'Cambiar contraseña' %}</a>
+            
+            <li class="nav-item {% if request.path == ep %}active{% endif %}">
+                <a href="{% url 'edit_profile' %}" class="nav-link">
+                    <i class="fas fa-cogs"></i>
+                    <span class="nav-text">{% trans 'Configuración de cuenta' %}</span>
+                </a>
+            </li>
+            
+            <li class="nav-item {% if request.path == cp %}active{% endif %}">
+                <a href="{% url 'change_password' %}" class="nav-link">
+                    <i class="fas fa-key"></i>
+                    <span class="nav-text">{% trans 'Cambiar contraseña' %}</span>
+                </a>
             </li>
         </ul>
     </div>
 
-    <footer class="card-footer mt-5 pt-3 pb-5 px-2">
-        <div class="col-12">
-
-            <!-- <form action="{% url 'set_language' %}" method="post" id="lang-form">{% csrf_token %}
-                <input name="next" type="hidden" value="{{ redirect_to }}">
-                <select class="small" name="language" id="lang-select">
-                    {% get_current_language as LANGUAGE_CODE %}
-                    {% get_available_languages as LANGUAGES %}
-                    {% get_language_info_list for LANGUAGES as languages %}
-                    {% for language in languages %}
-                        <option value="{{ language.code }}"{% if language.code == LANGUAGE_CODE %} selected{% endif %}>
-                            {{ language.name_local }} ({{ language.code }})
-                        </option>
-                    {% endfor %}
-                </select>
-            </form> -->
-
-            <p class="small m-0">
-                <!-- {% trans 'Lea nuestra' %} <a href="#"> {% trans 'Política de privacidad' %} </a> {% trans 'y' %} <a href="#"> {% trans 'Términos de uso.' %} </a> -->
-                <br />SEGURIDAD TECK &copy; <script>document.write(new Date().getFullYear());</script>
-                <br />
+    <footer class="sidebar-footer">
+        <div class="footer-content">
+            <p class="footer-text">
+                SEGURIDAD TECK &copy; <script>document.write(new Date().getFullYear());</script>
             </p>
-            <!-- <a href="https://github.com /SkyCascade/SkyLearn" class="btn btn-sm btn-dark mx-auto" target="_blank">
-                {% trans '⭐️ Marcar este proyecto' %}
-            </a> -->
         </div>
     </footer>
 </div>
@@ -149,7 +182,65 @@
 <script>
     document.getElementById("lang-select").addEventListener("change", function() {
         console.log("Changed!")
-        document.getElementById("lang-form").submit();  // Submit the form programmatically
+        document.getElementById("lang-form").submit();
     });
 </script>
+
+<style>
+/* Estilos inline para asegurar que los elementos activos funcionen */
+#side-nav ul li.nav-item.active {
+    background: linear-gradient(135deg, #BA6022 0%, #A0521E 100%) !important;
+    box-shadow: 0 4px 20px rgba(186, 96, 34, 0.3) !important;
+    transform: translateX(8px) !important;
+    border-radius: 12px !important;
+    margin: 0.25rem 1rem !important;
+}
+
+#side-nav ul li.nav-item.active a.nav-link {
+    background: transparent !important;
+    color: #ffffff !important;
+    padding-left: 1.7rem !important;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2) !important;
+    border-radius: 12px !important;
+}
+
+#side-nav ul li.nav-item.active a.nav-link i {
+    color: #ffffff !important;
+}
+
+#side-nav ul li.nav-item.active a.nav-link:hover {
+    background: transparent !important;
+    color: #ffffff !important;
+    padding-left: 1.7rem !important;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2) !important;
+    border-radius: 12px !important;
+}
+
+/* Regla de respaldo para cualquier elemento activo */
+#side-nav ul li.active a {
+    background: linear-gradient(135deg, #BA6022 0%, #A0521E 100%) !important;
+    color: #ffffff !important;
+    padding-left: 1.7rem !important;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2) !important;
+    border-radius: 12px !important;
+    transform: translateX(8px) !important;
+}
+
+#side-nav ul li.active a:hover {
+    background: linear-gradient(135deg, #BA6022 0%, #A0521E 100%) !important;
+    color: #ffffff !important;
+    padding-left: 1.7rem !important;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2) !important;
+    border-radius: 12px !important;
+    transform: translateX(8px) !important;
+}
+
+#side-nav ul li.active {
+    background: linear-gradient(135deg, #BA6022 0%, #A0521E 100%) !important;
+    box-shadow: 0 4px 20px rgba(186, 96, 34, 0.3) !important;
+    transform: translateX(8px) !important;
+    border-radius: 12px !important;
+    margin: 0.25rem 1rem !important;
+}
+</style>
 {% endblock js %}
