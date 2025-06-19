@@ -17,7 +17,7 @@ from course.forms import (
     CourseAllocationForm,
     EditCourseAllocationForm,
     ProgramForm,
-    UploadFormFile, 
+    UploadFormFile,  
     UploadFormVideo,
 )
 from course.models import (
