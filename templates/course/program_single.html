@@ -3,6 +3,202 @@
 {% block title %}{{ title }} | {% trans 'Sistema de gestión de aprendizaje' %}{% endblock title %}
 {% load static %}
 
+{% block header %}
+<style>
+    :root {
+        --course-card-bg: #ffffff;
+        --course-card-border: #e0e7ff;
+        --course-card-shadow: rgba(60, 64, 67, 0.05);
+        --course-card-hover-shadow: rgba(60, 64, 67, 0.15);
+        --course-icon-bg: #f0f2f5;
+        --course-icon-color: #555;
+        --course-action-color: #BA6022;
+        --course-status-active: #10b981;
+        --course-status-inactive: #ef4444;
+    }
+
+    .course-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+        gap: 1.5rem;
+        margin-top: 2rem;
+    }
+
+    .course-card {
+        background-color: var(--course-card-bg);
+        border-radius: 16px;
+        overflow: hidden;
+        border: 1px solid var(--course-card-border);
+        box-shadow: 0 4px 12px var(--course-card-shadow);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .course-card:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 12px 24px var(--course-card-hover-shadow);
+    }
+
+    .course-card__header {
+        background: linear-gradient(135deg, #f3e5f5, #e1f5fe);
+        padding: 1.5rem;
+        position: relative;
+        height: 200px;
+        overflow: hidden;
+    }
+
+    .course-card__image {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.3s ease;
+    }
+
+    .course-card:hover .course-card__image {
+        transform: scale(1.05);
+    }
+
+    .course-card__icon {
+        font-size: 3rem;
+        color: var(--course-action-color);
+        opacity: 0.8;
+        margin-bottom: 1rem;
+    }
+
+    .course-card__status {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .course-card__status--active {
+        background-color: var(--course-status-active);
+        color: white;
+    }
+
+    .course-card__status--inactive {
+        background-color: var(--course-status-inactive);
+        color: white;
+    }
+
+    .course-card__content {
+        padding: 1.5rem;
+        display: flex;
+        flex-direction: column;
+        flex-grow: 1;
+    }
+
+    .course-card__title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 0.5rem;
+        line-height: 1.3;
+    }
+
+    .course-card__title a {
+        color: inherit;
+        text-decoration: none;
+        transition: color 0.2s ease;
+    }
+
+    .course-card__title a:hover {
+        color: var(--course-action-color);
+    }
+
+    .course-card__code {
+        font-size: 0.9rem;
+        color: #666;
+        font-weight: 500;
+        margin-bottom: 1rem;
+        padding: 0.5rem 0.75rem;
+        background-color: #f8f9fa;
+        border-radius: 8px;
+        display: inline-block;
+        width: fit-content;
+    }
+
+    .course-card__summary {
+        font-size: 0.95rem;
+        color: #666;
+        line-height: 1.6;
+        flex-grow: 1;
+        margin-bottom: 1.5rem;
+    }
+
+    .course-card__footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: auto;
+        padding-top: 1rem;
+        border-top: 1px solid #f0f0f0;
+    }
+
+    .course-card__actions .dropdown-menu {
+        border-radius: 10px;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+        border: 1px solid #f0f0f0;
+    }
+
+    .program-header {
+        background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+        border-radius: 16px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        border: 1px solid #dee2e6;
+    }
+
+    .program-header__title {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #333;
+        margin-bottom: 0.5rem;
+    }
+
+    .program-header__summary {
+        font-size: 1.1rem;
+        color: #666;
+        line-height: 1.6;
+        margin-bottom: 0;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 4rem 2rem;
+        background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+        border-radius: 16px;
+        border: 2px dashed #dee2e6;
+    }
+
+    .empty-state__icon {
+        font-size: 4rem;
+        color: #adb5bd;
+        margin-bottom: 1rem;
+    }
+
+    .empty-state__title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: #495057;
+        margin-bottom: 0.5rem;
+    }
+
+    .empty-state__message {
+        font-size: 1rem;
+        color: #6c757d;
+        margin-bottom: 2rem;
+    }
+</style>
+{% endblock header %}
+
 {% block content %}
 
 <nav style="--bs-breadcrumb-divider: '>';" aria-label="breadcrumb">
@@ -23,95 +219,74 @@
 </div>
 {% endif %}
 
-
 {% if program %}
-<div class="title-1">{{ program.title }}</div>
-{% if program.summary %}
-<p>{{ program.summary }}</p>
-{% endif %}
+<div class="program-header">
+    <h1 class="program-header__title">{{ program.title }}</h1>
+    {% if program.summary %}
+    <p class="program-header__summary">{{ program.summary }}</p>
+    {% endif %}
+</div>
 {% endif %}
 
 {% include 'snippets/messages.html' %}
 {% include 'snippets/filter_form.html' %}
 
-<div class="table-responsive p-0 px-2 mt-5">
-    <div class="table-shadow">
-        <table class="table table-light table-striped">
-            <thead>
-                <tr>
-                    
-                    <th> {% trans 'Nombre del Curso' %} </th>
-                    <th> {% trans 'Código del Curso' %} </th>
-                    <th> {% trans 'Créditos' %} </th>
-                    <th> {% trans 'Nivel' %} </th>
-                    <th> {% trans 'Año' %} </th>
-                    <th> {% trans 'Grupo' %} </th>
-                    <th> {% trans 'Grupo Actual' %} </th>
-                    {% if request.user.is_superuser %}
-                    <th>{% trans 'Acción' %}</th>
-                    {% endif %}
-                </tr>
-            </thead>
-            <tbody>
-                {% for course in courses %}
-                <tr>
-                    
-                    <td><a href="{{ course.get_absolute_url }}">
-                            {{ course.title }}</a></td>
-                    <td>{{ course.code }}</td>
-                    <td>{{ course.credit }}</td>
-                    <td>{{ course.level }}</td>
-                    <td>{{ course.year }}</td>
-                    <td>{{ course.semester }}</td>
-                    <th>
-                        {% if course.is_current_semester == False %}
-                        <i class="fas fa-times-circle fa-1-5x danger"></i>
-                        {% elif course.is_current_semester == True %}
-                        <i class="fas fa-check-circle fa-1-5x"></i>
-                        {% endif %}
-                    </th>
-                    {% if request.user.is_superuser %}
-                    <td>
-                        <div class="dropstart">
-                            <button class="btn btn-sm" type="button" data-bs-toggle="dropdown" 
-                            data-bs-boundary="window" aria-haspopup="true" aria-expanded="false">
-                                <i class="fas fa-ellipsis-v m-0"></i>
-                            </button>
-                            <div class="dropdown-menu">
-                                <a class="dropdown-item" href="{% url 'edit_course' slug=course.slug %}">
-                                    <i class="unstyled me-2 fas fa-pencil-alt"></i> {% trans 'Editar' %}
-                                </a>
-                                <a class="dropdown-item" href="{% url 'delete_course' slug=course.slug %}">
-                                    <i class="unstyled me-2 fas fa-trash-alt"></i> {% trans 'Eliminar' %}
-                                </a>
-                            </div>
-                        </div>
-                    </td>
-                    {% endif %}
-                </tr>
-                {% empty %}
-                <tr>
-                  <td colspan="9">
-                  <span class="text-danger">
-                    {% trans 'No hay cursos para este programa.' %}
-                    {% if request.user.is_superuser %}
-                    <a href="{% url 'course_add' pk=program.pk %}" class="text-primary">
-                    <i class="primary" style="font-size: 22px;">
-                        {% trans 'Agrega uno ahora.' %}
-                    </i>
-                    {% endif %}
-                    </a>
-                  </span>
-                </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+<div class="course-grid">
+    {% for course in courses %}
+    <div class="course-card">
+        <div class="course-card__header">
+            <img src="{{ course.image_path }}" 
+                 alt="{{ course.title }}" 
+                 class="course-card__image"
+                 onerror="this.src='{% static 'img/course-default.png' %}'">
+        </div>
+        <div class="course-card__content">
+            <h3 class="course-card__title">
+                <a href="{{ course.get_absolute_url }}">{{ course.title }}</a>
+            </h3>
+            <div class="course-card__code">
+                <i class="fas fa-hashtag me-2"></i>{{ course.code }}
+            </div>
+            {% if course.summary %}
+            <p class="course-card__summary">
+                {{ course.summary|truncatechars:120 }}
+            </p>
+            {% endif %}
+            <div class="course-card__footer">
+                <div class="course-card__meta">
+                    <i class="fas fa-users text-muted me-1"></i>
+                    <small class="text-muted">{% trans 'Ver detalles' %}</small>
+                </div>
+                {% if request.user.is_superuser %}
+                <div class="course-card__actions dropdown">
+                    <button class="btn btn-light btn-sm rounded-circle" type="button" data-bs-toggle="dropdown" aria-expanded="false" style="width: 36px; height: 36px;">
+                        <i class="fa fa-ellipsis-vertical"></i>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" href="{% url 'edit_course' slug=course.slug %}"><i class="fas fa-edit me-2"></i>{% trans 'Editar' %}</a></li>
+                        <li><a class="dropdown-item text-danger" href="{% url 'delete_course' slug=course.slug %}"><i class="fas fa-trash-alt me-2"></i>{% trans 'Eliminar' %}</a></li>
+                    </ul>
+                </div>
+                {% endif %}
+            </div>
+        </div>
     </div>
+    {% empty %}
+    <div class="empty-state">
+        <i class="fas fa-book-open empty-state__icon"></i>
+        <h3 class="empty-state__title">{% trans 'No hay cursos disponibles' %}</h3>
+        <p class="empty-state__message">
+            {% trans 'Aún no se han agregado cursos a este programa.' %}
+            {% if request.user.is_superuser %}
+            <br><a href="{% url 'course_add' pk=program.pk %}" class="text-primary">{% trans '¡Agrega el primer curso ahora!' %}</a>
+            {% endif %}
+        </p>
+    </div>
+    {% endfor %}
 </div>
 
 {% if courses.paginator.page_range|length > 1 %}
-<div class="content-center">
+<div class="content-center mt-4">
     <div class="pagination">
         <a href="?page=1">&laquo;</a>
         {% for i in courses.paginator.page_range %}

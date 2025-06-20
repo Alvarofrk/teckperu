@@ -30,6 +30,33 @@ class CourseAddForm(forms.ModelForm):
         self.fields["year"].widget.attrs.update({"class": "form-control"})
         self.fields["semester"].widget.attrs.update({"class": "form-control"})
 
+
+class CourseEditForm(forms.ModelForm):
+    """
+    Formulario simplificado para editar cursos con solo los campos relevantes
+    """
+    class Meta:
+        model = Course
+        fields = ["title", "code", "summary", "program"]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["title"].widget.attrs.update({
+            "class": "form-control",
+            "placeholder": "Ingresa el título del curso"
+        })
+        self.fields["code"].widget.attrs.update({
+            "class": "form-control",
+            "placeholder": "Ej: 0001, 0002, etc."
+        })
+        self.fields["summary"].widget.attrs.update({
+            "class": "form-control",
+            "rows": "4",
+            "placeholder": "Describe brevemente el contenido del curso"
+        })
+        self.fields["program"].widget.attrs.update({"class": "form-control"})
+
+
 class CourseAllocationForm(forms.ModelForm):
     courses = forms.ModelMultipleChoiceField(
         queryset=Course.objects.all().order_by("level"),

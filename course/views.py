@@ -20,6 +20,7 @@ from course.forms import (
     ProgramForm,
     UploadFormFile,  
     UploadFormVideo,
+    CourseEditForm,
 )
 from course.models import (
     Course,
@@ -97,6 +98,11 @@ def program_detail(request, pk):
     program = get_object_or_404(Program, pk=pk)
     courses = Course.objects.filter(program_id=pk).order_by("-year")
     credits = courses.aggregate(total_credits=Sum("credit"))
+    
+    # Agregar rutas de imágenes a cada curso
+    for course in courses:
+        course.image_path = get_course_image_path(course.code)
+    
     paginator = Paginator(courses, 10)
     page = request.GET.get("page")
     courses = paginator.get_page(page)
@@ -230,18 +236,18 @@ def course_add(request, pk):
 def course_edit(request, slug):
     course = get_object_or_404(Course, slug=slug)
     if request.method == "POST":
-        form = CourseAddForm(request.POST, instance=course)
+        form = CourseEditForm(request.POST, instance=course)
         if form.is_valid():
             course = form.save()
             messages.success(
-                request, f"{course.title} ({course.code}) has been updated."
+                request, f"{course.title} ({course.code}) ha sido actualizado."
             )
             return redirect("program_detail", pk=course.program.pk)
-        messages.error(request, "Correct the error(s) below.")
+        messages.error(request, "Corrige los errores a continuación.")
     else:
-        form = CourseAddForm(instance=course)
+        form = CourseEditForm(instance=course)
     return render(
-        request, "course/course_add.html", {"title": "Edit Course", "form": form}
+        request, "course/course_add.html", {"title": "Editar Curso", "form": form, "course": course}
     )
 
 

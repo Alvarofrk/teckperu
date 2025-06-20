@@ -4,49 +4,297 @@
 {% load crispy_forms_tags %}
 {% load static %}
 
+{% block header %}
+<style>
+    :root {
+        --form-card-bg: #ffffff;
+        --form-card-border: #BA6022;
+        --form-card-shadow: rgba(186, 96, 34, 0.1);
+        --form-action-color: #BA6022;
+        --form-input-focus: #BA6022;
+        --form-header-bg: linear-gradient(135deg, #BA6022, #A0521E);
+    }
+
+    .form-container {
+        max-width: 800px;
+        margin: 0 auto;
+    }
+
+    .form-card {
+        background-color: var(--form-card-bg);
+        border-radius: 16px;
+        border: 2px solid var(--form-card-border);
+        box-shadow: 0 8px 24px var(--form-card-shadow);
+        overflow: hidden;
+        margin-bottom: 2rem;
+    }
+
+    .form-card__header {
+        background: var(--form-header-bg);
+        padding: 2rem;
+        border-bottom: 1px solid #BA6022;
+        color: white;
+    }
+
+    .form-card__title {
+        font-size: 1.75rem;
+        font-weight: 700;
+        color: white;
+        margin-bottom: 0.5rem;
+    }
+
+    .form-card__subtitle {
+        font-size: 1.1rem;
+        color: rgba(255, 255, 255, 0.9);
+        margin-bottom: 0;
+    }
+
+    .form-card__body {
+        padding: 2.5rem;
+    }
+
+    .form-group {
+        margin-bottom: 2rem;
+    }
+
+    .form-label {
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 0.75rem;
+        display: block;
+        font-size: 1.1rem;
+    }
+
+    .form-control {
+        border: 2px solid #e0e0e0;
+        border-radius: 12px;
+        padding: 1rem;
+        transition: all 0.3s ease;
+        font-size: 1rem;
+    }
+
+    .form-control:focus {
+        border-color: var(--form-input-focus);
+        box-shadow: 0 0 0 0.3rem rgba(186, 96, 34, 0.2);
+        outline: none;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #BA6022, #A0521E);
+        border: none;
+        padding: 1rem 2.5rem;
+        border-radius: 12px;
+        font-weight: 600;
+        font-size: 1.1rem;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(186, 96, 34, 0.3);
+    }
+
+    .btn-primary:hover {
+        background: linear-gradient(135deg, #A0521E, #8B4513);
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(186, 96, 34, 0.4);
+    }
+
+    .btn-secondary {
+        background: #6c757d;
+        border: none;
+        padding: 1rem 2.5rem;
+        border-radius: 12px;
+        font-weight: 600;
+        font-size: 1.1rem;
+        transition: all 0.3s ease;
+    }
+
+    .btn-secondary:hover {
+        background: #5a6268;
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(108, 117, 125, 0.3);
+    }
+
+    .course-preview {
+        background: linear-gradient(135deg, #BA6022, #A0521E);
+        border-radius: 16px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        border: 2px solid #BA6022;
+        color: white;
+        box-shadow: 0 8px 24px rgba(186, 96, 34, 0.2);
+    }
+
+    .course-preview__image {
+        width: 100px;
+        height: 100px;
+        border-radius: 16px;
+        object-fit: cover;
+        margin-right: 1.5rem;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+        border: 3px solid white;
+    }
+
+    .course-preview__info h4 {
+        margin-bottom: 0.5rem;
+        color: white;
+        font-size: 1.5rem;
+        font-weight: 700;
+    }
+
+    .course-preview__info p {
+        margin-bottom: 0;
+        color: rgba(255, 255, 255, 0.9);
+        font-size: 1.1rem;
+    }
+
+    .form-actions {
+        display: flex;
+        gap: 1.5rem;
+        justify-content: flex-end;
+        padding-top: 2.5rem;
+        border-top: 2px solid #f0f0f0;
+        margin-top: 2rem;
+    }
+
+    .form-icon {
+        color: #BA6022;
+        margin-right: 0.5rem;
+    }
+
+    @media (max-width: 768px) {
+        .form-actions {
+            flex-direction: column;
+        }
+        
+        .form-actions .btn {
+            width: 100%;
+        }
+        
+        .course-preview {
+            text-align: center;
+        }
+        
+        .course-preview__image {
+            margin-right: 0;
+            margin-bottom: 1rem;
+        }
+    }
+</style>
+{% endblock header %}
+
 {% block content %}
 
 <nav style="--bs-breadcrumb-divider: '>';" aria-label="breadcrumb">
     <ol class="breadcrumb">
         <li class="breadcrumb-item"><a href="/">{% trans 'Inicio' %}</a></li>
         <li class="breadcrumb-item"><a href="{% url 'programs' %}">{% trans 'Programas' %}</a></li>
-        <li class="breadcrumb-item active" aria-current="page">{% trans 'Formulario de curso' %}</li>
+        {% if course %}
+        <li class="breadcrumb-item"><a href="{% url 'program_detail' pk=course.program.pk %}">{{ course.program.title }}</a></li>
+        <li class="breadcrumb-item active" aria-current="page">{% trans 'Editar Curso' %}</li>
+        {% else %}
+        <li class="breadcrumb-item active" aria-current="page">{% trans 'Nuevo Curso' %}</li>
+        {% endif %}
     </ol>
 </nav>
 
-<div class="title-1">{% trans 'Formulario de curso' %}</div>
-<br>
-<br>
-
-{% include 'snippets/messages.html' %}
-
-<form action="" method="POST">{% csrf_token %}
-    <div class="row">
-        <div class="col-md-6">
-            <div class="card">
-                <p class="form-title">{% trans 'Detalles del curso' %}</p>
-                <div class="p-3">
-                    {{ form.title|as_crispy_field }}
-                    {{ form.code|as_crispy_field }}
-                    {{ form.summary|as_crispy_field }}
-                </div>
-            </div>
-        </div>
-        <div class="col-md-6">
-            <div class="card">
-                <p class="form-title">{% trans 'Otra información' %}</p>
-                <div class="p-3">
-                    {{ form.program|as_crispy_field }}
-                    {{ form.credit|as_crispy_field }}
-                    {{ form.year|as_crispy_field }}
-                    {{ form.semester|as_crispy_field }}
-                    {{ form.level|as_crispy_field }}
-                    {{ form.is_elective|as_crispy_field }}
-                </div>
+<div class="form-container">
+    {% if course %}
+    <!-- Vista previa del curso -->
+    <div class="course-preview">
+        <div class="d-flex align-items-center">
+            <img src="{% static 'img/curso' %}{{ course.code|slice:'-3:' }}.png" 
+                 alt="{{ course.title }}" 
+                 class="course-preview__image"
+                 onerror="this.src='{% static 'img/course-default.png' %}'">
+            <div class="course-preview__info">
+                <h4>{{ course.title }}</h4>
+                <p><i class="fas fa-hashtag me-1"></i>{{ course.code }}</p>
             </div>
         </div>
     </div>
-    <input class="btn btn-primary mt-3" type="submit" value="{% trans 'Guardar' %}">
-</form>
+    {% endif %}
+
+    {% include 'snippets/messages.html' %}
+
+    <div class="form-card">
+        <div class="form-card__header">
+            <h1 class="form-card__title">
+                {% if course %}
+                    <i class="fas fa-edit me-2"></i>{% trans 'Editar Curso' %}
+                {% else %}
+                    <i class="fas fa-plus me-2"></i>{% trans 'Nuevo Curso' %}
+                {% endif %}
+            </h1>
+            <p class="form-card__subtitle">
+                {% if course %}
+                    {% trans 'Modifica la información del curso' %}
+                {% else %}
+                    {% trans 'Completa la información para crear un nuevo curso' %}
+                {% endif %}
+            </p>
+        </div>
+        
+        <div class="form-card__body">
+            <form action="" method="POST">{% csrf_token %}
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="form-label" for="{{ form.title.id_for_label }}">
+                                <i class="fas fa-book form-icon"></i>{% trans 'Título del Curso' %}
+                            </label>
+                            {{ form.title }}
+                            {% if form.title.errors %}
+                                <div class="text-danger small mt-1">{{ form.title.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="form-label" for="{{ form.code.id_for_label }}">
+                                <i class="fas fa-hashtag form-icon"></i>{% trans 'Código del Curso' %}
+                            </label>
+                            {{ form.code }}
+                            {% if form.code.errors %}
+                                <div class="text-danger small mt-1">{{ form.code.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="{{ form.summary.id_for_label }}">
+                        <i class="fas fa-align-left form-icon"></i>{% trans 'Descripción' %}
+                    </label>
+                    {{ form.summary }}
+                    {% if form.summary.errors %}
+                        <div class="text-danger small mt-1">{{ form.summary.errors.0 }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="form-label" for="{{ form.program.id_for_label }}">
+                                <i class="fas fa-graduation-cap form-icon"></i>{% trans 'Programa' %}
+                            </label>
+                            {{ form.program }}
+                            {% if form.program.errors %}
+                                <div class="text-danger small mt-1">{{ form.program.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <a href="{% if course %}{% url 'program_detail' pk=course.program.pk %}{% else %}{% url 'programs' %}{% endif %}" 
+                       class="btn btn-secondary">
+                        <i class="fas fa-times me-2"></i>{% trans 'Cancelar' %}
+                    </a>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save me-2"></i>{% trans 'Guardar Cambios' %}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 
 {% endblock content %}
