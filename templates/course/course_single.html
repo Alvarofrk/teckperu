@@ -18,218 +18,368 @@
     </ol>
 </nav>
 
-<div class="manage-wrap">
-    <div class="d-flex">
-        <div class="">
-            {% if request.user.is_superuser %}
-            <a class="btn btn-sm btn-light" href="{% url 'edit_course' course.slug %}">
-                <i class="fas fa-pencil-alt"></i> {% trans 'Editar curso' %}
-            </a>
-            {% endif %}
-            {% if request.user.is_superuser or request.user.is_lecturer %}
-            <a class="btn btn-sm btn-primary" href="{% url 'upload_file_view' course.slug %}">
-                <i class="fas fa-plus"></i> {% trans 'Subir nuevo archivo' %}
-            </a>
-            <a class="btn btn-sm btn-primary" href="{% url 'upload_video' course.slug %}">
-                <i class="fas fa-plus"></i> {% trans 'Subir nuevo video' %}
-            </a>
-            {% endif %}
+{% include 'snippets/messages.html' %}
+
+<!-- Course Header Section -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body p-4">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="me-3" style="width: 80px; height: 80px; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+                                <img src="{% static 'img/curso' %}{{ course.code|slice:'-3:' }}.png" 
+                                     alt="{{ course.title }}" 
+                                     style="width: 100%; height: 100%; object-fit: cover;"
+                                     class="course-header-image">
+                            </div>
+                            <div>
+                                <h1 class="h2 mb-1">{{ course.title }}</h1>
+                                <p class="text-muted mb-0">
+                                    <i class="fas fa-hashtag me-1"></i>{{ course.code }}
+                                </p>
+                            </div>
+                        </div>
+                        
+                        {% if course.summary %}
+                        <p class="text-muted mb-3">{{ course.summary }}</p>
+                        {% endif %}
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-2">
+                                <small class="text-muted d-block">{% trans 'Programa' %}</small>
+                                <strong>{{ course.program.title }}</strong>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-4 text-end">
+                        {% if request.user.is_superuser or request.user.is_lecturer %}
+                        <div class="d-flex flex-column gap-2">
+                            <a class="btn btn-outline-primary btn-sm" href="{% url 'edit_course' course.slug %}">
+                                <i class="fas fa-pencil-alt me-1"></i>{% trans 'Editar curso' %}
+                            </a>
+                            <a class="btn btn-primary btn-sm" href="{% url 'upload_file_view' course.slug %}">
+                                <i class="fas fa-upload me-1"></i>{% trans 'Subir archivo' %}
+                            </a>
+                            <a class="btn btn-primary btn-sm" href="{% url 'upload_video' course.slug %}">
+                                <i class="fas fa-video me-1"></i>{% trans 'Subir video' %}
+                            </a>
+                        </div>
+                        {% else %}
+                        <a href="{% url 'course_video_navigation_first' course.slug %}" 
+                           class="btn btn-lg" style="background-color: #BA6022; border-color: #BA6022; color: white;">
+                            <i class="fas fa-play me-2"></i>{% trans 'INICIAR CURSO' %}
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
 
-<div class="title-1">{{ course }}</div>
-<p class="small text-muted">{{ course.summary }}</p>
-
-<!-- Botón para ver todos los videos del curso -->
-<a href="{% url 'course_video_navigation_first' course.slug %}" 
-   class="btn mb-4" 
-   style="background-color: #FF8C42; color: black; padding: 10px 20px; border-radius: 5px; text-align: center; font-weight: bold; text-decoration: none; display: inline-block; border: 2px solid #FF8C42; font-size: 16px; transition: background-color 0.3s ease, transform 0.2s ease;">
-    {% trans 'INICIAR CURSO' %}
-</a>
-
-
-
-{% include 'snippets/messages.html' %}
-
-<div class="container">
-    <!-- Lista de Videos sin accesos -->
-    <div class="row mb-5">
-        <div class="col-md-12 p-0">
-            <p class="form-title m-0">{% trans 'Videos' %}</p>
-            <div class="table-responsive">
-                <table class="table table-shadow table-light table-striped m-0">
-                    <thead>
-                        <tr>
-                            <th>#</th>
-                            <th>{% trans 'Título del video' %}</th>
-                            <th>{% trans 'Fecha de subida' %}</th>
-                            {% if request.user.is_superuser or request.user.is_lecturer %}
-                            <th>{% trans 'Acciones' %}</th>
-                            {% endif %}
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for video in videos %}
-                        <tr>
-                            <td>{{ forloop.counter }}</td>
-                            <!-- Título del video sin enlace -->
-                            <td>{{ video.title|title }}</td>
-                            <td>{{ video.timestamp|date }}</td>
-
-                            {% if request.user.is_superuser or request.user.is_lecturer %}
-                            <td>
-                                <div class="update-delete">
-                                    <a href="{% url 'upload_video_edit' slug=course.slug video_slug=video.slug %}"
-                                        class="update" title="{% trans 'Editar' %}">
-                                        <i class="fas fa-pencil-alt"></i>
-                                    </a>
-                                    <a href="{% url 'upload_video_delete' slug=course.slug video_slug=video.slug %}"
-                                        class="delete" title="{% trans 'Eliminar' %}">
-                                        <i class="fas fa-trash-alt"></i>
-                                    </a>
-                                </div>
-                            </td>
-                            {% endif %}
-                        </tr>
-                        {% empty %}
-                        <tr>
-                            <td></td>
-                            <td></td>
-                            <td>
-                                <span class="text-danger">
-                                    {% trans 'No hay videos subidos.' %}
-                                    {% if request.user.is_superuser or request.user.is_lecturer %}
-                                    <a href="{% url 'upload_video' course.slug %}" class="text-primary">
-                                        <i class="primary" style="font-size: 22px;">
-                                            {% trans 'Subir ahora.' %}
-                                        </i>
-                                        {% endif %}
-                                    </a>
-                                </span>
-                            </td>
-                            <td></td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+<!-- Course Statistics -->
+<div class="row mb-4">
+    <div class="col-md-3 mb-3">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body text-center">
+                <div class="d-flex align-items-center justify-content-center mb-3">
+                    <div class="bg-primary bg-opacity-10 rounded-circle p-3">
+                        <i class="fas fa-video text-primary fs-4"></i>
+                    </div>
+                </div>
+                <h3 class="fw-bold text-primary mb-1">{{ videos.count }}</h3>
+                <p class="text-muted mb-0">{% trans 'Videos' %}</p>
             </div>
         </div>
     </div>
     
+    <div class="col-md-3 mb-3">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body text-center">
+                <div class="d-flex align-items-center justify-content-center mb-3">
+                    <div class="bg-success bg-opacity-10 rounded-circle p-3">
+                        <i class="fas fa-file-alt text-success fs-4"></i>
+                    </div>
+                </div>
+                <h3 class="fw-bold text-success mb-1">{{ files.count }}</h3>
+                <p class="text-muted mb-0">{% trans 'Documentos' %}</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-3">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body text-center">
+                <div class="d-flex align-items-center justify-content-center mb-3">
+                    <div class="bg-warning bg-opacity-10 rounded-circle p-3">
+                        <i class="fas fa-chalkboard-teacher text-warning fs-4"></i>
+                    </div>
+                </div>
+                <h3 class="fw-bold text-warning mb-1">{{ lecturers.count }}</h3>
+                <p class="text-muted mb-0">{% trans 'Instructores' %}</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-3">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body text-center">
+                <div class="d-flex align-items-center justify-content-center mb-3">
+                    <div class="bg-info bg-opacity-10 rounded-circle p-3">
+                        <i class="fas fa-users text-info fs-4"></i>
+                    </div>
+                </div>
+                <h3 class="fw-bold text-info mb-1">{{ course.taken_courses.count }}</h3>
+                <p class="text-muted mb-0">{% trans 'Estudiantes' %}</p>
+            </div>
+        </div>
+    </div>
+</div>
 
-    <!-- Sección de Documentaciones -->
-    <div class="row">
-        <div class="col-md-12 p-0">
-            <p class="form-title m-0">{% trans 'Documentaciones' %}</p>
-            <div class="table-responsive">
-                <table class="table table-shadow table-light table-striped m-0">
-                    <thead>
-                        <tr>
-                            <th>#</th>
-                            <th>{% trans 'Nombre del archivo' %}</th>
-                            <th>{% trans 'Fecha de subida' %}</th>
-                            <th>{% trans 'Fecha de actualización' %}</th>
-                            <th>{% trans 'Descargas' %}</th>
-                            {% if request.user.is_superuser or request.user.is_lecturer %}
-                            <th>{% trans 'Acciones' %}</th>
-                            {% endif %}
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for file in files %}
-                        <tr>
-                            <td>{{ forloop.counter }}</td>
-                            <td><a href="{{ file.file.url }}" title="{{ file }}" class="d-flex align-items-center">
-                                    <i class="fas fa-file-{{ file.get_extension_short }} me-1"></i>
-                                    {{ file.title|title }}
-                                </a>
-                            </td>
-                            <td>{{ file.upload_time|date }}</td>
-                            <td>{{ file.updated_date|date }}</td>
-                            <th>
-                                <div>
-                                    <a class="download-btn" href="{{ file.file.url }}" title="Descargar en tu dispositivo">
-                                        <i class="fas fa-download me-1"></i>{% trans 'Descargar' %}</a>
+<!-- Course Content Sections -->
+<div class="row">
+    <!-- Videos Section -->
+    <div class="col-lg-6 mb-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-transparent border-0">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-video text-primary me-2"></i>{% trans 'Videos del Curso' %}
+                    </h5>
+                    <span class="badge bg-primary">{{ videos.count }}</span>
+                </div>
+            </div>
+            <div class="card-body">
+                {% if videos %}
+                <div class="list-group list-group-flush">
+                    {% for video in videos %}
+                    <div class="list-group-item border-0 px-0">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div class="d-flex align-items-center flex-grow-1">
+                                {% if video.get_thumbnail_url %}
+                                <div class="me-3" style="width: 120px; height: 67px; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                                    <img src="{{ video.get_thumbnail_url }}" 
+                                         alt="{{ video.title }}" 
+                                         style="width: 100%; height: 100%; object-fit: cover;"
+                                         onerror="this.parentElement.innerHTML='<div class=\'bg-primary bg-opacity-10 rounded d-flex align-items-center justify-content-center\' style=\'width: 120px; height: 67px;\'><i class=\'fas fa-play text-primary\'></i></div>'">
                                 </div>
-                            </th>
-
-                            {% if request.user.is_superuser or request.user.is_lecturer %}
-                            <td>
-                                <div class="update-delete">
-                                    <a href="{% url 'upload_file_edit' slug=course.slug file_id=file.pk %}"
-                                        class="update" title="{% trans 'Editar' %}">
+                                {% else %}
+                                <div class="bg-primary bg-opacity-10 rounded-circle p-2 me-3" style="width: 60px; height: 60px; display: flex; align-items: center; justify-content: center;">
+                                    <i class="fas fa-play text-primary"></i>
+                                </div>
+                                {% endif %}
+                                <div class="flex-grow-1">
+                                    {% if request.user.is_student %}
+                                    <a href="{% url 'course_video_navigation' course.slug video.id %}" class="text-decoration-none">
+                                        <h6 class="mb-1 text-dark hover-primary">{{ video.title|title }}</h6>
+                                    </a>
+                                    {% else %}
+                                    <h6 class="mb-1">{{ video.title|title }}</h6>
+                                    {% endif %}
+                                    <small class="text-muted">
+                                        <i class="fas fa-calendar me-1"></i>{{ video.timestamp|date:"d/m/Y" }}
+                                    </small>
+                                </div>
+                            </div>
+                            <div class="d-flex gap-1">
+                                {% if request.user.is_student %}
+                                <a href="{% url 'course_video_navigation' course.slug video.id %}" 
+                                   class="btn btn-sm btn-teckperu-outline" title="{% trans 'Ver video' %}">
+                                    <i class="fas fa-play me-1"></i>{% trans 'Ver' %}
+                                </a>
+                                {% endif %}
+                                {% if request.user.is_superuser or request.user.is_lecturer %}
+                                <div class="btn-group btn-group-sm">
+                                    <a href="{% url 'upload_video_edit' slug=course.slug video_slug=video.slug %}" 
+                                       class="btn btn-outline-primary" title="{% trans 'Editar' %}">
                                         <i class="fas fa-pencil-alt"></i>
                                     </a>
-                                    <a href="{% url 'upload_file_delete' slug=course.slug file_id=file.pk %}"
-                                        class="delete" title="{% trans 'Eliminar' %}">
+                                    <a href="{% url 'upload_video_delete' slug=course.slug video_slug=video.slug %}" 
+                                       class="btn btn-outline-danger" title="{% trans 'Eliminar' %}">
                                         <i class="fas fa-trash-alt"></i>
                                     </a>
                                 </div>
-                            </td>
-                            {% endif %}
-                        </tr>
-                        {% empty %}
-                        <tr>
-                            <td></td>
-                            <td></td>
-                            <td>
-                                <span class="text-danger">
-                                    {% trans 'No hay archivos subidos.' %}
-                                    {% if request.user.is_superuser or request.user.is_lecturer %}
-                                    <a href="{% url 'upload_file_view' course.slug %}" class="text-primary">
-                                        <i class="primary" style="font-size: 22px;">
-                                            {% trans 'Subir ahora.' %}
-                                        </i>
-                                        {% endif %}
-                                    </a>
-                                </span>
-                            </td>
-                            <td></td>
-                            <td></td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center py-4">
+                    <div class="bg-light rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
+                        <i class="fas fa-video text-muted"></i>
+                    </div>
+                    <h6 class="text-muted">{% trans 'No hay videos disponibles' %}</h6>
+                    {% if request.user.is_superuser or request.user.is_lecturer %}
+                    <a href="{% url 'upload_video' course.slug %}" class="btn btn-sm btn-primary">
+                        <i class="fas fa-plus me-1"></i>{% trans 'Subir video' %}
+                    </a>
+                    {% endif %}
+                </div>
+                {% endif %}
             </div>
         </div>
     </div>
-
-</div>
-
-<!-- <div class="site-section mb-5 mt-4">
-    <div class="title-1">{% trans 'Instructor(es)' %}</div>
-    <br>
-    <br>
-    <div class="container-fluid">
-        <div class="row">
-            {% for lecturer in lecturers %}
-            <div class="col-lg-4">
-                <div class="card text-center">
-                    <div class="card-body">
-                        {% if lecturer.lecturer.picture %}
-                        <img class="avatar avatar-lg" src="{{ lecturer.lecturer.picture.url }}" alt="">
-                        {% endif %}
-                        <h5 class="fw-bold mb-0">{{ lecturer|title }}</h5>
-                        <p class="mb-0">{{ lecturer.lecturer.email }}</p>
-                        <p class="text-muted small">Donec sed odio dui. Etiam porta sem malesuada magna mollis euismod.</p>
-                        <p>
-                            <a class="btn btn-sm btn-secondary" href="#" role="button"><i
-                                    class="fab fa-twitter"></i></a>
-                            <a class="btn btn-sm btn-secondary" href="#" role="button"><i
-                                    class="fab fa-facebook-f"></i></a>
-                            <a class="btn btn-sm btn-secondary" href="#" role="button"><i
-                                    class="fab fa-linkedin-in"></i></a>
-                        </p>
-                    </div>
+    
+    <!-- Documents Section -->
+    <div class="col-lg-6 mb-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-transparent border-0">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-file-alt text-success me-2"></i>{% trans 'Documentos del Curso' %}
+                    </h5>
+                    <span class="badge bg-success">{{ files.count }}</span>
                 </div>
             </div>
-            {% empty %}
-            <h6 class="text-muted mt-3">{% trans 'No se ha asignado instructor a este curso' %}</h6>
-            {% endfor %}
-
+            <div class="card-body">
+                {% if files %}
+                <div class="list-group list-group-flush">
+                    {% for file in files %}
+                    <div class="list-group-item border-0 px-0">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div class="d-flex align-items-center">
+                                <div class="bg-success bg-opacity-10 rounded-circle p-2 me-3">
+                                    <i class="fas fa-file-{{ file.get_extension_short }} text-success"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-1">{{ file.title|title }}</h6>
+                                    <small class="text-muted">
+                                        <i class="fas fa-calendar me-1"></i>{{ file.upload_time|date:"d/m/Y" }}
+                                    </small>
+                                </div>
+                            </div>
+                            <div class="d-flex gap-1">
+                                <a href="{{ file.file.url }}" class="btn btn-sm btn-outline-success" title="{% trans 'Descargar' %}">
+                                    <i class="fas fa-download"></i>
+                                </a>
+                                {% if request.user.is_superuser or request.user.is_lecturer %}
+                                <a href="{% url 'upload_file_edit' slug=course.slug file_id=file.pk %}" 
+                                   class="btn btn-sm btn-outline-primary" title="{% trans 'Editar' %}">
+                                    <i class="fas fa-pencil-alt"></i>
+                                </a>
+                                <a href="{% url 'upload_file_delete' slug=course.slug file_id=file.pk %}" 
+                                   class="btn btn-sm btn-outline-danger" title="{% trans 'Eliminar' %}">
+                                    <i class="fas fa-trash-alt"></i>
+                                </a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center py-4">
+                    <div class="bg-light rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
+                        <i class="fas fa-file-alt text-muted"></i>
+                    </div>
+                    <h6 class="text-muted">{% trans 'No hay documentos disponibles' %}</h6>
+                    {% if request.user.is_superuser or request.user.is_lecturer %}
+                    <a href="{% url 'upload_file_view' course.slug %}" class="btn btn-sm btn-primary">
+                        <i class="fas fa-plus me-1"></i>{% trans 'Subir documento' %}
+                    </a>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
         </div>
     </div>
-</div> -->
+</div>
+
+<style>
+/* Estilos personalizados para la vista de curso */
+.card {
+    transition: all 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.1) !important;
+}
+
+.list-group-item {
+    transition: all 0.2s ease;
+}
+
+.list-group-item:hover {
+    background-color: #f8f9fa;
+}
+
+.btn-group .btn {
+    border-radius: 0.375rem !important;
+}
+
+.btn-group .btn:first-child {
+    border-top-right-radius: 0 !important;
+    border-bottom-right-radius: 0 !important;
+}
+
+.btn-group .btn:last-child {
+    border-top-left-radius: 0 !important;
+    border-bottom-left-radius: 0 !important;
+}
+
+.badge {
+    font-size: 0.75rem;
+}
+
+/* Botones personalizados con colores de TeckPeru */
+.btn-teckperu-outline {
+    background: transparent;
+    border: 2px solid #BA6022;
+    color: #BA6022;
+    box-shadow: 0 2px 10px rgba(186, 96, 34, 0.1);
+}
+
+.btn-teckperu-outline:hover {
+    background: linear-gradient(135deg, #BA6022 0%, #A0521E 100%);
+    border-color: #BA6022;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(186, 96, 34, 0.3);
+}
+
+/* Efectos hover para enlaces de video */
+.hover-primary:hover {
+    color: #BA6022 !important;
+}
+
+/* Animaciones */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.card {
+    animation: fadeInUp 0.6s ease forwards;
+}
+
+.card:nth-child(1) { animation-delay: 0.1s; }
+.card:nth-child(2) { animation-delay: 0.2s; }
+.card:nth-child(3) { animation-delay: 0.3s; }
+.card:nth-child(4) { animation-delay: 0.4s; }
+</style>
+
+<script>
+// Manejar errores de carga de imágenes de cursos
+document.addEventListener('DOMContentLoaded', function() {
+    const courseImages = document.querySelectorAll('.course-header-image');
+    courseImages.forEach(function(img) {
+        img.addEventListener('error', function() {
+            this.src = "{% static 'img/course-default.png' %}";
+        });
+    });
+});
+</script>
 
 {% endblock content %}

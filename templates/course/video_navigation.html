@@ -5,71 +5,331 @@
 {% block title %}{{ course.title }} - {{ current_video.title }} | {% trans 'Sistema de gestión de aprendizaje' %}{% endblock title %}
 
 {% block content %}
-<div class="container my-5">
-    <h2 class="mb-4">{{ current_video.title }}</h2>
 
-    <div class="video-container mb-4">
-        {% if current_video.vimeo_url %}
-            <!-- Mostrar el video de Vimeo -->
-            <iframe src="https://player.vimeo.com/video/{{ current_video.get_vimeo_id }}" width="100%" height="500" frameborder="0" allowfullscreen></iframe>
-        {% elif current_video.video %}
-            <!-- Reproducción del video subido -->
-            {% if current_video.video %}
-                <video controls class="w-100">
-                    <source src="{{ current_video.video.url }}" type="video/mp4">
-                    {% trans "Tu navegador no soporta el elemento de video." %}
-                </video>
-            {% else %}
-                <!-- Mensaje si no hay video disponible -->
-                <p>{% trans 'No hay video disponible para mostrar.' %}</p>
-            {% endif %}
-        {% else %}
-            <!-- Mensaje si no hay video disponible -->
-            <p>{% trans 'No hay video disponible para mostrar.' %}</p>
-        {% endif %}
-    </div>
+<nav style="--bs-breadcrumb-divider: '>';" aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="/">{% trans 'Inicio' %}</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'user_course_list' %}">{% trans 'Mis cursos' %}</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'course_detail' course.slug %}">{{ course.title }}</a></li>
+        <li class="breadcrumb-item active" aria-current="page">{{ current_video.title }}</li>
+    </ol>
+</nav>
 
-    <!-- Documento relacionado al video actual -->
-    {% if current_document %}
-    <div class="document-container mb-4">
-        <h5>{% trans "Documentación relacionada:" %}</h5>
-        <a href="{{ current_document.file.url }}" class="btn btn-primary" target="_blank">
-            <i class="fas fa-file-download"></i> {{ current_document.title }}
-        </a>
-    </div>
-    {% endif %}
+{% include 'snippets/messages.html' %}
 
-    <!-- Navegación de videos y botón de "Tomar examen" en el último video -->
-    <div class="d-flex justify-content-between mb-4">
-        <div>
-            {% if is_last_video %}
-                <!-- Botón de "Tomar Examen" solo en el último video -->
-                <a class="btn btn-warning" href="{% url 'quiz_index' course.slug %}">
-                    <i class="fas fa-list"></i> {% trans 'Tomar examen' %}
-                </a>
-            {% endif %}
-        </div>
-        <div class="navigation d-flex">
-            {% if previous_video %}
-                <a href="{% url 'course_video_navigation' course.slug previous_video.id %}" class="btn btn-secondary me-2">
-                    <i class="fas fa-arrow-left"></i> {% trans 'Anterior' %}
-                </a>
-            {% else %}
-                <button class="btn btn-secondary me-2" disabled>
-                    <i class="fas fa-arrow-left"></i> {% trans 'Anterior' %}
-                </button>
-            {% endif %}
-
-            {% if next_video %}
-                <a href="{% url 'course_video_navigation' course.slug next_video.id %}" class="btn btn-secondary">
-                    {% trans 'Siguiente' %} <i class="fas fa-arrow-right"></i>
-                </a>
-            {% else %}
-                <button class="btn btn-secondary" disabled>
-                    {% trans 'Siguiente' %} <i class="fas fa-arrow-right"></i>
-                </button>
-            {% endif %}
+<!-- Course Header Section -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body p-4">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="me-3" style="width: 60px; height: 60px; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+                                <img src="{% static 'img/curso' %}{{ course.code|slice:'-3:' }}.png" 
+                                     alt="{{ course.title }}" 
+                                     style="width: 100%; height: 100%; object-fit: cover;"
+                                     class="course-image">
+                            </div>
+                            <div>
+                                <h1 class="h3 mb-1">{{ course.title }}</h1>
+                                <p class="text-muted mb-0">
+                                    <i class="fas fa-hashtag me-1"></i>{{ course.code }}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 text-end">
+                        <a href="{% url 'course_detail' course.slug %}" class="btn btn-teckperu">
+                            <i class="fas fa-arrow-left me-2"></i>{% trans 'Volver al curso' %}
+                        </a>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
+
+<!-- Video Player Section -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-transparent border-0">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0">
+                        <i class="fas fa-play-circle text-primary me-2"></i>{{ current_video.title }}
+                    </h4>
+                    <div class="d-flex gap-2">
+                        {% if previous_video %}
+                        <a href="{% url 'course_video_navigation' course.slug previous_video.id %}" class="btn btn-sm btn-teckperu-outline">
+                            <i class="fas fa-chevron-left me-1"></i>{% trans 'Anterior' %}
+                        </a>
+                        {% endif %}
+                        {% if next_video %}
+                        <a href="{% url 'course_video_navigation' course.slug next_video.id %}" class="btn btn-sm btn-teckperu-outline">
+                            {% trans 'Siguiente' %}<i class="fas fa-chevron-right ms-1"></i>
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                <div class="video-container" style="position: relative; width: 100%; background: #000;">
+                    {% if current_video.vimeo_url %}
+                        <!-- Video de Vimeo -->
+                        <iframe src="https://player.vimeo.com/video/{{ current_video.get_vimeo_id }}?h=500&w=100%" 
+                                style="width: 100%; height: 500px; border: none;" 
+                                allowfullscreen>
+                        </iframe>
+                    {% elif current_video.video %}
+                        <!-- Video subido -->
+                        <video controls style="width: 100%; height: 500px; object-fit: contain;">
+                            <source src="{{ current_video.video.url }}" type="video/mp4">
+                            {% trans "Tu navegador no soporta el elemento de video." %}
+                        </video>
+                    {% else %}
+                        <!-- Mensaje si no hay video -->
+                        <div class="d-flex align-items-center justify-content-center" style="height: 500px; background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);">
+                            <div class="text-center">
+                                <div class="bg-light rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
+                                    <i class="fas fa-video text-muted fs-1"></i>
+                                </div>
+                                <h5 class="text-muted">{% trans 'No hay video disponible' %}</h5>
+                                <p class="text-muted">{% trans 'Este video no está disponible actualmente' %}</p>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Course Progress and Actions -->
+<div class="row">
+    <!-- Document Section -->
+    <div class="col-lg-8 mb-4">
+        {% if current_document %}
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-transparent border-0">
+                <h5 class="mb-0">
+                    <i class="fas fa-file-alt text-success me-2"></i>{% trans 'Documento del Módulo' %}
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="d-flex align-items-center p-3 border rounded">
+                    <div class="bg-success bg-opacity-10 rounded-circle p-3 me-3">
+                        <i class="fas fa-file-{{ current_document.get_extension_short }} text-success fs-4"></i>
+                    </div>
+                    <div class="flex-grow-1">
+                        <h6 class="mb-1">{{ current_document.title }}</h6>
+                        <small class="text-muted">
+                            <i class="fas fa-calendar me-1"></i>{{ current_document.upload_time|date:"d/m/Y" }}
+                        </small>
+                    </div>
+                    <a href="{{ current_document.file.url }}" class="btn btn-success" target="_blank">
+                        <i class="fas fa-download me-2"></i>{% trans 'Descargar' %}
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body text-center py-5">
+                <div class="bg-light rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
+                    <i class="fas fa-file-alt text-muted fs-1"></i>
+                </div>
+                <h5 class="text-muted">{% trans 'No hay documento disponible' %}</h5>
+                <p class="text-muted">{% trans 'Este módulo no tiene documentación asociada' %}</p>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Course Actions -->
+    <div class="col-lg-4 mb-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-transparent border-0">
+                <h5 class="mb-0">
+                    <i class="fas fa-tasks text-primary me-2"></i>{% trans 'Acciones del Curso' %}
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="d-flex flex-column gap-3">
+                    {% if is_last_video %}
+                    <a href="{% url 'quiz_index' course.slug %}" class="btn btn-teckperu-exam btn-lg">
+                        <i class="fas fa-clipboard-check me-2"></i>{% trans 'Tomar Examen' %}
+                    </a>
+                    {% endif %}
+                    
+                    <a href="{% url 'course_detail' course.slug %}" class="btn btn-teckperu-outline">
+                        <i class="fas fa-list me-2"></i>{% trans 'Ver todos los módulos' %}
+                    </a>
+                    
+                    <a href="{% url 'user_course_list' %}" class="btn btn-teckperu-outline">
+                        <i class="fas fa-arrow-left me-2"></i>{% trans 'Volver a mis cursos' %}
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Video Summary -->
+{% if current_video.summary %}
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-transparent border-0">
+                <h5 class="mb-0">
+                    <i class="fas fa-info-circle text-info me-2"></i>{% trans 'Descripción del Módulo' %}
+                </h5>
+            </div>
+            <div class="card-body">
+                <p class="mb-0">{{ current_video.summary }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<style>
+/* Estilos personalizados para la vista de video */
+.card {
+    transition: all 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.1) !important;
+}
+
+.video-container {
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.btn {
+    transition: all 0.3s ease;
+}
+
+.btn:hover {
+    transform: translateY(-1px);
+}
+
+/* Botones personalizados con colores de TeckPeru */
+.btn-teckperu {
+    background: linear-gradient(135deg, #BA6022 0%, #A0521E 100%);
+    border: none;
+    color: white;
+    box-shadow: 0 4px 15px rgba(186, 96, 34, 0.3);
+}
+
+.btn-teckperu:hover {
+    background: linear-gradient(135deg, #A0521E 0%, #8B4513 100%);
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(186, 96, 34, 0.4);
+}
+
+.btn-teckperu-outline {
+    background: transparent;
+    border: 2px solid #BA6022;
+    color: #BA6022;
+    box-shadow: 0 2px 10px rgba(186, 96, 34, 0.1);
+}
+
+.btn-teckperu-outline:hover {
+    background: linear-gradient(135deg, #BA6022 0%, #A0521E 100%);
+    border-color: #BA6022;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(186, 96, 34, 0.3);
+}
+
+/* Botón especial para el examen */
+.btn-teckperu-exam {
+    background: linear-gradient(135deg, #BA6022 0%, #A0521E 100%);
+    border: none;
+    color: white;
+    font-weight: 600;
+    font-size: 1.1rem;
+    padding: 15px 25px;
+    border-radius: 12px;
+    box-shadow: 0 6px 20px rgba(186, 96, 34, 0.3);
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-teckperu-exam::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s ease;
+}
+
+.btn-teckperu-exam:hover {
+    background: linear-gradient(135deg, #A0521E 0%, #8B4513 100%);
+    color: white;
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(186, 96, 34, 0.4);
+}
+
+.btn-teckperu-exam:hover::before {
+    left: 100%;
+}
+
+.btn-teckperu-exam i {
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.1);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+/* Animaciones */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.card {
+    animation: fadeInUp 0.6s ease forwards;
+}
+
+.card:nth-child(1) { animation-delay: 0.1s; }
+.card:nth-child(2) { animation-delay: 0.2s; }
+.card:nth-child(3) { animation-delay: 0.3s; }
+</style>
+
+<script>
+// Manejar errores de carga de imágenes de cursos
+document.addEventListener('DOMContentLoaded', function() {
+    const courseImages = document.querySelectorAll('.course-image');
+    courseImages.forEach(function(img) {
+        img.addEventListener('error', function() {
+            this.src = "{% static 'img/course-default.png' %}";
+        });
+    });
+});
+</script>
+
 {% endblock content %}

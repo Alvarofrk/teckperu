@@ -243,6 +243,13 @@ class UploadVideo(models.Model):
                 return match.group(1)
         return None
 
+    def get_thumbnail_url(self):
+        """Obtiene la URL de la miniatura del video de Vimeo"""
+        vimeo_id = self.get_vimeo_id()
+        if vimeo_id:
+            return f"https://vumbnail.com/{vimeo_id}.jpg"
+        return None
+
     def save(self, *args, **kwargs):
         if not self.slug:
             self.slug = unique_slug_generator(self)
