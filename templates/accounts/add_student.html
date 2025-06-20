@@ -4,52 +4,385 @@
 {% load crispy_forms_tags %}
 {% load static %}
 
+{% block header %}
+<style>
+    body {
+        background-color: #f8f9fa;
+    }
+    .form-container {
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+        overflow: hidden;
+        max-width: 800px;
+        margin: 0 auto;
+    }
+
+    .progress-bar-container {
+        background: #f8f9fa;
+        padding: 1.5rem 2rem;
+        border-bottom: 1px solid #e9ecef;
+    }
+
+    .step-indicator {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        position: relative;
+    }
+
+    .step-indicator::before {
+        content: '';
+        position: absolute;
+        top: 20px;
+        left: 0;
+        right: 0;
+        height: 1px;
+        background: #e9ecef;
+        z-index: 1;
+    }
+
+    .step {
+        position: relative;
+        z-index: 2;
+        background: white;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        border: 1px solid #dee2e6;
+        transition: all 0.3s ease;
+    }
+
+    .step.active {
+        background: #BA6022;
+        border-color: #BA6022;
+        color: white;
+    }
+
+    .step.completed {
+        background: #28a745;
+        border-color: #28a745;
+        color: white;
+    }
+
+    .step-label {
+        position: absolute;
+        top: 45px;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 0.8rem;
+        color: #6c757d;
+        white-space: nowrap;
+    }
+
+    .step.active .step-label {
+        color: #BA6022;
+        font-weight: 500;
+    }
+
+    .step.completed .step-label {
+        color: #28a745;
+        font-weight: 500;
+    }
+
+    .tab-content {
+        padding: 3rem 2rem;
+        min-height: 400px;
+    }
+
+    .tab-pane {
+        display: none;
+    }
+
+    .tab-pane.active {
+        display: block;
+    }
+
+    .course-search-wrapper {
+        position: relative;
+        margin-bottom: 1rem;
+    }
+    .course-search-wrapper .fa-search {
+        position: absolute;
+        left: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #adb5bd;
+    }
+    #course-search-input {
+        padding-left: 40px;
+        border-radius: 8px;
+        border: 1px solid #ced4da;
+    }
+
+    .course-list {
+        max-height: 300px;
+        overflow-y: auto;
+        border: 1px solid #e0e7ff;
+        border-radius: 8px;
+        padding: 1rem;
+    }
+    .course-list .form-check {
+        padding: 0.5rem 1rem;
+        transition: background-color 0.2s ease;
+        border-radius: 6px;
+    }
+    .course-list .form-check:hover {
+        background-color: #f0f3ff;
+    }
+
+    .form-footer {
+        padding: 1.5rem 2rem;
+        background-color: #f8f9fa;
+        border-top: 1px solid #e9ecef;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .btn-primary {
+        background-color: #BA6022;
+        border-color: #BA6022;
+    }
+    .btn-primary:hover {
+        background-color: #a0521e;
+        border-color: #a0521e;
+    }
+
+    .btn-success {
+        background-color: #28a745;
+        border-color: #28a745;
+    }
+    .btn-success:hover {
+        background-color: #218838;
+        border-color: #218838;
+    }
+
+    .field-error {
+        border-color: #dc3545 !important;
+    }
+
+    .error-message {
+        color: #dc3545;
+        font-size: 0.875rem;
+        margin-top: 0.25rem;
+    }
+</style>
+{% endblock header %}
+
 {% block content %}
 
 <nav style="--bs-breadcrumb-divider: '>';" aria-label="breadcrumb">
     <ol class="breadcrumb">
       <li class="breadcrumb-item"><a href="/">{% trans 'Inicio' %}</a></li>
       <li class="breadcrumb-item"><a href="{% url 'student_list' %}">{% trans 'Trabajadores' %}</a></li>
-      <li class="breadcrumb-item active" aria-current="page">{% trans 'Agregar' %}</li>
+      <li class="breadcrumb-item active" aria-current="page">{% trans 'Agregar Nuevo Trabajador' %}</li>
     </ol>
 </nav>
 
-<h4 class="mb-3 fw-bold"><i class="fas fa-user-tie me-2"></i>{% trans 'Formulario para agregar trabajador' %}</h4>
+<h4 class="mb-4 fw-bold text-center"><i class="fas fa-user-plus me-2"></i>{% trans 'Agregar Nuevo Trabajador' %}</h4>
 
 {% include 'snippets/messages.html' %}
 
-<form action="" method="POST">{% csrf_token %}
-    <div class="row mb-3">
-        <div class="col-md-6">
-            <div class="card">
-                <p class="form-title">{% trans 'Información Personal' %}</p>
-                <div class="card-body">
-                    {{ form.username|as_crispy_field }}
-                    {{ form.first_name|as_crispy_field }}
-                    {{ form.last_name|as_crispy_field }}
-                    {{ form.gender|as_crispy_field }}
-                    {{ form.email|as_crispy_field }}
-                    {{ form.address|as_crispy_field }}
-                    {{ form.phone|as_crispy_field }}
-                </div>
+<form action="" method="POST" class="form-container" id="student-form">
+    {% csrf_token %}
+    
+    <!-- Progress Bar -->
+    <div class="progress-bar-container">
+        <div class="step-indicator">
+            <div class="step active" data-step="1">
+                <span>1</span>
+                <div class="step-label">{% trans 'Acceso' %}</div>
             </div>
-        </div>
-
-        <div class="col-md-6 ms-auto">
-            <div class="card">
-                <p class="form-title">{% trans 'Otros' %}</p>
-                <div class="card-body">
-                    {{ form.program|as_crispy_field }}
-                    {{ form.level|as_crispy_field }}
-                    <!-- Aquí agregamos los nuevos campos -->
-                    {{ form.cargo|as_crispy_field }}  <!-- Campo de Cargo -->
-                    {{ form.empresa|as_crispy_field }}  <!-- Campo de Empresa -->
-                </div>
+            <div class="step" data-step="2">
+                <span>2</span>
+                <div class="step-label">{% trans 'Personal' %}</div>
+            </div>
+            <div class="step" data-step="3">
+                <span>3</span>
+                <div class="step-label">{% trans 'Laboral' %}</div>
+            </div>
+            <div class="step" data-step="4">
+                <span>4</span>
+                <div class="step-label">{% trans 'Cursos' %}</div>
             </div>
         </div>
     </div>
 
-    <input class="btn btn-primary" type="submit" value="{% trans 'Guardar' %}">
+    <!-- Step Content -->
+    <div class="tab-content">
+        <!-- Step 1: Acceso -->
+        <div class="tab-pane active" id="step-1">
+            <h5 class="mb-3"><i class="fas fa-id-card me-2"></i>{% trans 'Información de Acceso' %}</h5>
+            <div class="row">
+                <div class="col-md-8">{{ form.username|as_crispy_field }}</div>
+                <div class="col-md-4">
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <small>{% trans 'El DNI será el nombre de usuario para el inicio de sesión. La contraseña se generará automáticamente.' %}</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 2: Información Personal -->
+        <div class="tab-pane" id="step-2">
+            <h5 class="mb-3"><i class="fas fa-user-circle me-2"></i>{% trans 'Información Personal' %}</h5>
+            <div class="row">
+                <div class="col-md-6">{{ form.first_name|as_crispy_field }}</div>
+                <div class="col-md-6">{{ form.last_name|as_crispy_field }}</div>
+                <div class="col-md-6">{{ form.email|as_crispy_field }}</div>
+                <div class="col-md-6">{{ form.phone|as_crispy_field }}</div>
+                <div class="col-md-6">{{ form.address|as_crispy_field }}</div>
+                <div class="col-md-6">{{ form.gender|as_crispy_field }}</div>
+            </div>
+        </div>
+
+        <!-- Step 3: Información Laboral -->
+        <div class="tab-pane" id="step-3">
+            <h5 class="mb-3"><i class="fas fa-briefcase me-2"></i>{% trans 'Información Laboral' %}</h5>
+            {{ form.program|as_crispy_field }}
+            {{ form.empresa|as_crispy_field }}
+            {{ form.cargo|as_crispy_field }}
+        </div>
+
+        <!-- Step 4: Inscripción de Cursos -->
+        <div class="tab-pane" id="step-4">
+            <h5 class="mb-3"><i class="fas fa-graduation-cap me-2"></i>{% trans 'Inscripción de Cursos' %}</h5>
+            <p class="text-muted mb-3">{% trans 'Selecciona los cursos en los que este trabajador debe estar inscrito desde su creación.' %}</p>
+            <div class="course-search-wrapper">
+                <i class="fas fa-search"></i>
+                <input type="text" id="course-search-input" class="form-control" placeholder="{% trans 'Buscar cursos por nombre...' %}">
+            </div>
+            <div class="course-list" id="course-list-container">
+                {{ form.courses }}
+            </div>
+        </div>
+    </div>
+
+    <!-- Navigation Buttons -->
+    <div class="form-footer">
+        <a href="{% url 'student_list' %}" class="btn btn-secondary">
+            <i class="fas fa-times me-2"></i>{% trans 'Cancelar' %}
+        </a>
+        <div class="d-flex gap-2">
+            <button type="button" class="btn btn-outline-secondary" id="prev-btn" style="display: none;">
+                <i class="fas fa-arrow-left me-2"></i>{% trans 'Anterior' %}
+            </button>
+            <button type="button" class="btn btn-primary" id="next-btn">
+                {% trans 'Siguiente' %}<i class="fas fa-arrow-right ms-2"></i>
+            </button>
+            <button type="submit" class="btn btn-success" id="submit-btn" style="display: none;">
+                <i class="fas fa-plus me-2"></i>{% trans 'Crear Trabajador' %}
+            </button>
+        </div>
+    </div>
 </form>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    let currentStep = 1;
+    const totalSteps = 4;
+    
+    // Course search functionality
+    const searchInput = document.getElementById('course-search-input');
+    const courseContainer = document.getElementById('course-list-container');
+    const courses = courseContainer.querySelectorAll('.form-check');
+
+    searchInput.addEventListener('keyup', function (e) {
+        const searchTerm = e.target.value.toLowerCase();
+        courses.forEach(course => {
+            const label = course.querySelector('label');
+            if (label) {
+                const labelText = label.innerText.toLowerCase();
+                if (labelText.includes(searchTerm)) {
+                    course.style.display = '';
+                } else {
+                    course.style.display = 'none';
+                }
+            }
+        });
+    });
+
+    // Step navigation
+    const nextBtn = document.getElementById('next-btn');
+    const prevBtn = document.getElementById('prev-btn');
+    const submitBtn = document.getElementById('submit-btn');
+    const steps = document.querySelectorAll('.step');
+
+    function updateStepDisplay() {
+        // Hide all steps
+        document.querySelectorAll('.tab-pane').forEach(pane => {
+            pane.classList.remove('active');
+        });
+        
+        // Show current step
+        document.getElementById(`step-${currentStep}`).classList.add('active');
+        
+        // Update step indicators
+        steps.forEach((step, index) => {
+            const stepNum = index + 1;
+            step.classList.remove('active', 'completed');
+            if (stepNum === currentStep) {
+                step.classList.add('active');
+            } else if (stepNum < currentStep) {
+                step.classList.add('completed');
+            }
+        });
+        
+        // Update buttons
+        prevBtn.style.display = currentStep > 1 ? 'inline-block' : 'none';
+        nextBtn.style.display = currentStep < totalSteps ? 'inline-block' : 'none';
+        submitBtn.style.display = currentStep === totalSteps ? 'inline-block' : 'none';
+    }
+
+    function validateStep(step) {
+        const currentPane = document.getElementById(`step-${step}`);
+        const requiredFields = currentPane.querySelectorAll('input[required], select[required], textarea[required]');
+        let isValid = true;
+        
+        requiredFields.forEach(field => {
+            if (!field.value.trim()) {
+                field.classList.add('field-error');
+                isValid = false;
+            } else {
+                field.classList.remove('field-error');
+            }
+        });
+        
+        // Special validation for step 1 (username/DNI)
+        if (step === 1) {
+            const usernameField = currentPane.querySelector('#id_username');
+            if (usernameField && !usernameField.value.trim()) {
+                usernameField.classList.add('field-error');
+                isValid = false;
+            }
+        }
+        
+        return isValid;
+    }
+
+    nextBtn.addEventListener('click', function() {
+        if (validateStep(currentStep)) {
+            currentStep++;
+            updateStepDisplay();
+        } else {
+            alert('{% trans "Por favor, completa todos los campos requeridos antes de continuar." %}');
+        }
+    });
+
+    prevBtn.addEventListener('click', function() {
+        currentStep--;
+        updateStepDisplay();
+    });
+
+    // Initialize display
+    updateStepDisplay();
+});
+</script>
 
 {% endblock content %}

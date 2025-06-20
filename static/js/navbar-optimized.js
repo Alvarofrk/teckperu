@@ -268,7 +268,7 @@
         const setPadding = () => {
             const navbarHeight = navbar.offsetHeight;
             if (mainContent) {
-                mainContent.style.paddingTop = `${navbarHeight}px`;
+                mainContent.style.paddingTop = `${navbarHeight - 24}px`;
             }
         };
 

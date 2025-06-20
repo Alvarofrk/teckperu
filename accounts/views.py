@@ -18,6 +18,7 @@ from accounts.forms import (
     ProgramUpdateForm,
     StaffAddForm,
     StudentAddForm,
+    StudentUpdateForm,
 )
 from accounts.models import Parent, Student, User
 from core.models import Semester, Session
@@ -328,20 +329,30 @@ def student_add_view(request):
 @login_required
 @admin_required
 def edit_student(request, pk):
-    student_user = get_object_or_404(User, is_student=True, pk=pk)
-    if request.method == "POST":
-        form = ProfileUpdateForm(request.POST, request.FILES, instance=student_user)
-        if form.is_valid():
-            form.save()
-            full_name = student_user.get_full_name
-            messages.success(request, f"Student {full_name} has been updated.")
-            return redirect("student_list")
-        messages.error(request, "Please correct the error below.")
+    student_user = get_object_or_404(User, pk=pk)
+    student_profile = get_object_or_404(Student, student=student_user)
+
+    if request.method == 'POST':
+        profile_form = ProfileUpdateForm(request.POST, request.FILES, instance=student_user)
+        student_form = StudentUpdateForm(request.POST, instance=student_profile)
+
+        if profile_form.is_valid() and student_form.is_valid():
+            profile_form.save()
+            student_form.save()
+            
+            messages.success(request, 'Trabajador actualizado correctamente.')
+            return redirect('student_list')
+        else:
+            messages.error(request, 'Por favor corrige los errores.')
     else:
-        form = ProfileUpdateForm(instance=student_user)
-    return render(
-        request, "accounts/edit_student.html", {"title": "Edit Student", "form": form}
-    )
+        profile_form = ProfileUpdateForm(instance=student_user)
+        student_form = StudentUpdateForm(instance=student_profile)
+
+    return render(request, 'accounts/edit_student.html', {
+        'title': 'Actualizar Trabajador',
+        'profile_form': profile_form,
+        'student_form': student_form,
+    })
 
 
 @method_decorator([login_required, admin_required], name="dispatch")

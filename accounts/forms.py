@@ -6,7 +6,12 @@ from django.contrib.auth.forms import (
 )
 from django.contrib.auth.forms import PasswordResetForm
 from course.models import Program
+from result.models import TakenCourse
 from .models import User, Student, Parent, RELATION_SHIP, LEVEL, GENDERS
+from core.models import Semester, Session
+from course.models import Course
+from django.db import transaction
+from django.forms import formset_factory
 
 
 class StaffAddForm(UserCreationForm):
@@ -135,7 +140,7 @@ class StudentAddForm(UserCreationForm):
         widget=forms.TextInput(
             attrs={"type": "text", "class": "form-control", "id": "username_id"}
         ),
-        label="Username",
+        label="DNI",
         required=True,
     )
     address = forms.CharField(
@@ -146,7 +151,7 @@ class StudentAddForm(UserCreationForm):
                 "class": "form-control",
             }
         ),
-        label="Address",
+        label="Dirección",
     )
 
     phone = forms.CharField(
@@ -157,7 +162,7 @@ class StudentAddForm(UserCreationForm):
                 "class": "form-control",
             }
         ),
-        label="Mobile No.",
+        label="N° de Móvil",
     )
 
     first_name = forms.CharField(
@@ -168,7 +173,7 @@ class StudentAddForm(UserCreationForm):
                 "class": "form-control",
             }
         ),
-        label="First name",
+        label="Nombres",
     )
 
     last_name = forms.CharField(
@@ -179,7 +184,7 @@ class StudentAddForm(UserCreationForm):
                 "class": "form-control",
             }
         ),
-        label="Last name",
+        label="Apellidos",
     )
 
     gender = forms.CharField(
@@ -189,6 +194,7 @@ class StudentAddForm(UserCreationForm):
                 "class": "browser-default custom-select form-control",
             },
         ),
+        label="Género",
     )
 
     cargo = forms.CharField(
@@ -215,12 +221,9 @@ class StudentAddForm(UserCreationForm):
     )
 
     level = forms.CharField(
-        widget=forms.Select(
-            choices=LEVEL,
-            attrs={
-                "class": "browser-default custom-select form-control",
-            },
-        ),
+        widget=forms.HiddenInput(),
+        initial="Bachelor",
+        required=False,
     )
 
     program = forms.ModelChoiceField(
@@ -228,7 +231,14 @@ class StudentAddForm(UserCreationForm):
         widget=forms.Select(
             attrs={"class": "browser-default custom-select form-control"}
         ),
-        label="Program",
+        label="Programa",
+    )
+
+    courses = forms.ModelMultipleChoiceField(
+        queryset=Course.objects.all(),
+        widget=forms.CheckboxSelectMultiple,
+        required=False,
+        label="Inscribir en Cursos"
     )
 
     email = forms.EmailField(
@@ -238,7 +248,7 @@ class StudentAddForm(UserCreationForm):
                 "class": "form-control",
             }
         ),
-        label="Email Address",
+        label="Correo Electrónico",
     )
 
     password1 = forms.CharField(
@@ -249,7 +259,7 @@ class StudentAddForm(UserCreationForm):
                 "class": "form-control",
             }
         ),
-        label="Password",
+        label="Contraseña",
         required=False,
     )
 
@@ -261,7 +271,7 @@ class StudentAddForm(UserCreationForm):
                 "class": "form-control",
             }
         ),
-        label="Password Confirmation",
+        label="Confirmación de Contraseña",
         required=False,
     )
 
@@ -287,13 +297,19 @@ class StudentAddForm(UserCreationForm):
 
         if commit:
             user.save() 
-            Student.objects.create(
+            student = Student.objects.create(
                 student=user,
                 level=self.cleaned_data.get("level"),
                 cargo=self.cleaned_data.get("cargo"),
                 empresa=self.cleaned_data.get("empresa"),
                 program=self.cleaned_data.get("program"),
             )
+
+            # Inscribir en los cursos seleccionados
+            courses = self.cleaned_data.get('courses')
+            if courses:
+                for course in courses:
+                    TakenCourse.objects.create(student=student, course=course)
 
         return user
 
@@ -361,15 +377,15 @@ class ProfileUpdateForm(UserChangeForm):
 
     class Meta:
         model = User
-        fields = [
-            "first_name",
-            "last_name",
-            "gender",
-            "email",
-            "phone",
-            "address",
-            "picture",
-        ]
+        fields = ["last_name", "first_name", "picture", "address", "phone", "gender"]
+        labels = {
+            'last_name': 'Apellidos',
+            'first_name': 'Nombres',
+            'picture': 'Foto de Perfil',
+            'address': 'Dirección',
+            'phone': 'N° de Móvil',
+            'gender': 'Género',
+        }
 
 
 class ProgramUpdateForm(UserChangeForm):
@@ -524,3 +540,55 @@ class ParentAddForm(UserCreationForm):
         )
         parent.save()
         return user
+
+
+class StudentUpdateForm(forms.ModelForm):
+    courses = forms.ModelMultipleChoiceField(
+        queryset=Course.objects.all(),
+        widget=forms.CheckboxSelectMultiple,
+        required=False,
+        label="Cursos a Inscribir"
+    )
+
+    class Meta:
+        model = Student
+        fields = ['program', 'cargo', 'empresa', 'courses']
+        labels = {
+            'program': 'Programa',
+            'cargo': 'Cargo',
+            'empresa': 'Empresa',
+        }
+
+    def __init__(self, *args, **kwargs):
+        super(StudentUpdateForm, self).__init__(*args, **kwargs)
+        if self.instance and self.instance.pk:
+            self.fields['courses'].initial = self.instance.takencourse_set.values_list('course__id', flat=True)
+
+    def save(self, commit=True):
+        from result.models import TakenCourse
+        student = super(StudentUpdateForm, self).save(commit=False)
+        if commit:
+            student.save()
+
+        if self.cleaned_data.get('courses') is not None:
+            # Cursos actualmente inscritos
+            current_courses = set(student.takencourse_set.values_list('course__id', flat=True))
+            # Cursos seleccionados en el formulario
+            selected_courses = set(c.id for c in self.cleaned_data['courses'])
+
+            # Cursos para inscribir
+            courses_to_add = selected_courses - current_courses
+            for course_id in courses_to_add:
+                course = Course.objects.get(id=course_id)
+                TakenCourse.objects.create(student=student, course=course)
+
+            # Cursos para desinscribir
+            courses_to_remove = current_courses - selected_courses
+            TakenCourse.objects.filter(student=student, course__id__in=courses_to_remove).delete()
+            
+        return student
+
+
+def custom_logout(request):
+    """Custom logout view that accepts both GET and POST requests."""
+    logout(request)

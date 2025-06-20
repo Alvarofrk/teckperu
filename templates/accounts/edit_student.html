@@ -4,45 +4,222 @@
 {% load crispy_forms_tags %}
 {% load static %}
 
+{% block header %}
+<style>
+    body {
+        background-color: #f8f9fa;
+    }
+    .profile-header {
+        background: white;
+        padding: 2rem;
+        border-radius: 16px;
+        margin-bottom: 2rem;
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+    }
+    .profile-avatar {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 4px solid #BA6022;
+    }
+    .profile-name {
+        font-size: 1.75rem;
+        font-weight: 600;
+        margin: 0;
+    }
+    .profile-username {
+        font-size: 1rem;
+        color: #6c757d;
+        margin: 0;
+    }
+
+    .form-container {
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+        overflow: hidden;
+    }
+
+    .nav-tabs .nav-link {
+        color: #6c757d;
+        font-weight: 500;
+        border: none;
+        border-bottom: 3px solid transparent;
+        padding: 1rem 1.5rem;
+    }
+    .nav-tabs .nav-link.active, .nav-tabs .nav-item.show .nav-link {
+        color: #BA6022;
+        background-color: transparent;
+        border-color: #BA6022;
+    }
+
+    .tab-content {
+        padding: 2rem;
+    }
+
+    .course-search-wrapper {
+        position: relative;
+        margin-bottom: 1rem;
+    }
+    .course-search-wrapper .fa-search {
+        position: absolute;
+        left: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #adb5bd;
+    }
+    #course-search-input {
+        padding-left: 40px;
+        border-radius: 8px;
+        border: 1px solid #ced4da;
+    }
+
+    .course-list {
+        max-height: 400px;
+        overflow-y: auto;
+        border: 1px solid #e0e7ff;
+        border-radius: 8px;
+        padding: 1rem;
+    }
+    .course-list .form-check {
+        padding: 0.5rem 1rem;
+        transition: background-color 0.2s ease;
+        border-radius: 6px;
+    }
+    .course-list .form-check:hover {
+        background-color: #f0f3ff;
+    }
+    .course-list .form-check label {
+        width: 100%;
+    }
+    .course-list .form-check-input {
+        float: right;
+        margin-top: 0.5rem;
+    }
+
+    .form-footer {
+        padding: 1.5rem 2rem;
+        background-color: #f8f9fa;
+        border-top: 1px solid #e9ecef;
+        display: flex;
+        justify-content: flex-end;
+        gap: 1rem;
+    }
+    .btn-primary {
+        background-color: #BA6022;
+        border-color: #BA6022;
+    }
+    .btn-primary:hover {
+        background-color: #a0521e;
+        border-color: #a0521e;
+    }
+</style>
+{% endblock header %}
+
 {% block content %}
 
 <nav style="--bs-breadcrumb-divider: '>';" aria-label="breadcrumb">
     <ol class="breadcrumb">
       <li class="breadcrumb-item"><a href="/">{% trans 'Inicio' %}</a></li>
       <li class="breadcrumb-item"><a href="{% url 'student_list' %}">{% trans 'Trabajadores' %}</a></li>
-      <li class="breadcrumb-item active" aria-current="page">{% trans 'Actualizar' %}</li>
+      <li class="breadcrumb-item active" aria-current="page">{% trans 'Actualizar Perfil' %}</li>
     </ol>
 </nav>
 
-<h4 class="fw-bold mb-3"><i class="fas fa-cog me-2"></i>{% trans 'Formulario de Actualización de Trabajador' %}</h4>
+{% with student=profile_form.instance %}
+<div class="profile-header">
+    <img src="{{ student.get_picture }}" alt="Foto de perfil" class="profile-avatar">
+    <div>
+        <h2 class="profile-name">{{ student.get_full_name }}</h2>
+        <p class="profile-username">ID: {{ student.username }}</p>
+    </div>
+</div>
+{% endwith %}
+
 
 {% include 'snippets/messages.html' %}
 
-<form action="" method="POST" enctype="multipart/form-data">{% csrf_token %}
-    <div class="row mb-3">
-        <div class="col-md-6">
-            <div class="card">
-                <p class="form-title">{% trans 'Correo electrónico' %} &amp; {% trans 'Información Personal' %}</p>
+<form action="" method="POST" enctype="multipart/form-data" class="form-container">
+    {% csrf_token %}
+    
+    <ul class="nav nav-tabs" id="myTab" role="tablist">
+        <li class="nav-item" role="presentation">
+          <button class="nav-link active" id="personal-tab" data-bs-toggle="tab" data-bs-target="#personal-pane" type="button" role="tab" aria-controls="personal-pane" aria-selected="true"><i class="fas fa-user-circle me-2"></i>{% trans 'Información Personal' %}</button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button class="nav-link" id="laboral-tab" data-bs-toggle="tab" data-bs-target="#laboral-pane" type="button" role="tab" aria-controls="laboral-pane" aria-selected="false"><i class="fas fa-briefcase me-2"></i>{% trans 'Información Laboral' %}</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="cursos-tab" data-bs-toggle="tab" data-bs-target="#cursos-pane" type="button" role="tab" aria-controls="cursos-pane" aria-selected="false"><i class="fas fa-graduation-cap me-2"></i>{% trans 'Gestión de Cursos' %}</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="foto-tab" data-bs-toggle="tab" data-bs-target="#foto-pane" type="button" role="tab" aria-controls="foto-pane" aria-selected="false"><i class="fas fa-camera me-2"></i>{% trans 'Foto de Perfil' %}</button>
+        </li>
+    </ul>
 
-                <div class="card-body">
-                    {{ form.email|as_crispy_field }}
-                    {{ form.first_name|as_crispy_field }}
-                    {{ form.last_name|as_crispy_field }}
-                    {{ form.gender|as_crispy_field }}
-                    {{ form.phone|as_crispy_field }}
-                    {{ form.address|as_crispy_field }}
-                </div>
+    <div class="tab-content">
+        <div class="tab-pane fade show active" id="personal-pane" role="tabpanel" aria-labelledby="personal-tab" tabindex="0">
+            <div class="row">
+                <div class="col-md-6">{{ profile_form.first_name|as_crispy_field }}</div>
+                <div class="col-md-6">{{ profile_form.last_name|as_crispy_field }}</div>
+                <div class="col-md-6">{{ profile_form.email|as_crispy_field }}</div>
+                <div class="col-md-6">{{ profile_form.phone|as_crispy_field }}</div>
+                <div class="col-md-6">{{ profile_form.address|as_crispy_field }}</div>
+                <div class="col-md-6">{{ profile_form.gender|as_crispy_field }}</div>
             </div>
         </div>
-        <div class="col-md-6">
-            <div class="card">
-                <p class="form-title">{% trans 'Otros' %}</p>
-                <div class="card-body">
-                    {{ form.picture|as_crispy_field }}
-                </div>
+        <div class="tab-pane fade" id="laboral-pane" role="tabpanel" aria-labelledby="laboral-tab" tabindex="0">
+            {{ student_form.program|as_crispy_field }}
+            {{ student_form.empresa|as_crispy_field }}
+            {{ student_form.cargo|as_crispy_field }}
+        </div>
+        <div class="tab-pane fade" id="cursos-pane" role="tabpanel" aria-labelledby="cursos-tab" tabindex="0">
+            <p class="text-muted">{% trans 'Selecciona los cursos en los que este trabajador debe estar inscrito.' %}</p>
+            <div class="course-search-wrapper">
+                <i class="fas fa-search"></i>
+                <input type="text" id="course-search-input" class="form-control" placeholder="{% trans 'Buscar cursos por nombre...' %}">
             </div>
+            <div class="course-list" id="course-list-container">
+                {{ student_form.courses }}
+            </div>
+        </div>
+        <div class="tab-pane fade" id="foto-pane" role="tabpanel" aria-labelledby="foto-tab" tabindex="0">
+            {{ profile_form.picture|as_crispy_field }}
         </div>
     </div>
-    <input class="btn btn-primary" type="submit" value="{% trans 'Guardar' %}">
+
+    <div class="form-footer">
+        <a href="{% url 'student_list' %}" class="btn btn-secondary">{% trans 'Cancelar' %}</a>
+        <button class="btn btn-primary" type="submit"><i class="fas fa-save me-2"></i>{% trans 'Guardar Cambios' %}</button>
+    </div>
 </form>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const searchInput = document.getElementById('course-search-input');
+    const courseContainer = document.getElementById('course-list-container');
+    const courses = courseContainer.querySelectorAll('.form-check');
+
+    searchInput.addEventListener('keyup', function (e) {
+        const searchTerm = e.target.value.toLowerCase();
+
+        courses.forEach(course => {
+            const label = course.querySelector('label');
+            if (label) {
+                const labelText = label.innerText.toLowerCase();
+                if (labelText.includes(searchTerm)) {
+                    course.style.display = '';
+                } else {
+                    course.style.display = 'none';
+                }
+            }
+        });
+    });
+});
+</script>
+
 {% endblock content %}

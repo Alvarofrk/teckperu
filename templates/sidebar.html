@@ -140,12 +140,14 @@
                 </a>
             </li>
             
+            {% comment %}
             <li class="nav-item {% if request.path == cr %}active{% endif %}">
                 <a href="{% url 'course_registration' %}" class="nav-link">
                     <i class="fas fa-plus"></i>
                     <span class="nav-text">{% trans 'Agregar' %} &amp; {% trans 'Eliminar curso' %}</span>
                 </a>
             </li>
+            {% endcomment %}
             {% endif %}
             
             <!-- Separador -->
