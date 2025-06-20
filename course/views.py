@@ -7,6 +7,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.decorators import method_decorator
 from django.views.generic import CreateView
 from django_filters.views import FilterView
+import os
 
 from accounts.decorators import lecturer_required, student_required
 from accounts.models import Student
@@ -28,6 +29,7 @@ from course.models import (
     UploadVideo,
 )
 from result.models import TakenCourse
+from quiz.models import Quiz
 
 from django.http import HttpResponse
 from reportlab.lib.pagesizes import letter, landscape
@@ -551,106 +553,124 @@ def download_courses_pdf(request):
     # Obtener los cursos que el estudiante tiene registrados
     student = get_object_or_404(Student, student__pk=request.user.id)
     taken_courses = TakenCourse.objects.filter(student=student)
+    
     # Crear una respuesta HTTP con tipo de contenido PDF
     response = HttpResponse(content_type='application/pdf')
-    response['Content-Disposition'] = 'attachment; filename="cursos_registrados.pdf"'
+    response['Content-Disposition'] = 'attachment; filename="reporte_cursos_estudiante.pdf"'
 
     # Crear un documento PDF
-    doc = SimpleDocTemplate(response, pagesize=landscape(letter))  # Cambiar a landscape
+    doc = SimpleDocTemplate(response, pagesize=letter)
     
-    # Encabezados de la tabla
-    headers = ["Nombre del Curso", "Código", "Estatus de registro", "Fecha de Inscripción", "Fecha de Vencimiento"]  # Agregar encabezados
-    
-    # Datos de los cursos
-    data = []
-    
-    # Fechas fijas
-    fixed_enrollment_date = "12/01/2025"
-    fixed_expiration_date = "12/02/2026"
-    
-    # Agregar los detalles de cada curso
-    for taken_course in taken_courses:
-        course_name = taken_course.course.title
-        course_code = taken_course.course.code
-        course_status = "Inscrito" if taken_course.course.is_active else "En curso"
-        data.append([course_name, course_code, course_status, fixed_enrollment_date, fixed_expiration_date])  # Usar fechas fijas
-
-    # Crear la tabla con los datos
-    table = Table([headers] + data)
-    
-    # Estilo de la tabla
-    table.setStyle(TableStyle([
-        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#BA6022')),  # Fondo gris para el encabezado
-        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),  # Texto blanco en el encabezado
-        ('ALIGN', (0, 1), (-1, -1), 'CENTER'),  # Alineación centrada por defecto
-        ('ALIGN', (0, 0), (0, -1), 'LEFT'),  # Alinear "Nombre del Curso" a la izquierda
-        ('FONTNAME', (0, 0), (-1, -1), 'Helvetica'),  # Fuente
-        ('FONTSIZE', (0, 0), (-1, -1), 8),  # Tamaño de la fuente
-        ('BOTTOMPADDING', (0, 0), (-1, 0), 12),  # Espacio debajo del encabezado
-        ('TOPPADDING', (0, 1), (-1, -1), 10),  # Espacio encima de las filas de datos
-        ('LINEBEFORE', (0, 0), (0, -1), 0.25, colors.black),  # Borde izquierdo
-        ('LINEAFTER', (-1, 0), (-1, -1), 0.25, colors.black),  # Borde derecho
-        ('LINEABOVE', (0, 0), (-1, 0), 0.25, colors.black),  # Línea encima del encabezado
-        ('LINEBELOW', (0, -1), (-1, -1), 0.25, colors.black),  # Línea debajo de la última fila
-        ('GRID', (0, 0), (-1, -1), 0.5, colors.black),  # Rejilla para las celdas
-    ]))
-    
-    # Crear lista de elementos para agregar al documento
+    # Lista de elementos para el documento
     elements = []
     
-    # Añadir el título "REPORTE DE PROGRESO" al documento
-    title = "REPORTE DE PROGRESO"
-    title_style = TableStyle([
-        ('ALIGN', (0, 0), (0, 0), 'CENTER'),  # Alinear el título al centro
-        ('FONTNAME', (0, 0), (0, 0), 'Helvetica-Bold'),
-        ('FONTSIZE', (0, 0), (0, 0), 16),
-        ('BOTTOMPADDING', (0, 0), (0, 0), 10),
-    ])
+    # Estilos
+    styles = getSampleStyleSheet()
+    title_style = styles['Heading1']
+    title_style.alignment = 1  # Centrado
+    title_style.fontSize = 24
+    title_style.spaceAfter = 30
+    title_style.textColor = colors.HexColor('#BA6022')  # Color naranja de la plataforma
     
-    # Para el título se crea una tabla con un solo elemento para tener control sobre la alineación
-    title_table = Table([[title]], style=title_style, colWidths=[6 * inch])
-    elements.append(title_table)
-
-    # # Añadir un espacio entre la fecha y la tabla de cursos
-    elements.append(Table([[""]], colWidths=[6 * inch], rowHeights=[0.5 * inch]))  # Espacio vacío
-
-    # Añadir el nombre del estudiante debajo del título
+    subtitle_style = styles['Heading2']
+    subtitle_style.fontSize = 14
+    subtitle_style.spaceAfter = 20
+    subtitle_style.textColor = colors.HexColor('#333333')
+    
+    normal_style = styles['Normal']
+    normal_style.fontSize = 10
+    normal_style.spaceAfter = 12
+    
+    # Título principal
+    title = Paragraph("REPORTE DE CURSOS REGISTRADOS", title_style)
+    elements.append(title)
+    
+    # Información del estudiante
     student_name = f"{student.student.first_name} {student.student.last_name}"
-    name_style = TableStyle([
-        ('ALIGN', (0, 0), (0, 0), 'LEFT'),  # Alinear a la izquierda
-        ('FONTNAME', (0, 0), (0, 0), 'Helvetica'),
-        ('FONTSIZE', (0, 0), (0, 0), 12),
-        ('BOTTOMPADDING', (0, 0), (0, 0), 6),
-    ])
+    student_info = f"<b>Estudiante:</b> {student_name}"
+    student_paragraph = Paragraph(student_info, subtitle_style)
+    elements.append(student_paragraph)
     
-    # Crear una tabla con el nombre del estudiante
-    name_table = Table([[f"Nombre: {student_name}"]], style=name_style, colWidths=[6 * inch])
-    elements.append(name_table)
-
-    # Obtener la fecha actual
-    current_date = format_date(datetime.now(), format='d \'de\' MMMM \'de\' y', locale='es_ES')  # Formato: 27 de Noviembre de 2024
-
-    # Crear una tabla con la fecha
-    date_style = TableStyle([
-        ('ALIGN', (0, 0), (0, 0), 'LEFT'),  # Alinear a la izquierda
-        ('FONTNAME', (0, 0), (0, 0), 'Helvetica'),
-        ('FONTSIZE', (0, 0), (0, 0), 12),
-        ('BOTTOMPADDING', (0, 0), (0, 0), 6),
-    ])
-
-    # Crear una tabla con la fecha
-    date_table = Table([[f"Fecha: {current_date}"]], style=date_style, colWidths=[6 * inch])
-    elements.append(date_table)
-
-    # Añadir un espacio entre la fecha y la tabla de cursos
-    elements.append(Table([[""]], colWidths=[6 * inch], rowHeights=[0.5 * inch]))  # Espacio vacío
-
-    # Añadir la tabla de cursos al documento
-    elements.append(table)
-
+    # Información del programa
+    if student.program:
+        program_info = f"<b>Programa:</b> {student.program.title}"
+        program_paragraph = Paragraph(program_info, normal_style)
+        elements.append(program_paragraph)
+    
+    # Fecha del reporte
+    current_date = format_date(datetime.now(), format='d \'de\' MMMM \'de\' y', locale='es_ES')
+    date_info = f"<b>Fecha de generación:</b> {current_date}"
+    date_paragraph = Paragraph(date_info, normal_style)
+    elements.append(date_paragraph)
+    
+    # Espacio
+    elements.append(Spacer(1, 30))
+    
+    # Tabla de cursos
+    if taken_courses.exists():
+        # Encabezados de la tabla
+        headers = ["Código", "Nombre del Curso"]
+        
+        # Datos de los cursos
+        data = []
+        for taken_course in taken_courses:
+            course = taken_course.course
+            
+            data.append([
+                course.code,
+                course.title
+            ])
+        
+        # Crear la tabla
+        course_table = Table([headers] + data, colWidths=[1.5*inch, 4.5*inch])
+        
+        # Estilo de la tabla
+        course_table.setStyle(TableStyle([
+            # Encabezado
+            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#BA6022')),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, 0), 11),
+            ('BOTTOMPADDING', (0, 0), (-1, 0), 15),
+            ('TOPPADDING', (0, 0), (-1, 0), 15),
+            
+            # Datos
+            ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
+            ('FONTSIZE', (0, 1), (-1, -1), 9),
+            ('BOTTOMPADDING', (0, 1), (-1, -1), 10),
+            ('TOPPADDING', (0, 1), (-1, -1), 10),
+            ('ALIGN', (0, 0), (0, -1), 'CENTER'),  # Código centrado
+            ('ALIGN', (1, 1), (1, -1), 'LEFT'),    # Nombre del curso alineado a la izquierda
+            
+            # Bordes
+            ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#dee2e6')),
+            ('LINEBELOW', (0, 0), (-1, 0), 1, colors.HexColor('#BA6022')),
+            
+            # Colores alternados para las filas
+            ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#f8f9fa')])
+        ]))
+        
+        elements.append(course_table)
+    else:
+        # Mensaje si no hay cursos
+        no_courses = Paragraph("No tienes cursos registrados actualmente.", normal_style)
+        elements.append(no_courses)
+    
+    # Espacio
+    elements.append(Spacer(1, 30))
+    
+    # Pie de página
+    footer_text = "Este reporte fue generado automáticamente por el Sistema de Gestión de Aprendizaje TeckPeru"
+    footer_style = styles['Normal']
+    footer_style.fontSize = 8
+    footer_style.textColor = colors.grey
+    footer_style.alignment = 1  # Centrado
+    footer = Paragraph(footer_text, footer_style)
+    elements.append(footer)
+    
     # Construir el documento PDF
     doc.build(elements)
-
+    
     return response
 # ########################################################
 # User Course List View
@@ -660,17 +680,92 @@ def download_courses_pdf(request):
 @login_required
 def user_course_list(request):
     if request.user.is_lecturer:
-        courses = Course.objects.filter(allocated_course__lecturer__pk=request.user.id)
-        return render(request, "course/user_course_list.html", {"courses": courses})
+        # Obtener cursos asignados al instructor
+        courses = Course.objects.filter(allocated_course__lecturer__pk=request.user.id).order_by('title')
+        
+        # Calcular estadísticas
+        total_courses = courses.count()
+        active_courses = courses.filter(is_active=True).count()
+        
+        # Contar estudiantes totales
+        total_students = 0
+        for course in courses:
+            student_count = TakenCourse.objects.filter(course=course).count()
+            total_students += student_count
+        
+        # Contar cuestionarios totales
+        total_quizzes = Quiz.objects.filter(course__in=courses).count()
+        
+        # Contar materiales totales (archivos y videos)
+        total_materials = 0
+        for course in courses:
+            total_materials += course.upload_set.count() + course.uploadvideo_set.count()
+        
+        # Agregar rutas de imágenes a cada curso
+        for course in courses:
+            course.image_path = get_course_image_path(course.code)
+        
+        # Paginación
+        paginator = Paginator(courses, 9)  # 9 cursos por página (3x3 grid)
+        page_number = request.GET.get('page')
+        page_obj = paginator.get_page(page_number)
+        
+        context = {
+            "courses": page_obj,
+            "total_courses": total_courses,
+            "active_courses": active_courses,
+            "total_students": total_students,
+            "total_quizzes": total_quizzes,
+            "total_materials": total_materials,
+        }
+        return render(request, "course/user_course_list.html", context)
 
     if request.user.is_student:
         student = get_object_or_404(Student, student__pk=request.user.id)
-        taken_courses = TakenCourse.objects.filter(student=student)
-        return render(
-            request,
-            "course/user_course_list.html",
-            {"student": student, "taken_courses": taken_courses},
-        )
+        taken_courses = TakenCourse.objects.filter(student=student).order_by('course__title')
+        
+        # Calcular estadísticas
+        total_courses = taken_courses.count()
+        active_courses = taken_courses.filter(course__is_active=True).count()
+        
+        # Calcular progreso (simulado por ahora)
+        courses_in_progress = 0
+        completed_courses = 0
+        
+        # Agregar rutas de imágenes a cada curso tomado
+        for taken_course in taken_courses:
+            taken_course.course.image_path = get_course_image_path(taken_course.course.code)
+        
+        # Paginación
+        paginator = Paginator(taken_courses, 9)  # 9 cursos por página
+        page_number = request.GET.get('page')
+        page_obj = paginator.get_page(page_number)
+        
+        context = {
+            "student": student,
+            "taken_courses": page_obj,
+            "total_courses": total_courses,
+            "active_courses": active_courses,
+            "courses_in_progress": courses_in_progress,
+            "completed_courses": completed_courses,
+        }
+        return render(request, "course/user_course_list.html", context)
 
     # For other users
     return render(request, "course/user_course_list.html")
+
+def get_course_image_path(course_code):
+    """
+    Función helper para obtener la ruta de la imagen de un curso
+    basado en su código (ej: '0001' -> 'curso001.png', '0002' -> 'curso002.png')
+    """
+    try:
+        code_str = str(course_code).strip()
+        # Solo tomar los últimos 3 dígitos para armar el nombre de la imagen
+        if len(code_str) >= 3 and code_str[-3:].isdigit():
+            img_number = code_str[-3:]
+            image_path = f'/static/img/curso{img_number}.png'
+            return image_path
+        return '/static/img/course-default.png'
+    except Exception:
+        return '/static/img/course-default.png'

@@ -12,139 +12,540 @@
     </ol>
 </nav>
 
-{% if request.user.is_student %}
-    <div class="title-1">{{ student.program.title }}</div>
-    {% if student.program.summary %}
-        <p>{{ student.program.summary }}</p>
-    {% endif %}
-{% endif %}
-
-{% if request.user.is_lecturer %}
-    <div class="title-1">{% trans 'Mis Cursos' %}</div>
-{% endif %}
-
 {% include 'snippets/messages.html' %}
 
-{% if request.user.is_student %}
-<div class="table-responsive p-3 mt-3">
-    <div class="table-shadow">
-        <table class="table table-light">
-            <thead>
-                <tr>
-                    <th> {% trans 'Nombre del Curso' %} </th>
-                    <th> {% trans 'Código del Curso' %} </th>
-                    <th> {% trans 'Progreso del Curso' %} </th>
-                    <th> {% trans 'Estatus de registro' %} </th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for course in taken_courses %}
-                <tr>
-                    <td>
-                        <span class="course-link" 
-                              data-url="{{ course.get_absolute_url }}"
-                              style="cursor: pointer; transition: color 0.3s ease;" 
-                              onmouseover="this.style.color='orange'" 
-                              onmouseout="this.style.color=''" 
-                              onclick="window.location.href='{{ course.get_absolute_url }}'">
-                            {{ course.course.title }}
-                        </span>
-                    </td>
-                    <td>{{ course.course.code }}</td>
-                    <td>
-                        {% if course.course.is_active %}
-                            {% trans 'En curso' %}
-                        {% else %}
-                            {% trans 'En curso' %}
-                        {% endif %}
-                    </td>
-                    <td class="success">
-                        <i class="fas fa-check-circle"></i> {% trans 'Activo' %}
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+<!-- Función helper para obtener imagen del curso -->
+<script>
+function getCourseImage(courseCode) {
+    // Extraer el número del código (ej: "0001" -> "001")
+    const match = courseCode.match(/(\d+)/);
+    if (match) {
+        const number = match[1].padStart(3, '0'); // Asegurar formato de 3 dígitos
+        return `/static/img/curso${number}.png`;
+    }
+    // Imagen por defecto si no hay coincidencia
+    return '/static/img/course-default.png';
+}
+</script>
+
+<!-- Header Section -->
+<div class="row mb-4">
+    <div class="col-12">
+        {% if request.user.is_student %}
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="title-1 mb-2">{{ student.program.title }}</h1>
+                    {% if student.program.summary %}
+                        <p class="text-muted mb-0">{{ student.program.summary }}</p>
+                    {% endif %}
+                </div>
+            </div>
+        {% endif %}
+
+        {% if request.user.is_lecturer %}
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="title-1 mb-2">{% trans 'Mis Cursos' %}</h1>
+                    <p class="text-muted mb-0">{% trans 'Gestiona y accede a todos tus cursos asignados' %}</p>
+                </div>
+                <div class="text-end">
+                    <span class="badge bg-primary fs-6">{{ courses.count }} {% trans 'cursos' %}</span>
+                </div>
+            </div>
+        {% endif %}
     </div>
 </div>
-{% endif %}
- 
+
+<!-- Statistics Cards for Students -->
 {% if request.user.is_student %}
-    <a href="{% url 'download_courses_pdf' %}" class="btn btn-primary">
-        Descargar Consolidado
-    </a>
-{% endif %}
-{% if request.user.is_lecturer %}
-    <div class="table-responsive p-3">
-        <h6 class="fw-bold text-primary"><u>{% trans 'Cursos Disponibles:' %}</u></h6>
-        <div class="table-shadow">
-            <table class="table table-light">
-                <thead>
-                    <tr>
-                        
-                        <th> {% trans 'Nombre del Curso' %} </th>
-                        <th> {% trans 'Código del Curso' %} </th>
-                        <!-- <th> {% trans 'Créditos' %} </th>
-                        <th> {% trans 'Año' %} </th>
-                        <th> {% trans 'Grupo' %} </th> -->
-                        <th> {% trans 'Grupo Actual' %} </th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for course in courses %}
-                    <tr>
-                        
-                        <td><a href="{{ course.get_absolute_url }}">
-                            {{ course.title }}</a></td>
-                        <td>{{ course.code }}</td>
-                        <!-- <td>{{ course.credit }}</td>
-                        <td>{{ course.year }}</td>
-                        <td>{{ course.semester }}</td> -->
-                        <th>
-                            {% if course.is_current_semester == False %}
-                            <i class="fas fa-times-circle fa-1-5x danger"></i>
-                            {% else %}
-                            <i class="fas fa-check-circle"></i>
-                            {% endif %}
-                        </th>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+<div class="row mb-4">
+    <div class="col-md-6 mb-3">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body text-center">
+                <div class="d-flex align-items-center justify-content-center mb-3">
+                    <div class="bg-primary bg-opacity-10 rounded-circle p-3">
+                        <i class="fas fa-book text-primary fs-4"></i>
+                    </div>
+                </div>
+                <h3 class="fw-bold text-primary mb-1">{{ total_courses }}</h3>
+                <p class="text-muted mb-0">{% trans 'Cursos Registrados' %}</p>
+            </div>
         </div>
     </div>
-{% endif %}
-
-{% if courses.paginator.page_range|length > 1 %}
-<div class="content-center">
-    <div class="pagination">
-        <a href="?page=1">&laquo;</a>
-        {% for i in courses.paginator.page_range %}
-            {% if i == courses.number %}
-                <a class="pagination-active" href="?page={{ i }}"><b>{{ i }}</b></a>
-            {% else %}
-                <a href="?page={{ i }}">{{ i }}</a>
-            {% endif %}
-        {% endfor %}
-        <a href="?page={{ courses.paginator.num_pages }}">&raquo;</a>
+    
+    <div class="col-md-6 mb-3">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body text-center">
+                <div class="d-flex align-items-center justify-content-center mb-3">
+                    <div class="bg-success bg-opacity-10 rounded-circle p-3">
+                        <i class="fas fa-check-circle text-success fs-4"></i>
+                    </div>
+                </div>
+                <h3 class="fw-bold text-success mb-1">{{ active_courses }}</h3>
+                <p class="text-muted mb-0">{% trans 'Cursos Activos' %}</p>
+            </div>
+        </div>
     </div>
 </div>
 {% endif %}
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Añadir el evento click a todos los elementos con la clase 'course-link'
-        const courseLinks = document.querySelectorAll('.course-link');
-        
-        courseLinks.forEach(function(link) {
-            link.style.cursor = 'pointer';  // Cambiar el cursor a puntero (mano)
 
-            // Añadir el evento de clic para redirigir al curso
-            link.addEventListener('click', function() {
-                const url = link.getAttribute('data-url');
-                window.location.href = url;
-            });
+<!-- Statistics Cards for Lecturers -->
+{% if request.user.is_lecturer %}
+<div class="row mb-4">
+    <div class="col-md-3 mb-3">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body text-center">
+                <div class="d-flex align-items-center justify-content-center mb-3">
+                    <div class="bg-primary bg-opacity-10 rounded-circle p-3">
+                        <i class="fas fa-chalkboard-teacher text-primary fs-4"></i>
+                    </div>
+                </div>
+                <h3 class="fw-bold text-primary mb-1">{{ total_courses }}</h3>
+                <p class="text-muted mb-0">{% trans 'Cursos Asignados' %}</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-3">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body text-center">
+                <div class="d-flex align-items-center justify-content-center mb-3">
+                    <div class="bg-success bg-opacity-10 rounded-circle p-3">
+                        <i class="fas fa-users text-success fs-4"></i>
+                    </div>
+                </div>
+                <h3 class="fw-bold text-success mb-1">{{ total_students }}</h3>
+                <p class="text-muted mb-0">{% trans 'Estudiantes' %}</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-3">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body text-center">
+                <div class="d-flex align-items-center justify-content-center mb-3">
+                    <div class="bg-warning bg-opacity-10 rounded-circle p-3">
+                        <i class="fas fa-question-circle text-warning fs-4"></i>
+                    </div>
+                </div>
+                <h3 class="fw-bold text-warning mb-1">{{ total_quizzes }}</h3>
+                <p class="text-muted mb-0">{% trans 'Cuestionarios' %}</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-3">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body text-center">
+                <div class="d-flex align-items-center justify-content-center mb-3">
+                    <div class="bg-info bg-opacity-10 rounded-circle p-3">
+                        <i class="fas fa-file-alt text-info fs-4"></i>
+                    </div>
+                </div>
+                <h3 class="fw-bold text-info mb-1">{{ total_materials }}</h3>
+                <p class="text-muted mb-0">{% trans 'Materiales' %}</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Search and Filter Section -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col-md-6">
+                        <select class="form-select" id="sortFilter">
+                            <option value="name">{% trans 'Ordenar por nombre' %}</option>
+                            <option value="code">{% trans 'Ordenar por código' %}</option>
+                            <option value="recent">{% trans 'Más recientes' %}</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Courses Grid for Students -->
+{% if request.user.is_student %}
+<div class="row" id="coursesGrid">
+    {% for course in taken_courses %}
+    <div class="col-lg-4 col-md-6 mb-4 course-card" 
+         data-name="{{ course.course.title|lower }}" 
+         data-code="{{ course.course.code|lower }}"
+         data-status="active">
+        <div class="card border-0 shadow-sm h-100 course-hover">
+            <!-- Course Image -->
+            <div class="course-image-container">
+                <img src="{{ course.course.image_path }}" 
+                     alt="{{ course.course.title }}" 
+                     class="course-image"
+                     onerror="this.src='{% static 'img/course-default.png' %}'">
+                <div class="course-overlay">
+                    <span class="badge bg-success">{% trans 'Activo' %}</span>
+                </div>
+            </div>
+            
+            <div class="card-body">
+                <h5 class="card-title fw-bold mb-2">
+                    <a href="{{ course.course.get_absolute_url }}" class="text-decoration-none text-dark">
+                        {{ course.course.title }}
+                    </a>
+                </h5>
+                
+                <p class="text-muted small mb-3">
+                    <i class="fas fa-hashtag me-1"></i>{{ course.course.code }}
+                </p>
+                
+                <div class="d-flex justify-content-between align-items-center">
+                    <a href="{{ course.course.get_absolute_url }}" class="btn btn-sm btn-outline-primary">
+                        <i class="fas fa-arrow-right me-1"></i>{% trans 'Acceder' %}
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12">
+        <div class="text-center py-5">
+            <div class="bg-light rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
+                <i class="fas fa-book-open text-muted fs-1"></i>
+            </div>
+            <h4 class="text-muted">{% trans 'No tienes cursos registrados' %}</h4>
+            <p class="text-muted">{% trans 'Regístrate en algunos cursos para comenzar tu aprendizaje' %}</p>
+            <a href="{% url 'course_registration' %}" class="btn btn-primary">
+                <i class="fas fa-plus me-2"></i>{% trans 'Registrar Cursos' %}
+            </a>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<!-- Courses Grid for Lecturers -->
+{% if request.user.is_lecturer %}
+<div class="row" id="coursesGrid">
+    {% for course in courses %}
+    <div class="col-lg-4 col-md-6 mb-4 course-card" 
+         data-name="{{ course.title|lower }}" 
+         data-code="{{ course.code|lower }}"
+         data-status="{% if course.is_active %}active{% else %}inactive{% endif %}">
+        <div class="card border-0 shadow-sm h-100 course-hover">
+            <!-- Course Image -->
+            <div class="course-image-container">
+                <img src="{{ course.image_path }}" 
+                     alt="{{ course.title }}" 
+                     class="course-image"
+                     onerror="this.src='{% static 'img/course-default.png' %}'">
+                <div class="course-overlay">
+                    {% if course.is_active %}
+                        <span class="badge bg-success">{% trans 'Activo' %}</span>
+                    {% else %}
+                        <span class="badge bg-secondary">{% trans 'Inactivo' %}</span>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="card-body">
+                <h5 class="card-title fw-bold mb-2">
+                    <a href="{{ course.get_absolute_url }}" class="text-decoration-none text-dark">
+                        {{ course.title }}
+                    </a>
+                </h5>
+                
+                <p class="text-muted small mb-3">
+                    <i class="fas fa-hashtag me-1"></i>{{ course.code }}
+                </p>
+                
+                <div class="row text-center mb-3">
+                    <div class="col-4">
+                        <div class="border-end">
+                            <h6 class="fw-bold text-primary mb-0">{{ course.taken_courses.count }}</h6>
+                            <small class="text-muted">{% trans 'Estudiantes' %}</small>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="border-end">
+                            <h6 class="fw-bold text-warning mb-0">{{ course.quiz_set.count }}</h6>
+                            <small class="text-muted">{% trans 'Cuestionarios' %}</small>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <h6 class="fw-bold text-info mb-0">{{ course.upload_set.count|add:course.uploadvideo_set.count }}</h6>
+                        <small class="text-muted">{% trans 'Materiales' %}</small>
+                    </div>
+                </div>
+                
+                <div class="d-flex gap-2">
+                    <a href="{{ course.get_absolute_url }}" class="btn btn-sm btn-outline-primary flex-fill">
+                        <i class="fas fa-eye me-1"></i>{% trans 'Ver' %}
+                    </a>
+                    <a href="{% url 'quiz_create' course.slug %}" class="btn btn-sm btn-outline-success">
+                        <i class="fas fa-plus"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12">
+        <div class="text-center py-5">
+            <div class="bg-light rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
+                <i class="fas fa-chalkboard-teacher text-muted fs-1"></i>
+            </div>
+            <h4 class="text-muted">{% trans 'No tienes cursos asignados' %}</h4>
+            <p class="text-muted">{% trans 'Contacta al administrador para que te asigne cursos' %}</p>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<!-- Pagination -->
+{% if courses.paginator.page_range|length > 1 %}
+<div class="row mt-4">
+    <div class="col-12">
+        <nav aria-label="Navegación de páginas">
+            <ul class="pagination justify-content-center">
+                <li class="page-item {% if not courses.has_previous %}disabled{% endif %}">
+                    <a class="page-link" href="?page=1" aria-label="Primera">
+                        <i class="fas fa-angle-double-left"></i>
+                    </a>
+                </li>
+                <li class="page-item {% if not courses.has_previous %}disabled{% endif %}">
+                    <a class="page-link" href="{% if courses.has_previous %}?page={{ courses.previous_page_number }}{% else %}#{% endif %}" aria-label="Anterior">
+                        <i class="fas fa-angle-left"></i>
+                    </a>
+                </li>
+                
+                {% for i in courses.paginator.page_range %}
+                    {% if i == courses.number %}
+                        <li class="page-item active">
+                            <span class="page-link">{{ i }}</span>
+                        </li>
+                    {% elif i > courses.number|add:'-3' and i < courses.number|add:'3' %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ i }}">{{ i }}</a>
+                        </li>
+                    {% endif %}
+                {% endfor %}
+                
+                <li class="page-item {% if not courses.has_next %}disabled{% endif %}">
+                    <a class="page-link" href="{% if courses.has_next %}?page={{ courses.next_page_number }}{% else %}#{% endif %}" aria-label="Siguiente">
+                        <i class="fas fa-angle-right"></i>
+                    </a>
+                </li>
+                <li class="page-item {% if not courses.has_next %}disabled{% endif %}">
+                    <a class="page-link" href="?page={{ courses.paginator.num_pages }}" aria-label="Última">
+                        <i class="fas fa-angle-double-right"></i>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+</div>
+{% endif %}
+
+<!-- Download Button for Students -->
+{% if request.user.is_student %}
+<div class="row mt-4">
+    <div class="col-12 text-center">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title mb-3">
+                    <i class="fas fa-file-pdf text-danger me-2"></i>
+                    {% trans 'Descargar Reporte de Cursos' %}
+                </h5>
+                <p class="text-muted mb-3">{% trans 'Genera un reporte PDF con todos tus cursos registrados' %}</p>
+                <a href="{% url 'download_courses_pdf' %}" class="btn btn-primary btn-lg">
+                    <i class="fas fa-download me-2"></i>{% trans 'Descargar Consolidado' %}
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<style>
+/* Estilos personalizados para la sección de cursos */
+.course-hover {
+    transition: all 0.3s ease;
+    border: 1px solid rgba(0,0,0,0.1);
+    overflow: hidden;
+}
+
+.course-hover:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.15) !important;
+    border-color: #BA6022;
+}
+
+.course-card {
+    transition: all 0.3s ease;
+}
+
+.course-card.hidden {
+    display: none;
+}
+
+.card-title a:hover {
+    color: #BA6022 !important;
+}
+
+.progress {
+    background-color: #f8f9fa;
+}
+
+.progress-bar {
+    transition: width 0.6s ease;
+}
+
+.badge {
+    font-size: 0.75rem;
+}
+
+.input-group-text {
+    border-color: #dee2e6;
+}
+
+.form-control:focus,
+.form-select:focus {
+    border-color: #BA6022;
+    box-shadow: 0 0 0 0.2rem rgba(186, 96, 34, 0.25);
+}
+
+.btn-outline-primary {
+    border-color: #BA6022;
+    color: #BA6022;
+}
+
+.btn-outline-primary:hover {
+    background-color: #BA6022;
+    border-color: #BA6022;
+    color: white;
+}
+
+.btn-primary {
+    background-color: #BA6022;
+    border-color: #BA6022;
+}
+
+.btn-primary:hover {
+    background-color: #A0521E;
+    border-color: #A0521E;
+}
+
+/* Estilos para las imágenes de cursos */
+.course-image-container {
+    position: relative;
+    height: 200px;
+    overflow: hidden;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+}
+
+.course-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.course-hover:hover .course-image {
+    transform: scale(1.05);
+}
+
+.course-overlay {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 2;
+}
+
+.course-overlay .badge {
+    font-size: 0.7rem;
+    padding: 0.4rem 0.6rem;
+    backdrop-filter: blur(10px);
+    background-color: rgba(255, 255, 255, 0.9) !important;
+    color: #333 !important;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+/* Efecto de gradiente sobre la imagen */
+.course-image-container::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 30%;
+    background: linear-gradient(to top, rgba(0,0,0,0.1), transparent);
+    pointer-events: none;
+}
+
+/* Animaciones */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.course-card {
+    animation: fadeIn 0.6s ease forwards;
+}
+
+.course-card:nth-child(1) { animation-delay: 0.1s; }
+.course-card:nth-child(2) { animation-delay: 0.2s; }
+.course-card:nth-child(3) { animation-delay: 0.3s; }
+.course-card:nth-child(4) { animation-delay: 0.4s; }
+.course-card:nth-child(5) { animation-delay: 0.5s; }
+.course-card:nth-child(6) { animation-delay: 0.6s; }
+
+/* Responsive para imágenes */
+@media (max-width: 768px) {
+    .course-image-container {
+        height: 150px;
+    }
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const sortFilter = document.getElementById('sortFilter');
+    const courseCards = document.querySelectorAll('.course-card');
+    
+    // Función de ordenamiento
+    sortFilter.addEventListener('change', function() {
+        const sortValue = this.value;
+        const grid = document.getElementById('coursesGrid');
+        const cards = Array.from(courseCards);
+        
+        cards.sort((a, b) => {
+            switch(sortValue) {
+                case 'name':
+                    return a.dataset.name.localeCompare(b.dataset.name);
+                case 'code':
+                    return a.dataset.code.localeCompare(b.dataset.code);
+                case 'recent':
+                    return 0; // Por defecto, mantener orden original
+                default:
+                    return 0;
+            }
+        });
+        
+        // Reordenar elementos en el DOM
+        cards.forEach(card => {
+            grid.appendChild(card);
         });
     });
+});
 </script>
 
 {% endblock content %}
