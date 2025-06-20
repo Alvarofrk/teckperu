@@ -2,6 +2,291 @@
 {% load i18n %}
 {% block title %}{{ title }} | {% trans 'Sistema de gestión de aprendizaje' %}{% endblock title %}
 
+{% block header %}
+<style>
+    :root {
+        --table-primary: #BA6022;
+        --table-hover: #f8f9fa;
+        --table-border: #e9ecef;
+        --table-shadow: rgba(0, 0, 0, 0.05);
+    }
+
+    .modern-table-container {
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 4px 20px var(--table-shadow);
+        overflow: hidden;
+        margin-top: 2rem;
+    }
+
+    .modern-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 0;
+    }
+
+    .modern-table thead {
+        background: linear-gradient(135deg, var(--table-primary), #d17a3a);
+        color: white;
+    }
+
+    .modern-table th {
+        padding: 1.25rem 1rem;
+        font-weight: 600;
+        font-size: 0.95rem;
+        text-align: left;
+        border: none;
+        position: relative;
+    }
+
+    .modern-table th:first-child {
+        border-top-left-radius: 16px;
+    }
+
+    .modern-table th:last-child {
+        border-top-right-radius: 16px;
+    }
+
+    .modern-table tbody tr {
+        transition: all 0.3s ease;
+        border-bottom: 1px solid var(--table-border);
+    }
+
+    .modern-table tbody tr:hover {
+        background-color: var(--table-hover);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .modern-table tbody tr:last-child {
+        border-bottom: none;
+    }
+
+    .modern-table td {
+        padding: 1.25rem 1rem;
+        vertical-align: middle;
+        border: none;
+    }
+
+    .modern-table .user-info {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .modern-table .user-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--table-primary), #d17a3a);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 600;
+        font-size: 0.9rem;
+    }
+
+    .modern-table .user-avatar img {
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        object-fit: cover;
+    }
+
+    .modern-table .user-details {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .modern-table .user-name {
+        font-weight: 600;
+        color: #333;
+        text-decoration: none;
+        transition: color 0.2s ease;
+    }
+
+    .modern-table .user-name:hover {
+        color: var(--table-primary);
+    }
+
+    .modern-table .user-id {
+        font-size: 0.85rem;
+        color: #666;
+        margin-top: 0.25rem;
+    }
+
+    .modern-table .contact-info {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+
+    .modern-table .contact-info .email {
+        color: #333;
+        font-weight: 500;
+    }
+
+    .modern-table .contact-info .phone {
+        font-size: 0.85rem;
+        color: #666;
+    }
+
+    .modern-table .program-badge {
+        background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+        color: #1976d2;
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 500;
+        display: inline-block;
+    }
+
+    .modern-table .company-info {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+
+    .modern-table .company-name {
+        font-weight: 600;
+        color: #333;
+    }
+
+    .modern-table .position-name {
+        font-size: 0.85rem;
+        color: #666;
+        font-style: italic;
+    }
+
+    .modern-table .actions-dropdown .btn {
+        background: transparent;
+        border: 1px solid var(--table-border);
+        border-radius: 8px;
+        padding: 0.5rem;
+        transition: all 0.3s ease;
+    }
+
+    .modern-table .actions-dropdown .btn:hover {
+        background: var(--table-primary);
+        border-color: var(--table-primary);
+        color: white;
+    }
+
+    .modern-table .dropdown-menu {
+        border-radius: 12px;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+        border: 1px solid var(--table-border);
+        padding: 0.5rem 0;
+    }
+
+    .modern-table .dropdown-item {
+        padding: 0.75rem 1rem;
+        transition: all 0.2s ease;
+    }
+
+    .modern-table .dropdown-item:hover {
+        background-color: #f8f9fa;
+        color: var(--table-primary);
+    }
+
+    .modern-table .dropdown-item.text-danger:hover {
+        background-color: #fee;
+        color: #dc3545;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 4rem 2rem;
+        background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+        border-radius: 16px;
+        border: 2px dashed #dee2e6;
+        margin: 2rem 0;
+    }
+
+    .empty-state__icon {
+        font-size: 4rem;
+        color: #adb5bd;
+        margin-bottom: 1rem;
+    }
+
+    .empty-state__title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: #495057;
+        margin-bottom: 0.5rem;
+    }
+
+    .empty-state__message {
+        font-size: 1rem;
+        color: #6c757d;
+        margin-bottom: 2rem;
+    }
+
+    .student-actions {
+        display: flex;
+        justify-content: center;
+        gap: 1rem;
+        margin: 3rem 0 2rem 0;
+        flex-wrap: wrap;
+    }
+
+    .btn-orange {
+        background-color: #BA6022;
+        border-color: #BA6022;
+        color: white;
+        font-weight: 500;
+        padding: 0.75rem 1.5rem;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .btn-orange:hover {
+        background-color: #a0521e;
+        border-color: #a0521e;
+        color: white;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(186, 96, 34, 0.3);
+    }
+
+    .btn-orange-outline {
+        background-color: transparent;
+        border: 2px solid #BA6022;
+        color: #BA6022;
+        font-weight: 500;
+        padding: 0.75rem 1.5rem;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .btn-orange-outline:hover {
+        background-color: #BA6022;
+        border-color: #BA6022;
+        color: white;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(186, 96, 34, 0.3);
+    }
+
+    @media (max-width: 768px) {
+        .modern-table-container {
+            overflow-x: auto;
+        }
+        
+        .modern-table {
+            min-width: 800px;
+        }
+    }
+</style>
+{% endblock header %}
+
 {% block content %}
 
 <nav style="--bs-breadcrumb-divider: '>';" aria-label="breadcrumb">
@@ -11,74 +296,110 @@
     </ol>
 </nav>
 
-{% if request.user.is_superuser %}
-<div class="manage-wrap">
-    <a class="btn btn-sm btn-primary" href="{% url 'add_student' %}"><i class="fas fa-plus"></i>{% trans 'Añadir Trabajador' %}</a>
-    <a class="btn btn-sm btn-primary" target="_blank" href="{% url 'student_list_pdf' %}"><i class="fas fa-download"></i>{% trans 'Descargar PDF' %}</a> <!--nuevo-->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="title-1"><i class="fas fa-user-tie"></i>{% trans 'Trabajadores' %}</div>
 </div>
-{% endif %}
-
-<div class="title-1"><i class="fas fa-user-tie"></i>{% trans 'Trabajadores' %}</div>
-<br>
-<br>
 
 {% include 'snippets/messages.html' %}
 {% include 'snippets/filter_form.html' %}
 
-<div class="table-responsive table-shadow table-light table-striped m-0 mt-4">
-    <table class="table">
+<div class="modern-table-container">
+    <table class="modern-table">
         <thead>
             <tr>
-                <th>#</th>
-                <th>{% trans 'ID No.' %}</th>
-                <th>{% trans 'Nombre Completo' %}</th>
-                <th>{% trans 'Correo Electrónico' %}</th>
+                <th>{% trans 'Trabajador' %}</th>
+                <th>{% trans 'Contacto' %}</th>
+                <th>{% trans 'Empresa' %}</th>
+                <th>{% trans 'Puesto' %}</th>
                 <th>{% trans 'Programa' %}</th>
                 {% if request.user.is_superuser %}
-                <th>{% trans 'Acción' %}</th>
+                <th>{% trans 'Acciones' %}</th>
                 {% endif %}
             </tr>
         </thead>
         <tbody>
             {% for student in object_list %}
             <tr>
-                <td>{{ forloop.counter }}.</td>
-                <td>{{ student.student.username }}</td>
-                <td><a href="{% url 'profile_single' student.student.id %}">{{ student.student.get_full_name }}</a></td>
-                <td>{{ student.student.email }}</td>
-                <td>{{ student.program }}</td>
-
+                <td>
+                    <div class="user-info">
+                        <div class="user-avatar">
+                            {% if student.student.picture and student.student.picture.url != '/media/default.png' %}
+                                <img src="{{ student.student.picture.url }}" alt="{{ student.student.get_full_name }}">
+                            {% else %}
+                                {{ student.student.first_name|first|upper }}{{ student.student.last_name|first|upper }}
+                            {% endif %}
+                        </div>
+                        <div class="user-details">
+                            <a href="{% url 'profile_single' student.student.id %}" class="user-name">
+                                {{ student.student.get_full_name }}
+                            </a>
+                            <span class="user-id">ID: {{ student.student.username }}</span>
+                        </div>
+                    </div>
+                </td>
+                <td>
+                    <div class="contact-info">
+                        <span class="email">{{ student.student.email }}</span>
+                        {% if student.student.phone %}
+                        <span class="phone">{{ student.student.phone }}</span>
+                        {% endif %}
+                    </div>
+                </td>
+                <td>
+                    <div class="company-info">
+                        {% if student.empresa %}
+                        <span class="company-name">{{ student.empresa }}</span>
+                        {% else %}
+                        <span class="company-name text-muted">No especificada</span>
+                        {% endif %}
+                    </div>
+                </td>
+                <td>
+                    <div class="company-info">
+                        {% if student.cargo %}
+                        <span class="position-name">{{ student.cargo }}</span>
+                        {% else %}
+                        <span class="position-name text-muted">No especificado</span>
+                        {% endif %}
+                    </div>
+                </td>
+                <td>
+                    {% if student.program %}
+                    <span class="program-badge">{{ student.program }}</span>
+                    {% else %}
+                    <span class="program-badge" style="background: #f8f9fa; color: #6c757d;">Sin programa</span>
+                    {% endif %}
+                </td>
                 {% if request.user.is_superuser %}
                 <td>
-                    <div class="dropdown">
+                    <div class="actions-dropdown dropdown">
                         <button class="btn btn-sm" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                             <i class="fa fa-ellipsis-vertical"></i>
                         </button>
-                        <ul class="dropdown-menu">
-                          <li><a class="dropdown-item" href="{% url 'student_edit' student.student.pk %}"><i class="unstyled me-2 fas fa-edit"></i>{% trans 'Actualizar' %}</a></li>
-                          <li><a class="dropdown-item" target="_blank" href="{% url 'profile_single' student.student.id %}?download_pdf=1"><i class="unstyled me-2 fas fa-download"></i>{% trans 'Descargar PDF' %}</a></li>
-                          <li><a class="dropdown-item text-danger" href="{% url 'student_delete' student.pk %}"><i class="unstyled me-2 fas fa-trash-alt"></i>{% trans 'Eliminar' %}</a></li>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                          <li><a class="dropdown-item" href="{% url 'student_edit' student.student.pk %}"><i class="fas fa-edit me-2"></i>{% trans 'Actualizar' %}</a></li>
+                          <li><a class="dropdown-item" target="_blank" href="{% url 'profile_single' student.student.id %}?download_pdf=1"><i class="fas fa-download me-2"></i>{% trans 'Descargar Ficha' %}</a></li>
+                          <li><hr class="dropdown-divider"></li>
+                          <li><a class="dropdown-item text-danger" href="{% url 'student_delete' student.pk %}"><i class="fas fa-trash-alt me-2"></i>{% trans 'Eliminar' %}</a></li>
                         </ul>
-                      </div>
+                    </div>
                 </td>
                 {% endif %}
-                
-                {% empty %}
-                <tr>
-                  <td colspan="6">
-                  <span class="text-danger">
-                    {% trans 'No hay Trabajadores.' %}
-                    {% if request.user.is_superuser %}
-                    <a href="{% url 'add_student' %}">
-                    <i class="primary" style="font-size: 22px;">
-                        {% trans 'Añadir Trabajador Ahora.' %}
-                    </i>
-                    {% endif %}
-                    </a>
-                  </span>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="{% if request.user.is_superuser %}6{% else %}5{% endif %}">
+                    <div class="empty-state">
+                        <i class="fas fa-user-slash empty-state__icon"></i>
+                        <h3 class="empty-state__title">{% trans 'No se encontraron trabajadores' %}</h3>
+                        <p class="empty-state__message">
+                            {% trans 'Parece que no hay trabajadores que coincidan con tu búsqueda o aún no se han registrado.' %}
+                            {% if request.user.is_superuser %}
+                            <br><a href="{% url 'add_student' %}" class="text-primary">{% trans '¡Registra el primer trabajador ahora!' %}</a>
+                            {% endif %}
+                        </p>
+                    </div>
                 </td>
-                </tr>
-
             </tr>
             {% endfor %}
         </tbody>
@@ -199,40 +520,80 @@
     background-color: #f8f9fa;
     border-color: #dee2e6;
     cursor: not-allowed;
-    opacity: 0.6;
 }
 
 .page-link.custom-page-link.disabled:hover {
-    background-color: #f8f9fa;
-    color: #6c757d;
-    border-color: #dee2e6;
     transform: none;
     box-shadow: none;
 }
-
-.page-item.active .page-link.custom-page-link {
-    background-color: #BA6022;
-    color: #fff;
-    border-color: #BA6022;
-}
-
-.pagination .page-item {
-    margin: 0 2px;
-}
-
-@media (max-width: 768px) {
-    .page-link.custom-page-link {
-        padding: 8px 15px;
-        font-size: 14px;
-        min-width: 100px;
-    }
-    
-    .pagination {
-        flex-wrap: wrap;
-        justify-content: center;
-    }
-}
 </style>
 {% endif %}
+
+{% if request.user.is_superuser %}
+<div class="student-actions">
+    <a class="btn-orange" href="{% url 'add_student' %}">
+        <i class="fas fa-plus"></i>
+        {% trans 'Añadir Trabajador' %}
+    </a>
+    <a class="btn-orange-outline" target="_blank" href="{% url 'student_list_pdf' %}">
+        <i class="fas fa-download"></i>
+        {% trans 'Descargar PDF' %}
+    </a>
+</div>
+{% endif %}
+
+<script>
+/**
+ * Portal Dropdown Fix
+ *
+ * Este script soluciona el problema de z-index y overflow en los dropdowns
+ * que están dentro de contenedores con `overflow: hidden` o contextos de apilamiento
+ * complejos (ej. tablas con filas que tienen :hover).
+ */
+document.addEventListener('DOMContentLoaded', function () {
+    const dropdowns = document.querySelectorAll('.actions-dropdown.dropdown');
+
+    dropdowns.forEach(dropdown => {
+        let popperInstance = null;
+        let dropdownMenu = dropdown.querySelector('.dropdown-menu');
+        
+        if (!dropdownMenu) return;
+
+        dropdown.addEventListener('show.bs.dropdown', function (event) {
+            // Adjuntar el menú al body
+            document.body.appendChild(dropdownMenu);
+            dropdownMenu.style.display = 'block';
+            dropdownMenu.style.zIndex = '9999'; // Prioridad máxima
+
+            // Crear instancia de Popper
+            popperInstance = Popper.createPopper(dropdown, dropdownMenu, {
+                placement: 'bottom-end',
+                strategy: 'fixed',
+                modifiers: [
+                    {
+                        name: 'offset',
+                        options: {
+                            offset: [0, 8],
+                        },
+                    },
+                ]
+            });
+        });
+
+        dropdown.addEventListener('hide.bs.dropdown', function (event) {
+            // Volver a adjuntar el menú al dropdown original
+            dropdown.appendChild(dropdownMenu);
+            dropdownMenu.style.display = '';
+            dropdownMenu.style.zIndex = '';
+            
+            // Destruir la instancia de Popper
+            if (popperInstance) {
+                popperInstance.destroy();
+                popperInstance = null;
+            }
+        });
+    });
+});
+</script>
 
 {% endblock content %}

@@ -1,6 +1,240 @@
 {% extends 'base.html' %}
 {% load i18n %}
 {% block title %}{{ title }} | {% trans 'Sistema de gestión de aprendizaje' %}{% endblock title %}
+{% load static %}
+
+{% block header %}
+<style>
+    :root {
+        --lecturer-card-bg: #ffffff;
+        --lecturer-card-border: #e0e7ff;
+        --lecturer-card-shadow: rgba(60, 64, 67, 0.05);
+        --lecturer-card-hover-shadow: rgba(60, 64, 67, 0.15);
+        --lecturer-action-color: #BA6022;
+        --lecturer-avatar-border: #BA6022;
+    }
+
+    .lecturer-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: 2rem;
+        margin-top: 2rem;
+    }
+
+    .lecturer-card {
+        background-color: var(--lecturer-card-bg);
+        border-radius: 16px;
+        border: 1px solid var(--lecturer-card-border);
+        box-shadow: 0 4px 12px var(--lecturer-card-shadow);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
+
+    .lecturer-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 12px 24px var(--lecturer-card-hover-shadow);
+    }
+
+    .lecturer-card__header {
+        background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+        padding: 2rem 1.5rem 4rem 1.5rem;
+        position: relative;
+    }
+
+    .lecturer-card__avatar {
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        overflow: hidden;
+        border: 4px solid var(--lecturer-avatar-border);
+        box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+        margin: -60px auto 0 auto;
+        position: relative;
+        z-index: 2;
+        background-color: white;
+    }
+
+    .lecturer-card__avatar img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    
+    .lecturer-card__avatar-placeholder {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: #e9ecef;
+        color: #adb5bd;
+    }
+
+    .lecturer-card__avatar-placeholder .fas {
+        font-size: 3rem;
+    }
+
+    .lecturer-card__content {
+        padding: 1.5rem;
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        flex-grow: 1;
+    }
+
+    .lecturer-card__name {
+        font-size: 1.35rem;
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 0.25rem;
+    }
+    
+    .lecturer-card__name a {
+        color: inherit;
+        text-decoration: none;
+        transition: color 0.2s ease;
+    }
+    
+    .lecturer-card__name a:hover {
+        color: var(--lecturer-action-color);
+    }
+
+    .lecturer-card__username {
+        font-size: 0.9rem;
+        color: #666;
+        margin-bottom: 1.5rem;
+    }
+
+    .lecturer-card__info {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        text-align: left;
+        flex-grow: 1;
+        margin-bottom: 1.5rem;
+    }
+
+    .lecturer-card__info li {
+        display: flex;
+        align-items: center;
+        font-size: 0.95rem;
+        color: #555;
+        margin-bottom: 0.75rem;
+    }
+
+    .lecturer-card__info li i {
+        width: 20px;
+        margin-right: 1rem;
+        color: var(--lecturer-action-color);
+    }
+    
+    .lecturer-card__info li span {
+        word-break: break-all;
+    }
+
+    .lecturer-card__footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: auto;
+        padding-top: 1rem;
+        border-top: 1px solid #f0f0f0;
+    }
+    
+    .lecturer-card__last-login {
+        font-size: 0.8rem;
+        color: #6c757d;
+    }
+
+    .lecturer-card__actions .dropdown-menu {
+        border-radius: 10px;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+        border: 1px solid #f0f0f0;
+    }
+
+    .empty-state {
+        grid-column: 1 / -1;
+        text-align: center;
+        padding: 4rem 2rem;
+        background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+        border-radius: 16px;
+        border: 2px dashed #dee2e6;
+    }
+
+    .empty-state__icon {
+        font-size: 4rem;
+        color: #adb5bd;
+        margin-bottom: 1rem;
+    }
+
+    .empty-state__title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: #495057;
+        margin-bottom: 0.5rem;
+    }
+
+    .empty-state__message {
+        font-size: 1rem;
+        color: #6c757d;
+        margin-bottom: 2rem;
+    }
+
+    .lecturer-actions {
+        display: flex;
+        justify-content: center;
+        gap: 1rem;
+        margin: 3rem 0 2rem 0;
+        flex-wrap: wrap;
+    }
+
+    .btn-orange {
+        background-color: #BA6022;
+        border-color: #BA6022;
+        color: white;
+        font-weight: 500;
+        padding: 0.75rem 1.5rem;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .btn-orange:hover {
+        background-color: #a0521e;
+        border-color: #a0521e;
+        color: white;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(186, 96, 34, 0.3);
+    }
+
+    .btn-orange-outline {
+        background-color: transparent;
+        border: 2px solid #BA6022;
+        color: #BA6022;
+        font-weight: 500;
+        padding: 0.75rem 1.5rem;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .btn-orange-outline:hover {
+        background-color: #BA6022;
+        border-color: #BA6022;
+        color: white;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(186, 96, 34, 0.3);
+    }
+</style>
+{% endblock header %}
 
 {% block content %}
 
@@ -11,78 +245,177 @@
     </ol>
 </nav>
 
-{% if request.user.is_superuser %}
-<div class="manage-wrap">
-    <a class="btn btn-primary" href="{% url 'add_lecturer' %}"><i class="fas fa-plus"></i>{% trans 'Agregar Instructor' %}</a>
-    <a class="btn btn-primary" target="_blank" href="{% url 'lecturer_list_pdf' %}"><i class="fas fa-download"></i> {% trans 'Descargar PDF' %}</a><!--new-->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="title-1"><i class="fas fa-chalkboard-teacher"></i>{% trans 'Instructores' %}</div>
 </div>
-{% endif %}
-
-<p class="title-1"><i class="fas fa-chalkboard-teacher"></i>{% trans 'Instructores' %}</p>
 
 {% include 'snippets/messages.html' %}
 {% include 'snippets/filter_form.html' %}
 
-<div class="table-responsive table-shadow table-light table-striped m-0 mt-4">
-    <table class="table">
-        <thead>
-            <tr>
-                <th>#</th>
-                <th>{% trans 'ID No.' %}</th>
-                <th>{% trans 'Nombre completo' %}</th>
-                <th>{% trans 'Correo electrónico' %}</th>
-                <th>{% trans 'Teléfono móvil' %}</th>
-                <th>{% trans 'Dirección/Ciudad' %}</th>
-                <th>{% trans 'Último inicio de sesión' %}</th>
-                {% if request.user.is_superuser %}
-                <th>{% trans 'Acción' %}</th>
+<div class="lecturer-grid">
+    {% for lecturer in filter.qs %}
+    <div class="lecturer-card">
+        <div class="lecturer-card__header"></div>
+        <div class="lecturer-card__avatar">
+            {% if lecturer.picture and lecturer.picture.url != '/media/default.png' %}
+                <img src="{{ lecturer.picture.url }}" alt="{{ lecturer.get_full_name }}">
+            {% else %}
+                <div class="lecturer-card__avatar-placeholder">
+                    <i class="fas fa-user"></i>
+                </div>
+            {% endif %}
+        </div>
+        <div class="lecturer-card__content">
+            <h3 class="lecturer-card__name">
+                <a href="{% url 'profile_single' lecturer.id %}">{{ lecturer.get_full_name }}</a>
+            </h3>
+            <p class="lecturer-card__username">ID: {{ lecturer.username }}</p>
+            
+            <ul class="lecturer-card__info">
+                {% if lecturer.email %}
+                <li><i class="fas fa-envelope"></i> <span>{{ lecturer.email }}</span></li>
                 {% endif %}
-            </tr>
-        </thead>
-        <tbody>
-            {% for lecturer in filter.qs %}
-            <tr>
-                <td>{{ forloop.counter }}.</td>
-                <td>{{ lecturer.username }}</td>
-                <td><a href="{% url 'profile_single' lecturer.id %}">{{ lecturer.get_full_name }}</a></td>
-                <td>{{ lecturer.email }}</td>
-                <td>{{ lecturer.phone }}</td>
-                <td>{{ lecturer.address }}</td>
-                <td>{{ lecturer.last_login }}</td>
-                {% if request.user.is_superuser %}
-                <td>
-                    <div class="dropdown">
-                        <button class="btn btn-sm" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            <i class="fa fa-ellipsis-vertical"></i>
-                        </button>
-                        <ul class="dropdown-menu">
-                          <li><a class="dropdown-item" href="{% url 'staff_edit' pk=lecturer.pk %}"><i class="unstyled me-2 fas fa-edit"></i>{% trans 'Actualizar' %}</a></li>
-                          <li><a class="dropdown-item" target="_blank" href="{% url 'profile_single' lecturer.id %}?download_pdf=1"><i class="unstyled me-2 fas fa-download"></i>{% trans 'Descargar PDF' %}</a></li>
-                          <li><a class="dropdown-item text-danger" href="{% url 'lecturer_delete' pk=lecturer.pk %}"><i class="unstyled me-2 fas fa-trash-alt"></i> {% trans 'Eliminar' %}</a></li>
-                        </ul>
-                    </div>
-                </td>
+                {% if lecturer.phone %}
+                <li><i class="fas fa-phone"></i> <span>{{ lecturer.phone }}</span></li>
                 {% endif %}
+                {% if lecturer.address %}
+                <li><i class="fas fa-map-marker-alt"></i> <span>{{ lecturer.address }}</span></li>
+                {% endif %}
+            </ul>
 
-                {% empty %}
-                <tr>
-                  <td colspan="8">
-                  <span class="text-danger">
-                    {% trans 'No hay Instructores.' %}
-                    {% if request.user.is_superuser %}
-                    <a href="{% url 'add_lecturer' %}">
-                    <i class="primary" style="font-size: 22px;">
-                        {% trans 'Agregar Instructor Ahora.' %}
-                    </i>
-                    {% endif %}
-                    </a>
-                  </span>
-                </td>
-                </tr>
+            <div class="lecturer-card__footer">
+                <div class="lecturer-card__last-login">
+                    <i class="fas fa-clock me-1" title="{% trans 'Último inicio de sesión' %}"></i>
+                    {{ lecturer.last_login|date:"d M, Y" }}
+                </div>
 
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+                {% if request.user.is_superuser %}
+                <div class="lecturer-card__actions dropdown">
+                    <button class="btn btn-light btn-sm rounded-circle" type="button" data-bs-toggle="dropdown" aria-expanded="false" style="width: 36px; height: 36px;">
+                        <i class="fa fa-ellipsis-vertical"></i>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                      <li><a class="dropdown-item" href="{% url 'staff_edit' pk=lecturer.pk %}"><i class="fas fa-edit me-2"></i>{% trans 'Actualizar' %}</a></li>
+                      <li><a class="dropdown-item" target="_blank" href="{% url 'profile_single' lecturer.id %}?download_pdf=1"><i class="fas fa-download me-2"></i>{% trans 'Descargar Ficha' %}</a></li>
+                      <li><hr class="dropdown-divider"></li>
+                      <li><a class="dropdown-item text-danger" href="{% url 'lecturer_delete' pk=lecturer.pk %}"><i class="fas fa-trash-alt me-2"></i>{% trans 'Eliminar' %}</a></li>
+                    </ul>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="empty-state">
+        <i class="fas fa-user-slash empty-state__icon"></i>
+        <h3 class="empty-state__title">{% trans 'No se encontraron instructores' %}</h3>
+        <p class="empty-state__message">
+            {% trans 'Parece que no hay instructores que coincidan con tu búsqueda o aún no se han creado.' %}
+            {% if request.user.is_superuser %}
+            <br><a href="{% url 'add_lecturer' %}" class="text-primary">{% trans '¡Agrega el primer instructor ahora!' %}</a>
+            {% endif %}
+        </p>
+    </div>
+    {% endfor %}
 </div>
+
+{% if request.user.is_superuser %}
+<div class="lecturer-actions">
+    <a class="btn-orange" href="{% url 'add_lecturer' %}">
+        <i class="fas fa-plus"></i>
+        {% trans 'Agregar Instructor' %}
+    </a>
+    <a class="btn-orange-outline" target="_blank" href="{% url 'lecturer_list_pdf' %}">
+        <i class="fas fa-download"></i>
+        {% trans 'Descargar PDF' %}
+    </a>
+</div>
+{% endif %}
+
+{% if paginator.num_pages > 1 %}
+<div class="content-center mt-4">
+    <ul class="pagination">
+        {% if page_obj.has_previous %}
+            <li class="page-item"><a class="page-link" href="?page=1">&laquo;</a></li>
+            <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">&lsaquo;</a></li>
+        {% endif %}
+
+        {% for num in page_obj.paginator.page_range %}
+            {% if page_obj.number == num %}
+                <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                <li class="page-item"><a class="page-link" href="?page={{ num }}">{{ num }}</a></li>
+            {% endif %}
+        {% endfor %}
+
+        {% if page_obj.has_next %}
+            <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">&rsaquo;</a></li>
+            <li class="page-item"><a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">&raquo;</a></li>
+        {% endif %}
+    </ul>
+</div>
+{% endif %}
+
+<script>
+/**
+ * Portal Dropdown Fix
+ *
+ * Este script soluciona el problema de z-index y overflow en los dropdowns
+ * que están dentro de contenedores con `overflow: hidden` o contextos de apilamiento
+ * complejos (ej. grids con efectos hover).
+ *
+ * Cómo funciona:
+ * 1. Escucha el evento `show.bs.dropdown` de Bootstrap.
+ * 2. Cuando se dispara, clona el menú del dropdown.
+ * 3. Mueve (hace un "portal") el clon al `document.body`.
+ * 4. Usa la librería Popper.js (incluida en Bootstrap) para posicionar el clon
+ *    exactamente donde debería estar, pero ahora en la capa más alta del DOM.
+ * 5. Escucha el evento `hide.bs.dropdown` para eliminar el clon del body.
+ */
+document.addEventListener('DOMContentLoaded', function () {
+    const dropdowns = document.querySelectorAll('.lecturer-card__actions.dropdown');
+
+    dropdowns.forEach(dropdown => {
+        let popperInstance = null;
+        let dropdownMenu = dropdown.querySelector('.dropdown-menu');
+        
+        if (!dropdownMenu) return;
+
+        dropdown.addEventListener('show.bs.dropdown', function (event) {
+            // Adjuntar el menú al body
+            document.body.appendChild(dropdownMenu);
+            dropdownMenu.style.display = 'block';
+            dropdownMenu.style.zIndex = '9999';
+
+            // Crear instancia de Popper
+            popperInstance = Popper.createPopper(dropdown, dropdownMenu, {
+                placement: 'bottom-end',
+                strategy: 'fixed',
+                modifiers: [
+                    {
+                        name: 'offset',
+                        options: {
+                            offset: [0, 8],
+                        },
+                    },
+                ]
+            });
+        });
+
+        dropdown.addEventListener('hide.bs.dropdown', function (event) {
+            // Volver a adjuntar el menú al dropdown original para que no se pierda
+            dropdown.appendChild(dropdownMenu);
+            dropdownMenu.style.display = '';
+            dropdownMenu.style.zIndex = '';
+            
+            // Destruir la instancia de Popper
+            if (popperInstance) {
+                popperInstance.destroy();
+                popperInstance = null;
+            }
+        });
+    });
+});
+</script>
+
 {% endblock content %}

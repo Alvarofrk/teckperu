@@ -198,4 +198,58 @@
     {% endfor %}
 </div>
 
+<script>
+/**
+ * Portal Dropdown Fix
+ *
+ * Este script soluciona el problema de z-index y overflow en los dropdowns
+ * que están dentro de contenedores con `overflow: hidden` o contextos de apilamiento
+ * complejos (ej. grids con efectos hover).
+ */
+document.addEventListener('DOMContentLoaded', function () {
+    const dropdowns = document.querySelectorAll('.program-card__actions.dropdown');
+
+    dropdowns.forEach(dropdown => {
+        let popperInstance = null;
+        let dropdownMenu = dropdown.querySelector('.dropdown-menu');
+        
+        if (!dropdownMenu) return;
+
+        dropdown.addEventListener('show.bs.dropdown', function (event) {
+            // Adjuntar el menú al body
+            document.body.appendChild(dropdownMenu);
+            dropdownMenu.style.display = 'block';
+            dropdownMenu.style.zIndex = '9999'; // Prioridad máxima
+
+            // Crear instancia de Popper
+            popperInstance = Popper.createPopper(dropdown, dropdownMenu, {
+                placement: 'bottom-end',
+                strategy: 'fixed',
+                modifiers: [
+                    {
+                        name: 'offset',
+                        options: {
+                            offset: [0, 8],
+                        },
+                    },
+                ]
+            });
+        });
+
+        dropdown.addEventListener('hide.bs.dropdown', function (event) {
+            // Volver a adjuntar el menú al dropdown original
+            dropdown.appendChild(dropdownMenu);
+            dropdownMenu.style.display = '';
+            dropdownMenu.style.zIndex = '';
+            
+            // Destruir la instancia de Popper
+            if (popperInstance) {
+                popperInstance.destroy();
+                popperInstance = null;
+            }
+        });
+    });
+});
+</script>
+
 {% endblock content %}
