@@ -1,0 +1,556 @@
+/* ===== NAVBAR OPTIMIZADO TECKPERU ===== */
+
+/* Variables de color */
+:root {
+    --navbar-bg: #BA6022;
+    --navbar-bg-hover: #A0521E;
+    --navbar-text: #ffffff;
+    --navbar-shadow: rgba(186, 96, 34, 0.3);
+    --navbar-border: rgba(255, 255, 255, 0.1);
+    --search-bg: #ffffff;
+    --search-border: #e0e0e0;
+    --search-focus: #BA6022;
+    --dropdown-bg: #ffffff;
+    --dropdown-shadow: rgba(0, 0, 0, 0.15);
+}
+
+/* Contenedor principal del navbar */
+#top-navbar {
+    position: fixed !important;
+    top: 0 !important;
+    left: 300px !important;
+    right: 0 !important;
+    z-index: 1000 !important;
+    background: linear-gradient(135deg, var(--navbar-bg) 0%, var(--navbar-bg-hover) 100%) !important;
+    box-shadow: 0 4px 20px var(--navbar-shadow) !important;
+    border-radius: 0 0 12px 12px !important;
+    padding: 12px 24px !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    backdrop-filter: blur(10px) !important;
+    border-bottom: 1px solid var(--navbar-border) !important;
+}
+
+/* Estado cuando sidebar está colapsado */
+#top-navbar.toggle-active {
+    left: 0 !important;
+    border-radius: 0 0 12px 12px !important;
+}
+
+/* Wrapper del navbar */
+#top-navbar .nav-wrapper {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    flex-wrap: nowrap !important;
+    gap: 16px !important;
+    max-width: 100% !important;
+}
+
+/* Formulario de búsqueda */
+#top-navbar .nav-wrapper .form-header {
+    display: flex !important;
+    flex: 1 !important;
+    align-items: center !important;
+    gap: 8px !important;
+    min-width: 0 !important;
+}
+
+/* Input de búsqueda */
+#top-navbar .nav-wrapper .form-header input[type="text"] {
+    flex: 1 !important;
+    min-width: 0 !important;
+    padding: 12px 16px !important;
+    border: 2px solid var(--search-border) !important;
+    border-radius: 8px !important;
+    font-size: 14px !important;
+    background: var(--search-bg) !important;
+    color: #333 !important;
+    transition: all 0.3s ease !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05) !important;
+}
+
+#top-navbar .nav-wrapper .form-header input[type="text"]:focus {
+    border-color: var(--search-focus) !important;
+    box-shadow: 0 0 0 3px rgba(186, 96, 34, 0.1) !important;
+    outline: none !important;
+}
+
+#top-navbar .nav-wrapper .form-header input[type="text"]::placeholder {
+    color: #999 !important;
+    font-style: italic !important;
+}
+
+/* Botón de búsqueda */
+#top-navbar .nav-wrapper .form-header button {
+    padding: 12px 16px !important;
+    background: linear-gradient(135deg, var(--navbar-bg) 0%, var(--navbar-bg-hover) 100%) !important;
+    border: none !important;
+    border-radius: 8px !important;
+    color: var(--navbar-text) !important;
+    font-size: 14px !important;
+    font-weight: 500 !important;
+    cursor: pointer !important;
+    transition: all 0.3s ease !important;
+    box-shadow: 0 2px 8px rgba(186, 96, 34, 0.2) !important;
+    white-space: nowrap !important;
+}
+
+#top-navbar .nav-wrapper .form-header button:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 4px 12px rgba(186, 96, 34, 0.3) !important;
+}
+
+#top-navbar .nav-wrapper .form-header button:active {
+    transform: translateY(0) !important;
+}
+
+/* Botón toggle del sidebar */
+#top-navbar .nav-wrapper .toggle-btn {
+    cursor: pointer !important;
+    padding: 10px 12px !important;
+    background: rgba(255, 255, 255, 0.1) !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    border-radius: 8px !important;
+    color: var(--navbar-text) !important;
+    font-size: 16px !important;
+    transition: all 0.3s ease !important;
+    backdrop-filter: blur(10px) !important;
+    min-width: 44px !important;
+    height: 44px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+#top-navbar .nav-wrapper .toggle-btn:hover {
+    background: rgba(255, 255, 255, 0.2) !important;
+    transform: scale(1.05) !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Dropdown del usuario */
+#top-navbar .nav-wrapper .dropdown {
+    position: relative !important;
+}
+
+/* Avatar del usuario */
+#top-navbar .nav-wrapper .dropdown .avatar {
+    width: 44px !important;
+    height: 44px !important;
+    border-radius: 50% !important;
+    overflow: hidden !important;
+    border: 2px solid rgba(255, 255, 255, 0.3) !important;
+    cursor: pointer !important;
+    transition: all 0.3s ease !important;
+    background: rgba(255, 255, 255, 0.1) !important;
+}
+
+#top-navbar .nav-wrapper .dropdown .avatar:hover {
+    border-color: rgba(255, 255, 255, 0.6) !important;
+    transform: scale(1.05) !important;
+}
+
+#top-navbar .nav-wrapper .dropdown .avatar img {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+    transition: filter 0.3s ease !important;
+}
+
+#top-navbar .nav-wrapper .dropdown .avatar:hover img {
+    filter: brightness(1.1) !important;
+}
+
+/* SOLUCIÓN PRINCIPAL: Dropdown con z-index muy alto */
+#top-navbar .nav-wrapper .dropdown .dropdown-menu {
+    position: absolute !important;
+    top: 100% !important;
+    right: 0 !important;
+    margin-top: 8px !important;
+    min-width: 280px !important;
+    background: var(--dropdown-bg) !important;
+    border: none !important;
+    border-radius: 12px !important;
+    box-shadow: 0 8px 32px var(--dropdown-shadow) !important;
+    padding: 16px !important;
+    z-index: 99999 !important;
+    /* Z-INDEX EXTREMADAMENTE ALTO */
+    backdrop-filter: blur(10px) !important;
+    animation: dropdownFadeIn 0.3s ease !important;
+}
+
+/* Forzar visibilidad del dropdown */
+#top-navbar .nav-wrapper .dropdown.show .dropdown-menu,
+#top-navbar .nav-wrapper .dropdown .dropdown-menu.show {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    z-index: 99999 !important;
+    pointer-events: auto !important;
+}
+
+/* Ocultar #progress-card cuando dropdown está abierto */
+#top-navbar .nav-wrapper .dropdown.show~#progress-card,
+#top-navbar .nav-wrapper .dropdown.show+#progress-card,
+body:has(.dropdown.show) #progress-card {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    z-index: -1 !important;
+}
+
+@keyframes dropdownFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Header del dropdown */
+#top-navbar .nav-wrapper .dropdown .dropdown-menu .d-flex {
+    padding: 12px !important;
+    border-radius: 8px !important;
+    background: rgba(186, 96, 34, 0.05) !important;
+    margin-bottom: 12px !important;
+}
+
+/* Avatar en el dropdown */
+#top-navbar .nav-wrapper .dropdown .dropdown-menu .avatar-md {
+    width: 60px !important;
+    height: 60px !important;
+    border: 3px solid var(--navbar-bg) !important;
+    box-shadow: 0 4px 12px rgba(186, 96, 34, 0.2) !important;
+}
+
+/* Información del usuario */
+#top-navbar .nav-wrapper .dropdown .dropdown-menu .small {
+    font-size: 12px !important;
+    color: #666 !important;
+    margin-top: 8px !important;
+    text-align: center !important;
+}
+
+/* Separadores */
+#top-navbar .nav-wrapper .dropdown .dropdown-menu hr {
+    margin: 12px 0 !important;
+    border-color: rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Items del dropdown */
+#top-navbar .nav-wrapper .dropdown .dropdown-menu .dropdown-item {
+    padding: 10px 12px !important;
+    border-radius: 6px !important;
+    color: #333 !important;
+    font-weight: 500 !important;
+    transition: all 0.2s ease !important;
+    margin-bottom: 2px !important;
+}
+
+#top-navbar .nav-wrapper .dropdown .dropdown-menu .dropdown-item:hover {
+    background: rgba(186, 96, 34, 0.1) !important;
+    color: var(--navbar-bg) !important;
+    transform: translateX(4px) !important;
+}
+
+#top-navbar .nav-wrapper .dropdown .dropdown-menu .dropdown-item i {
+    width: 20px !important;
+    margin-right: 8px !important;
+    color: var(--navbar-bg) !important;
+}
+
+/* Botón de cerrar sesión */
+#top-navbar .nav-wrapper .dropdown .dropdown-menu .btn-secondary {
+    background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%) !important;
+    border: none !important;
+    border-radius: 8px !important;
+    padding: 10px 20px !important;
+    color: white !important;
+    font-weight: 500 !important;
+    transition: all 0.3s ease !important;
+    box-shadow: 0 2px 8px rgba(108, 117, 125, 0.2) !important;
+}
+
+#top-navbar .nav-wrapper .dropdown .dropdown-menu .btn-secondary:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 4px 12px rgba(108, 117, 125, 0.3) !important;
+}
+
+/* Placeholder para avatar */
+#top-navbar .nav-wrapper .dropdown .avatar-placeholder,
+#top-navbar .nav-wrapper .dropdown .dropdown-menu .avatar-placeholder {
+    width: 100% !important;
+    height: 100% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    background: rgba(186, 96, 34, 0.1) !important;
+    color: var(--navbar-bg) !important;
+    font-size: 18px !important;
+    border-radius: 50% !important;
+}
+
+#top-navbar .nav-wrapper .dropdown .dropdown-menu .avatar-placeholder {
+    font-size: 24px !important;
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+    #top-navbar .nav-wrapper .form-header input[type="text"] {
+        min-width: 200px !important;
+    }
+}
+
+@media (max-width: 992px) {
+    #top-navbar .nav-wrapper .form-header input[type="text"] {
+        min-width: 150px !important;
+    }
+}
+
+@media (max-width: 768px) {
+    #top-navbar {
+        left: 0 !important;
+        padding: 8px 16px !important;
+    }
+
+    #top-navbar .nav-wrapper {
+        flex-direction: column !important;
+        gap: 12px !important;
+    }
+
+    #top-navbar .nav-wrapper .form-header {
+        order: 2 !important;
+        width: 100% !important;
+    }
+
+    #top-navbar .nav-wrapper .toggle-btn {
+        order: 1 !important;
+        align-self: flex-start !important;
+    }
+
+    #top-navbar .nav-wrapper .dropdown {
+        order: 3 !important;
+        align-self: flex-end !important;
+    }
+
+    #top-navbar .nav-wrapper .form-header input[type="text"] {
+        min-width: 0 !important;
+        flex: 1 !important;
+    }
+}
+
+@media (max-width: 480px) {
+    #top-navbar {
+        padding: 6px 12px !important;
+    }
+
+    #top-navbar .nav-wrapper .form-header input[type="text"] {
+        padding: 10px 12px !important;
+        font-size: 13px !important;
+    }
+
+    #top-navbar .nav-wrapper .form-header button {
+        padding: 10px 12px !important;
+        font-size: 13px !important;
+    }
+
+    #top-navbar .nav-wrapper .dropdown .dropdown-menu {
+        min-width: 260px !important;
+        right: -10px !important;
+    }
+}
+
+/* Efecto dim al buscar */
+#top-navbar.dim {
+    box-shadow: 0 4px 20px rgba(186, 96, 34, 0.5) !important;
+    z-index: 1002 !important;
+}
+
+/* Mejoras de accesibilidad */
+#top-navbar .nav-wrapper .toggle-btn:focus,
+#top-navbar .nav-wrapper .form-header button:focus,
+#top-navbar .nav-wrapper .dropdown .avatar:focus {
+    outline: 2px solid rgba(255, 255, 255, 0.8) !important;
+    outline-offset: 2px !important;
+}
+
+/* Animaciones suaves */
+#top-navbar * {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+/* Prevenir desbordamiento */
+#top-navbar {
+    overflow: hidden !important;
+}
+
+#top-navbar .nav-wrapper {
+    overflow: visible !important;
+}
+
+/* Indicador de carga */
+#top-navbar.loading {
+    position: relative !important;
+}
+
+#top-navbar.loading::after {
+    content: '' !important;
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    height: 3px !important;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.8), transparent) !important;
+    animation: loadingBar 1.5s infinite !important;
+    z-index: 1001 !important;
+}
+
+@keyframes loadingBar {
+    0% {
+        transform: translateX(-100%) !important;
+    }
+
+    100% {
+        transform: translateX(100%) !important;
+    }
+}
+
+/* Mejoras de rendimiento */
+#top-navbar {
+    will-change: transform, opacity !important;
+    transform: translateZ(0) !important;
+}
+
+#top-navbar .nav-wrapper {
+    will-change: transform !important;
+    transform: translateZ(0) !important;
+}
+
+/* Prevenir FOUC (Flash of Unstyled Content) */
+#top-navbar {
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
+/* Optimizaciones para dispositivos táctiles */
+@media (hover: none) and (pointer: coarse) {
+
+    #top-navbar .nav-wrapper .toggle-btn,
+    #top-navbar .nav-wrapper .dropdown .avatar {
+        min-height: 44px !important;
+        min-width: 44px !important;
+    }
+
+    #top-navbar .nav-wrapper .form-header input[type="text"] {
+        min-height: 44px !important;
+    }
+
+    #top-navbar .nav-wrapper .form-header button {
+        min-height: 44px !important;
+        min-width: 44px !important;
+    }
+}
+
+/* =================================================================
+   ESTILOS PARA EL DROPDOWN DEL PORTAL
+================================================================= */
+
+.dropdown-menu-portal-styled {
+    position: fixed;
+    top: 80px;
+    right: 24px;
+    z-index: 999999;
+    pointer-events: auto;
+    display: none;
+    background: #ffffff !important;
+    border-radius: 16px !important;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12) !important;
+    padding: 20px !important;
+    min-width: 300px !important;
+    border: 1px solid #f0f0f0 !important;
+    font-family: 'Rubik', sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji" !important;
+    animation: dropdownFadeIn 0.2s ease-out;
+}
+
+.dropdown-menu-portal-styled .d-flex {
+    padding-bottom: 16px !important;
+    text-align: center !important;
+}
+
+.dropdown-menu-portal-styled .avatar-md {
+    width: 64px !important;
+    height: 64px !important;
+    margin-bottom: 12px !important;
+    border: 3px solid #f0f0f0 !important;
+}
+
+.dropdown-menu-portal-styled .small {
+    color: #888 !important;
+    font-size: 13px !important;
+}
+
+.dropdown-menu-portal-styled hr {
+    border-color: #eee !important;
+    margin: 12px 0 !important;
+}
+
+.dropdown-menu-portal-styled .dropdown-item {
+    display: flex;
+    align-items: center;
+    padding: 12px 10px !important;
+    border-radius: 10px !important;
+    color: #333 !important;
+    font-weight: 500 !important;
+    transition: background-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
+    gap: 12px;
+}
+
+.dropdown-menu-portal-styled .dropdown-item:hover {
+    background-color: #fef5ef !important;
+    /* Un naranja muy pálido */
+    color: #BA6022 !important;
+    /* Naranja principal */
+    transform: translateX(4px);
+}
+
+.dropdown-menu-portal-styled .dropdown-item i {
+    background-color: #f0f2f5;
+    color: #555;
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    margin-right: 0 !important;
+    /* Reset margin from other styles */
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.dropdown-menu-portal-styled .dropdown-item:hover i {
+    background-color: #BA6022;
+    /* Naranja principal */
+    color: #fff;
+}
+
+.dropdown-menu-portal-styled .btn-secondary {
+    width: 100%;
+    background: linear-gradient(135deg, #BA6022 0%, #A0521E 100%) !important;
+    /* Gradiente Naranja */
+    border: none !important;
+    border-radius: 10px !important;
+    padding: 12px !important;
+    font-weight: 500 !important;
+    color: #ffffff !important;
+    transition: all 0.2s ease;
+}
+
+.dropdown-menu-portal-styled .btn-secondary:hover {
+    box-shadow: 0 4px 15px rgba(186, 96, 34, 0.4);
+    transform: translateY(-2px);
+}

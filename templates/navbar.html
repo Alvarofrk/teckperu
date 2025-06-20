@@ -3,26 +3,51 @@
     <div class="container">
         <div class="nav-wrapper">
 
-            <div class="toggle-btn" onclick="toggleSidebar()">
+            <div class="toggle-btn" onclick="toggleSidebar()" role="button" tabindex="0" aria-label="{% trans 'Alternar menú lateral' %}">
                 <i class="fas fa-bars"></i>
             </div>
 
-            <form class="form-header" action="{% url 'query' %}" method="GET">
-                <input id="primary-search" class="form-control rounded-end-0" type="text" name="q" value="{{ request.GET.q }}"
-                    placeholder="{% trans 'Buscar todo... #curso, #programa, #examen, #noticias, #eventos' %}" required />
-                <button class="btn btn-dark rounded-start-0" type="submit">
+            <form class="form-header" action="{% url 'query' %}" method="GET" novalidate>
+                <input id="primary-search" 
+                       class="form-control rounded-end-0" 
+                       type="text" 
+                       name="q" 
+                       value="{{ request.GET.q }}"
+                       placeholder="{% trans 'Buscar todo... #curso, #programa, #examen, #noticias, #eventos' %}" 
+                       required 
+                       autocomplete="off"
+                       aria-label="{% trans 'Buscar en la plataforma' %}" />
+                <button class="btn btn-dark rounded-start-0" type="submit" aria-label="{% trans 'Buscar' %}">
                     <i class="fas fa-search"></i>
                 </button>
             </form>
 
             <div class="dropdown">
-                <div class="avatar border border-2" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                    <img src="{{ request.user.picture.url }}">
+                <div class="avatar border border-2" 
+                     type="button" 
+                     data-bs-toggle="dropdown" 
+                     aria-expanded="false"
+                     role="button"
+                     tabindex="0"
+                     aria-label="{% trans 'Menú de usuario' %}">
+                    {% if request.user.picture %}
+                        <img src="{{ request.user.picture.url }}" alt="{% trans 'Foto de perfil' %}" loading="lazy">
+                    {% else %}
+                        <div class="avatar-placeholder">
+                            <i class="fas fa-user"></i>
+                        </div>
+                    {% endif %}
                 </div>
                 <div class="dropdown-menu" style="min-width: 14rem !important;">
                     <div class="d-flex flex-column align-items-center">
                         <div class="avatar avatar-md border">
-                            <img src="{{ request.user.picture.url }}">
+                            {% if request.user.picture %}
+                                <img src="{{ request.user.picture.url }}" alt="{% trans 'Foto de perfil' %}" loading="lazy">
+                            {% else %}
+                                <div class="avatar-placeholder">
+                                    <i class="fas fa-user"></i>
+                                </div>
+                            {% endif %}
                         </div>
     
                         <p class="small text-muted text-center mb-0">
@@ -31,15 +56,23 @@
                     <hr>
 
                     {% if request.user.is_lecturer or request.user.is_student %}
-                    <a class="dropdown-item" href="{% url 'user_course_list' %}"><i class="fas fa-book me-2"></i>{% trans 'Mis cursos' %}</a>
+                    <a class="dropdown-item" href="{% url 'user_course_list' %}">
+                        <i class="fas fa-book me-2"></i>{% trans 'Mis cursos' %}
+                    </a>
                     {% endif %}
 
                     {% if request.user.is_superuser %}
-                    <a class="dropdown-item" href="{% url 'admin_panel' %}"><i class="fas fa-user-tie me-2"></i>{% trans 'Panel de administración' %}</a>
+                    <a class="dropdown-item" href="{% url 'admin_panel' %}">
+                        <i class="fas fa-user-tie me-2"></i>{% trans 'Panel de administración' %}
+                    </a>
                     {% endif %}
 
-                    <a class="dropdown-item" href="{% url 'profile' %}"><i class="fas fa-user me-2"></i>{% trans 'Perfil' %}</a>
-                    <a class="dropdown-item" href="{% url 'edit_profile' %}"><i class="fas fa-cog me-2"></i>{% trans 'Configuración' %}</a>
+                    <a class="dropdown-item" href="{% url 'profile' %}">
+                        <i class="fas fa-user me-2"></i>{% trans 'Perfil' %}
+                    </a>
+                    <a class="dropdown-item" href="{% url 'edit_profile' %}">
+                        <i class="fas fa-cog me-2"></i>{% trans 'Configuración' %}
+                    </a>
                     <hr>
                     <div style="display: flex; justify-content: center; align-items: center;">
                         <a class="btn btn-secondary" href="{% url 'logout' %}">
