@@ -103,12 +103,14 @@
             {% endif %}
 
             {% if request.user.is_superuser %}
+            {% comment %}
             <li class="nav-item {% if request.path == qpr %}active{% endif %}">
                 <a href="{% url 'quiz_progress' %}" class="nav-link">
                     <i class="fas fa-record-vinyl"></i>
                     <span class="nav-text">{% trans 'Registro de progreso de exámenes' %}</span>
                 </a>
             </li>
+            {% endcomment %}
             
             <li class="nav-item {% if request.path == cav %}active{% endif %}">
                 <a href="{% url 'course_allocation_view' %}" class="nav-link">

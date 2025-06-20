@@ -6,166 +6,360 @@
 
 {% block content %}
 
-<nav style="--bs-breadcrumb-divider: '>';" aria-label="breadcrumb">
-    <ol class="breadcrumb">
-        <li class="breadcrumb-item"><a href="/">{% trans 'Inicio' %}</a></li>
-        <li class="breadcrumb-item active" aria-current="page">{% trans 'Página de Progreso' %}</li>
+<!-- Breadcrumb moderno -->
+<nav aria-label="breadcrumb" class="mb-4">
+    <ol class="breadcrumb bg-transparent p-0">
+        <li class="breadcrumb-item">
+            <a href="/" class="text-decoration-none">
+                <i class="fas fa-home me-1"></i>{% trans 'Inicio' %}
+            </a>
+        </li>
+        <li class="breadcrumb-item active" aria-current="page">
+            <i class="fas fa-chart-line me-1"></i>{% trans 'Página de Progreso' %}
+        </li>
     </ol>
 </nav>
 
-<p class="title-1"><i class="fas fa-record-vinyl"></i>{% trans 'Evaluaciones' %}</p>
-
-  {% if cat_scores %}
-
-  <div class="header-title text-center">{% trans "Puntuaciones por Categoría de Pregunta" %}</div>
-  <div class="title-line"></div>
-
-  <table class="table table-bordered table-striped">
-
-	<thead>
-	  <tr>
-		<th>{% trans "Categoría" %}</th>
-		<th>{% trans "Respondidas Correctamente" %}</th>
-		<th>{% trans "Incorrectas" %}</th>
-		<th>%</th>
-	  </tr>
-	</thead>
-
-	<tbody>
-
-	  {% for cat, value in cat_scores.items %}
-	  <tr>
-		<td>{{ cat }}</td>
-		<td>{{ value.0 }}</td>
-		<td>{{ value.1 }}</td>
-		<td>{{ value.2 }}</td>
-	  </tr>
-
-	  {% endfor %}
-
-	</tbody>
-
-  </table>
-
-  {% endif %}
-
-  {% if exams %}
-
-  <!-- <div class="header-title-xl">{% trans "Exámenes Anteriores" %}</div> -->
-  <p class="lead fw-bold">
-	{% if request.user.is_superuser %}
-	{% trans "Resultados de los exámenes de los trabajadores" %}
-	{% else %}
-	{% trans "A continuación se muestran los resultados de los cursos finalizados" %}
-	{% endif %}
-  </p>
-  <!-- <div class="text-light bg-secondary mb-2 p-1">{% trans  'Total de exámenes completados:' %} {{ exams_counter }}</div> -->
- 
-  <div class="mb-3">
-    <a href="{% url 'descargar_certificados' %}" class="btn" style="background-color: #BA6022; color: white; border-color: #BA6022;">
-        {% trans "Descargar Consolidado" %}
-    </a>
+<!-- Header principal -->
+<div class="progress-header mb-5">
+    <div class="d-flex align-items-center mb-3">
+        <div class="progress-icon me-3">
+            <i class="fas fa-trophy"></i>
+        </div>
+        <div>
+            <h1 class="h2 mb-1 fw-bold text-white">{% trans 'Evaluaciones' %}</h1>
+            <p class="text-white-50 mb-0">{% trans 'Seguimiento de tu progreso académico' %}</p>
+        </div>
+    </div>
 </div>
- 
-<div class="table-responsive">
-    <table class="table table-bordered table-striped">
-        <thead>
-            <tr>
-                <th>{% trans "Curso" %}</th>
-                <th>{% trans "Puntuación Obtenida" %}</th>
-                <th>{% trans "Puntuación Máxima" %}</th>
-                <th>{% trans 'Porcentaje' %}</th>
-                <th>{% trans 'Estado de Registro' %}</th>
-                <th>{% trans "Fecha de Aprobación" %}</th>
-                <th>{% trans 'Certificados' %}</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% regroup exams by quiz.title as exams_by_course %}
-            
-            {% for course in exams_by_course %}
-                {% with course.list|dictsortreversed:"get_percent_correct"|first as exam %}
+
+{% if cat_scores %}
+<!-- Sección de estadísticas por categoría -->
+<div class="stats-section mb-5">
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-orange-gradient text-white">
+            <h5 class="mb-0">
+                <i class="fas fa-chart-pie me-2"></i>
+                {% trans "Puntuaciones por Categoría de Pregunta" %}
+            </h5>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="border-0">{% trans "Categoría" %}</th>
+                            <th class="border-0 text-center">{% trans "Correctas" %}</th>
+                            <th class="border-0 text-center">{% trans "Incorrectas" %}</th>
+                            <th class="border-0 text-center">{% trans "Porcentaje" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for cat, value in cat_scores.items %}
+                        <tr>
+                            <td class="fw-medium">{{ cat }}</td>
+                            <td class="text-center">
+                                <span class="badge bg-success rounded-pill">{{ value.0 }}</span>
+                            </td>
+                            <td class="text-center">
+                                <span class="badge bg-danger rounded-pill">{{ value.1 }}</span>
+                            </td>
+                            <td class="text-center">
+                                <div class="progress" style="height: 8px;">
+                                    <div class="progress-bar bg-orange" style="width: {{ value.2 }}%"></div>
+                                </div>
+                                <small class="text-muted">{{ value.2 }}%</small>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% if exams %}
+<!-- Sección de exámenes -->
+<div class="exams-section">
+    <!-- Header de la sección -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h3 class="h4 mb-2 fw-bold text-orange">
+                {% if request.user.is_superuser %}
+                    <i class="fas fa-users me-2"></i>
+                    {% trans "Resultados de los exámenes de los trabajadores" %}
+                {% else %}
+                    <i class="fas fa-graduation-cap me-2"></i>
+                    {% trans "Mis Resultados de Exámenes" %}
+                {% endif %}
+            </h3>
+            {% if not request.user.is_superuser %}
+            <p class="text-muted mb-0">
+                <i class="fas fa-info-circle me-1"></i>
+                {% trans "Se muestran tus mejores intentos por examen" %}
+            </p>
+            {% endif %}
+        </div>
+        
+        <!-- Botón de descarga consolidada -->
+        <div class="download-consolidated">
+            <a href="{% url 'descargar_certificados' %}" class="btn btn-orange">
+                <i class="fas fa-download me-2"></i>
+                {% trans "Descargar Consolidado" %}
+            </a>
+        </div>
+    </div>
+
+    <!-- Alert informativo -->
+    {% if not request.user.is_superuser %}
+    <div class="alert alert-orange border-0 shadow-sm" role="alert">
+        <div class="d-flex">
+            <i class="fas fa-lightbulb text-orange me-3 mt-1"></i>
+            <div>
+                <strong>{% trans "Información importante:" %}</strong>
+                <p class="mb-0 small">
+                    {% trans "Si has aprobado un examen después de intentos previos, solo se muestra el intento aprobado. Si no has aprobado, se muestra tu intento más reciente." %}
+                </p>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Tabla de resultados modernizada -->
+    <div class="modern-table-container">
+        <div class="table-responsive">
+            <table class="table modern-table">
+                <thead>
                     <tr>
-                        <td>{{ exam.quiz.title }}</td>
-                        <td>{{ exam.current_score|add:exam.current_score }}</td>
-                        <td>{{ exam.get_max_score|add:exam.get_max_score }}</td>
-                        <td>{{ exam.get_percent_correct }}%</td>
-                        <td>
-                            <span style="color: green;">Curso completado</span>
-                        </td>
-                        <td>
-                            {% if exam.fecha_aprobacion %}
-                                {{ exam.fecha_aprobacion|date:"d/m/Y" }}
-                            {% else %}
-                                {% trans "No disponible" %}
-                            {% endif %}
-                        </td>
-                        <td>
-                            <a href="{% url 'generar_certificado' exam.id %}" class="btn" style="background-color: #007bff; color: white; border-color: #007bff; padding: 5px 10px; text-decoration: none;">
-                                {% trans "Descargar Certificado" %}
-                            </a>
-                            {% if exam.quiz.course.code == "0001" %}
-                                <button onclick="document.getElementById('anexoModal{{ exam.id }}').style.display='block'" class="btn" style="background-color: #28a745; color: white; border-color: #28a745; padding: 5px 10px;">
-                                    {% trans "Descargar Anexo" %}
-                                </button>
-                            {% endif %}
-                        </td>
+                        <th>
+                            <div class="header-content">
+                                <i class="fas fa-graduation-cap header-icon"></i>
+                                <span>{% trans "Curso" %}</span>
+                            </div>
+                        </th>
+                        <th class="text-center">
+                            <div class="header-content">
+                                <i class="fas fa-chart-bar header-icon"></i>
+                                <span>{% trans "Puntuación" %}</span>
+                            </div>
+                        </th>
+                        <th class="text-center">
+                            <div class="header-content">
+                                <i class="fas fa-percentage header-icon"></i>
+                                <span>{% trans "Porcentaje" %}</span>
+                            </div>
+                        </th>
+                        <th class="text-center">
+                            <div class="header-content">
+                                <i class="fas fa-flag header-icon"></i>
+                                <span>{% trans "Estado" %}</span>
+                            </div>
+                        </th>
+                        <th class="text-center">
+                            <div class="header-content">
+                                <i class="fas fa-calendar-check header-icon"></i>
+                                <span>{% trans "Fecha Aprobación" %}</span>
+                            </div>
+                        </th>
+                        <th class="text-center">
+                            <div class="header-content">
+                                <i class="fas fa-certificate header-icon"></i>
+                                <span>{% trans "Validez Certificado" %}</span>
+                            </div>
+                        </th>
+                        <th class="text-center">
+                            <div class="header-content">
+                                <i class="fas fa-cogs header-icon"></i>
+                                <span>{% trans "Acciones" %}</span>
+                            </div>
+                        </th>
                     </tr>
-                {% endwith %}
-            {% endfor %}
-        </tbody>
-    </table>
+                </thead>
+                <tbody>
+                    {% regroup exams by quiz.title as exams_by_course %}
+                    
+                    {% for course in exams_by_course %}
+                        {% with course.list|dictsortreversed:"get_percent_correct"|first as exam %}
+                            <tr class="exam-row">
+                                <td>
+                                    <div class="course-info">
+                                        <div class="course-icon">
+                                            <i class="fas fa-book"></i>
+                                        </div>
+                                        <div class="course-details">
+                                            <h6 class="course-title">{{ exam.quiz.title }}</h6>
+                                            <span class="course-code">{{ exam.quiz.course.code }}</span>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="text-center">
+                                    <div class="score-container">
+                                        <div class="score-main">{{ exam.current_score|add:exam.current_score }}</div>
+                                        <div class="score-max">/ {{ exam.get_max_score|add:exam.get_max_score }}</div>
+                                    </div>
+                                </td>
+                                <td class="text-center">
+                                    <div class="percentage-container">
+                                        <div class="percentage-circle" data-percentage="{{ exam.get_percent_correct }}">
+                                            <span class="percentage-text">{{ exam.get_percent_correct }}%</span>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="text-center">
+                                    {% if exam.check_if_passed %}
+                                        <span class="status-badge status-passed">
+                                            <i class="fas fa-check-circle"></i>
+                                            {% trans "Aprobado" %}
+                                        </span>
+                                    {% else %}
+                                        <span class="status-badge status-failed">
+                                            <i class="fas fa-times-circle"></i>
+                                            {% trans "Desaprobado" %}
+                                        </span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-center">
+                                    {% if exam.fecha_aprobacion %}
+                                        <div class="date-info">
+                                            <i class="fas fa-calendar-check"></i>
+                                            <span>{{ exam.fecha_aprobacion|date:"d/m/Y" }}</span>
+                                        </div>
+                                    {% else %}
+                                        <span class="text-muted">
+                                            <i class="fas fa-minus"></i>
+                                            {% trans "No disponible" %}
+                                        </span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-center">
+                                    {% if exam.fecha_validez_certificado %}
+                                        <div class="date-info">
+                                            <i class="fas fa-calendar-alt"></i>
+                                            <span>{{ exam.fecha_validez_certificado|date:"d/m/Y" }}</span>
+                                        </div>
+                                    {% else %}
+                                        <span class="text-muted">
+                                            <i class="fas fa-minus"></i>
+                                            {% trans "No disponible" %}
+                                        </span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-center">
+                                    <div class="action-buttons">
+                                        {% if exam.check_if_passed %}
+                                            <div class="btn-group-vertical">
+                                                <a href="{% url 'generar_certificado' exam.id %}" 
+                                                   class="btn btn-certificate">
+                                                    <i class="fas fa-certificate"></i>
+                                                    {% trans "Certificado" %}
+                                                </a>
+                                                {% if exam.quiz.course.code == "0001" %}
+                                                    <button onclick="document.getElementById('anexoModal{{ exam.id }}').style.display='block'" 
+                                                            class="btn btn-anexo">
+                                                        <i class="fas fa-file-pdf"></i>
+                                                        {% trans "Anexo" %}
+                                                    </button>
+                                                {% endif %}
+                                            </div>
+                                        {% else %}
+                                            <a href="{% url 'quiz_retake' exam.id %}" 
+                                               class="btn btn-retry">
+                                                <i class="fas fa-redo"></i>
+                                                {% trans "Reintentar" %}
+                                            </a>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endwith %}
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
 </div>
 
-<!-- Modal para el formulario de anexo -->
-<!-- Agregar un contenedor específico para el formulario -->
-<div class="bootstrap-container">
+<!-- Modales para anexos -->
+<div class="modals-container">
     {% for course in exams_by_course %}
         {% with course.list|dictsortreversed:"get_percent_correct"|first as exam %}
             {% if exam.quiz.course.code == "0001" %}
-                <div id="anexoModal{{ exam.id }}" class="modal" style="display:none;">
-                    <div class="modal-dialog">
-                        <div class="modal-content">
-                            <div class="modal-header">
-                                <h5 class="modal-title">{% trans "Descargar Anexo" %}</h5>
-                                <button type="button" class="close" onclick="document.getElementById('anexoModal{{ exam.id }}').style.display='none'">
-                                    <span>&times;</span>
+                <div id="anexoModal{{ exam.id }}" class="modal fade" tabindex="-1">
+                    <div class="modal-dialog modal-lg">
+                        <div class="modal-content border-0 shadow">
+                            <div class="modal-header bg-orange text-white">
+                                <h5 class="modal-title">
+                                    <i class="fas fa-file-pdf me-2"></i>
+                                    {% trans "Descargar Anexo" %}
+                                </h5>
+                                <button type="button" class="btn-close btn-close-white" 
+                                        onclick="document.getElementById('anexoModal{{ exam.id }}').style.display='none'">
                                 </button>
                             </div>
-                            <div class="modal-body">
-                                <form method="POST" action="{% url 'anexo_form' sitting_id=exam.id %}" onsubmit="document.getElementById('anexoModal{{ exam.id }}').style.display='none';">
+                            <div class="modal-body p-4">
+                                <form method="POST" action="{% url 'anexo_form' sitting_id=exam.id %}" 
+                                      onsubmit="document.getElementById('anexoModal{{ exam.id }}').style.display='none';">
                                     {% csrf_token %}
-                                    <div class="form-group">
-                                        <label for="fecha_ingreso">{% trans "Fecha de Ingreso" %}:</label>
-                                        <input type="date" name="fecha_ingreso" class="form-control" required>
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label for="fecha_ingreso" class="form-label fw-medium">
+                                                <i class="fas fa-calendar me-1"></i>
+                                                {% trans "Fecha de Ingreso" %}
+                                            </label>
+                                            <input type="date" name="fecha_ingreso" class="form-control" required>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label for="ocupacion" class="form-label fw-medium">
+                                                <i class="fas fa-briefcase me-1"></i>
+                                                {% trans "Ocupación" %}
+                                            </label>
+                                            <input type="text" name="ocupacion" class="form-control" required>
+                                        </div>
                                     </div>
-
-                                    <div class="form-group">
-                                        <label for="ocupacion">{% trans "Ocupación" %}:</label>
-                                        <input type="text" name="ocupacion" class="form-control" required>
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label for="area_trabajo" class="form-label fw-medium">
+                                                <i class="fas fa-building me-1"></i>
+                                                {% trans "Área de Trabajo" %}
+                                            </label>
+                                            <input type="text" name="area_trabajo" class="form-control" required>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label for="empresa" class="form-label fw-medium">
+                                                <i class="fas fa-industry me-1"></i>
+                                                {% trans "E.C.M./CONEXAS" %}
+                                            </label>
+                                            <input type="text" name="empresa" class="form-control" required>
+                                        </div>
                                     </div>
-
-                                    <div class="form-group">
-                                        <label for="area_trabajo">{% trans "Área de Trabajo" %}:</label>
-                                        <input type="text" name="area_trabajo" class="form-control" required>
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label for="distrito" class="form-label fw-medium">
+                                                <i class="fas fa-map-marker-alt me-1"></i>
+                                                {% trans "Distrito" %}
+                                            </label>
+                                            <input type="text" name="distrito" class="form-control" required>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label for="provincia" class="form-label fw-medium">
+                                                <i class="fas fa-map me-1"></i>
+                                                {% trans "Provincia" %}
+                                            </label>
+                                            <input type="text" name="provincia" class="form-control" required>
+                                        </div>
                                     </div>
-
-                                    <div class="form-group">
-                                        <label for="empresa">{% trans "E.C.M./CONEXAS " %}:</label>
-                                        <input type="text" name="empresa" class="form-control" required>
+                                    <div class="text-end">
+                                        <button type="button" class="btn btn-secondary me-2" 
+                                                onclick="document.getElementById('anexoModal{{ exam.id }}').style.display='none'">
+                                            {% trans "Cancelar" %}
+                                        </button>
+                                        <button type="submit" class="btn btn-orange">
+                                            <i class="fas fa-download me-1"></i>
+                                            {% trans "Generar Anexo" %}
+                                        </button>
                                     </div>
-
-                                    <div class="form-group">
-                                        <label for="distrito">{% trans "Distrito" %}:</label>
-                                        <input type="text" name="distrito" class="form-control" required>
-                                    </div>
-
-                                    <div class="form-group">
-                                        <label for="provincia">{% trans "Provincia" %}:</label>
-                                        <input type="text" name="provincia" class="form-control" required>
-                                    </div>
-
-                                    <button type="submit" class="btn btn-primary">{% trans "Generar Anexo" %}</button>
                                 </form>
                             </div>
                         </div>
@@ -176,49 +370,9 @@
     {% endfor %}
 </div>
 
-<!-- Agregar estilos de Bootstrap solo al contenedor -->
-<style>
-    .bootstrap-container {
-        font-family: Arial, sans-serif;
-    }
-
-    .bootstrap-container .modal-content {
-        background-color: #f9f9f9;
-        border: 1px solid #ccc;
-        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    }
-
-    .bootstrap-container .modal-header {
-        background-color: #337ab7;
-        color: #fff;
-        padding: 10px;
-        border-bottom: 1px solid #ccc;
-    }
-
-    .bootstrap-container .modal-body {
-        padding: 20px;
-    }
-
-    .bootstrap-container .form-control {
-        width: 100%;
-        height: 40px;
-        padding: 10px;
-        margin-bottom: 20px;
-        border: 1px solid #ccc;
-    }
-
-    .bootstrap-container .btn-primary {
-        background-color: #337ab7;
-        color: #fff;
-        padding: 10px 20px;
-        border: none;
-        border-radius: 5px;
-        cursor: pointer;
-    }
-</style>
-
+<!-- Scripts para modales -->
 <script>
-    // Cerrar el modal si se hace clic fuera de él
+    // Cerrar modales al hacer clic fuera
     window.onclick = function(event) {
         var modals = document.querySelectorAll('[id^="anexoModal"]');
         modals.forEach(function(modal) {
@@ -229,11 +383,430 @@
     }
 </script>
 
-  {% endif %}
-  {% if not cat_scores and not exams %}
-  <h4 class="text-center mt-5 py-5 text-muted">
-	  <i class="fa-regular fa-folder-open me-2"></i>{% trans 'Los registros de progreso aparecerán aquí' %}
-  </h4>
-  {% endif %}
-  
+{% endif %}
+
+{% if not cat_scores and not exams %}
+<!-- Estado vacío -->
+<div class="empty-state text-center py-5">
+    <div class="empty-state-icon mb-4">
+        <i class="fas fa-folder-open text-muted" style="font-size: 4rem;"></i>
+    </div>
+    <h4 class="text-muted mb-3">{% trans 'No hay registros de progreso' %}</h4>
+    <p class="text-muted mb-4">{% trans 'Los registros de progreso aparecerán aquí cuando completes tus primeros exámenes' %}</p>
+    <a href="/" class="btn btn-orange">
+        <i class="fas fa-home me-2"></i>
+        {% trans 'Ir al Inicio' %}
+    </a>
+</div>
+{% endif %}
+
+<!-- Estilos personalizados con colores naranja -->
+<style>
+/* Variables de color naranja */
+:root {
+    --orange-primary: #BA6022;
+    --orange-light: #ff8c42;
+    --orange-dark: #8b4513;
+    --orange-gradient: linear-gradient(135deg, #BA6022 0%, #ff8c42 100%);
+}
+
+/* Colores de marca */
+.text-orange { color: var(--orange-primary) !important; }
+.bg-orange { background-color: var(--orange-primary) !important; }
+.btn-orange { 
+    background-color: var(--orange-primary) !important; 
+    border-color: var(--orange-primary) !important;
+    color: white !important;
+}
+.btn-orange:hover { 
+    background-color: var(--orange-dark) !important; 
+    border-color: var(--orange-dark) !important;
+    color: white !important;
+}
+.alert-orange {
+    background-color: rgba(186, 96, 34, 0.1) !important;
+    border-left: 4px solid var(--orange-primary) !important;
+}
+.bg-orange-gradient { background: var(--orange-gradient) !important; }
+
+/* Header principal */
+.progress-header {
+    background: var(--orange-gradient);
+    color: white;
+    padding: 2rem;
+    border-radius: 15px;
+    margin-bottom: 2rem;
+    box-shadow: 0 8px 25px rgba(186, 96, 34, 0.3);
+}
+
+.progress-icon {
+    width: 60px;
+    height: 60px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+}
+
+/* Tabla moderna */
+.modern-table-container {
+    background: white;
+    border-radius: 15px 15px 0 0;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+}
+
+.modern-table {
+    margin-bottom: 0;
+    border: none;
+    border-collapse: collapse;
+    width: 100%;
+}
+
+.modern-table thead {
+    position: relative;
+    z-index: 1;
+}
+
+.modern-table thead::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: var(--orange-gradient);
+    z-index: -1;
+    border-radius: 15px 15px 0 0;
+}
+
+.modern-table thead th {
+    background: transparent;
+    color: white;
+    font-weight: 600;
+    padding: 1.2rem 1rem;
+    border: none;
+    font-size: 0.95rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    vertical-align: middle;
+    position: relative;
+    box-shadow: none;
+}
+
+.header-content {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    justify-content: center;
+    transition: transform 0.2s ease;
+}
+
+.modern-table th:not(.text-center) .header-content {
+    justify-content: flex-start;
+}
+
+.modern-table th.text-center .header-content {
+    justify-content: center;
+}
+
+.modern-table th:hover .header-content {
+    transform: scale(1.05);
+}
+
+.header-icon {
+    font-size: 1.1rem;
+    opacity: 0.9;
+}
+
+.modern-table tbody tr {
+    border-bottom: 1px solid #f0f0f0;
+    transition: all 0.3s ease;
+}
+
+.modern-table tbody tr:hover {
+    background-color: #fafafa;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.modern-table tbody td {
+    padding: 1.2rem 1rem;
+    vertical-align: middle;
+    border: none;
+}
+
+/* Información del curso */
+.course-info {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.course-icon {
+    width: 50px;
+    height: 50px;
+    background: var(--orange-gradient);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.2rem;
+}
+
+.course-details {
+    flex: 1;
+}
+
+.course-title {
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 0.2rem;
+    font-size: 1rem;
+}
+
+.course-code {
+    color: #666;
+    font-size: 0.85rem;
+    background: #f5f5f5;
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+}
+
+/* Contenedor de puntuación */
+.score-container {
+    text-align: center;
+}
+
+.score-main {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--orange-primary);
+    line-height: 1;
+}
+
+.score-max {
+    font-size: 0.85rem;
+    color: #666;
+    margin-top: 0.2rem;
+}
+
+/* Círculo de porcentaje */
+.percentage-container {
+    display: flex;
+    justify-content: center;
+}
+
+.percentage-circle {
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    background: conic-gradient(var(--orange-primary) 0deg, var(--orange-primary) calc(var(--percentage) * 3.6deg), #e9ecef calc(var(--percentage) * 3.6deg));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+.percentage-circle::before {
+    content: '';
+    position: absolute;
+    width: 50px;
+    height: 50px;
+    background: white;
+    border-radius: 50%;
+}
+
+.percentage-text {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--orange-primary);
+    position: relative;
+    z-index: 1;
+}
+
+/* Badges de estado */
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border-radius: 25px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.status-passed {
+    background: linear-gradient(135deg, #28a745, #20c997);
+    color: white;
+}
+
+.status-failed {
+    background: linear-gradient(135deg, #dc3545, #fd7e14);
+    color: white;
+}
+
+/* Información de fecha */
+.date-info {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    color: #666;
+    font-size: 0.9rem;
+}
+
+.date-info i {
+    color: var(--orange-primary);
+}
+
+/* Botones de acción */
+.action-buttons {
+    display: flex;
+    justify-content: center;
+}
+
+.btn-group-vertical {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.btn-certificate {
+    background: linear-gradient(135deg, #007bff, #0056b3) !important;
+    color: white !important;
+    border: none !important;
+    padding: 0.5rem 1rem !important;
+    border-radius: 8px !important;
+    font-size: 0.8rem !important;
+    font-weight: 600 !important;
+    transition: all 0.3s ease !important;
+}
+
+.btn-certificate:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 4px 15px rgba(0, 123, 255, 0.3) !important;
+}
+
+.btn-anexo {
+    background: linear-gradient(135deg, #28a745, #20c997) !important;
+    color: white !important;
+    border: none !important;
+    padding: 0.5rem 1rem !important;
+    border-radius: 8px !important;
+    font-size: 0.8rem !important;
+    font-weight: 600 !important;
+    transition: all 0.3s ease !important;
+}
+
+.btn-anexo:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3) !important;
+}
+
+.btn-retry {
+    background: linear-gradient(135deg, #dc3545, #fd7e14) !important;
+    color: white !important;
+    border: none !important;
+    padding: 0.5rem 1rem !important;
+    border-radius: 8px !important;
+    font-size: 0.8rem !important;
+    font-weight: 600 !important;
+    transition: all 0.3s ease !important;
+}
+
+.btn-retry:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 4px 15px rgba(220, 53, 69, 0.3) !important;
+}
+
+/* Tarjetas y secciones */
+.card {
+    border-radius: 15px;
+    overflow: hidden;
+    border: none;
+}
+
+.card-header {
+    border: none;
+    padding: 1.5rem;
+}
+
+/* Breadcrumb moderno */
+.breadcrumb-item a {
+    color: #6c757d;
+    transition: color 0.2s ease;
+}
+
+.breadcrumb-item a:hover {
+    color: var(--orange-primary);
+}
+
+.breadcrumb-item.active {
+    color: var(--orange-primary);
+    font-weight: 500;
+}
+
+/* Estados vacíos */
+.empty-state {
+    padding: 4rem 2rem;
+}
+
+.empty-state-icon {
+    opacity: 0.5;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .progress-header {
+        padding: 1.5rem;
+    }
+    
+    .modern-table thead th,
+    .modern-table tbody td {
+        padding: 0.8rem 0.5rem;
+        font-size: 0.85rem;
+    }
+    
+    .course-info {
+        flex-direction: column;
+        text-align: center;
+        gap: 0.5rem;
+    }
+    
+    .course-icon {
+        width: 40px;
+        height: 40px;
+        font-size: 1rem;
+    }
+    
+    .percentage-circle {
+        width: 50px;
+        height: 50px;
+    }
+    
+    .percentage-circle::before {
+        width: 35px;
+        height: 35px;
+    }
+    
+    .status-badge {
+        padding: 0.3rem 0.8rem;
+        font-size: 0.75rem;
+    }
+}
+
+/* Animaciones */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.exam-row {
+    animation: fadeIn 0.3s ease-in-out;
+}
+</style>
+
 {% endblock %}

@@ -15,7 +15,7 @@
 		<li class="breadcrumb-item"><a href="{% url 'program_detail' course.program.id %}">{{ course.program }}</a></li>
 		<li class="breadcrumb-item"><a href="{{ course.get_absolute_url }}">{{ course }}</a></li>
 		<li class="breadcrumb-item"><a href="{% url 'quiz_index' course.slug %}">{% trans 'Cuestionarios' %}</a></li>
-		<li class="breadcrumb-item"><a href="{% url 'quiz_take' course.id quiz.slug %}">{{ quiz.title|title }}</a></li>
+		<li class="breadcrumb-item"><a href="{% url 'quiz_take' quiz.slug %}">{{ quiz.title|title }}</a></li>
 		<li class="breadcrumb-item active" aria-current="page">{% trans 'Resultado' %}</li>
 	</ol>
 </nav>
@@ -105,6 +105,15 @@
 	{% if quiz.pass_mark %}
   <div class="card p-1" style="border: 1px solid #fd7e14;">
     <p class="lead bg-light p-3 text-orange"><span class="fa-1x">&CircleDot;</span> {{ sitting.result_message }}</p>
+    
+    {% if not sitting.check_if_passed %}
+      <div class="text-center mb-3">
+        <a href="{% url 'quiz_retake' sitting.id %}" class="btn btn-primary">
+          <i class="fas fa-redo me-2"></i> {% trans 'Volver a intentar el examen' %}
+        </a>
+      </div>
+    {% endif %}
+  </div>
     {% endif %}
     <ul>
       <li>{% trans "Revisa las preguntas a continuación y vuelve a intentar el cuestionario en el futuro" %}.</li>

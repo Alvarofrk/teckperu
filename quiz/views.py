@@ -149,7 +149,7 @@ def generar_certificado(request, sitting_id):
             
             if not has_permission:
                 raise Http404("No tienes permisos para acceder a este certificado.")
-    
+
     # Verifica la puntuación antes de continuar (opcional, comentado)
     # if sitting.get_percent_correct <= 80:
     #     raise Http404("No se puede generar el certificado, la puntuación es menor al 80%.")
@@ -359,8 +359,8 @@ def generar_anexo4(request, sitting_id, fecha_ingreso, ocupacion, area_trabajo, 
     p_anexo.drawString(391, alto_pagina_anexo - 641, f"{fecha_aprobacion}")
 
     # Usar la fuente personalizada para la firma
-    p_anexo.setFont("MiFuenteCursiva", 13)  # Cambiar a la fuente personalizada
-    p_anexo.drawString(69, 115, f"{sitting.user.first_name} {sitting.user.last_name}")  # Ajusta la posición según sea necesario
+    p_anexo.setFont("MiFuenteCursiva", 8)  # Reducir el tamaño de la fuente de 10 a 8
+    p_anexo.drawString(55, 115, f"{sitting.user.first_name} {sitting.user.last_name}")  # Mover más a la izquierda (de 69 a 55)
 
     # Finalizar el contenido del buffer del anexo
     p_anexo.showPage()
@@ -579,6 +579,42 @@ def quiz_delete(request, slug, pk):
 def quiz_list(request, slug):
     course = get_object_or_404(Course, slug=slug)
     quizzes = Quiz.objects.filter(course=course).order_by("-timestamp")
+    
+    # Para estudiantes, añadir información sobre el estado de aprobación
+    if request.user.is_student:
+        for quiz in quizzes:
+            # Buscar todos los intentos completados para este examen
+            completed_sittings = Sitting.objects.filter(
+                user=request.user,
+                quiz=quiz,
+                course=course,
+                complete=True
+            ).order_by('-end')
+            
+            if completed_sittings.exists():
+                # Buscar primero un intento aprobado
+                approved_sitting = None
+                latest_sitting = None
+                
+                for sitting in completed_sittings:
+                    if latest_sitting is None:
+                        latest_sitting = sitting
+                    
+                    if sitting.check_if_passed:
+                        approved_sitting = sitting
+                        break
+                
+                # Usar el aprobado si existe, sino el más reciente
+                if approved_sitting:
+                    quiz.user_status = "approved"
+                    quiz.user_sitting = approved_sitting
+                else:
+                    quiz.user_status = "failed"
+                    quiz.user_sitting = latest_sitting
+            else:
+                quiz.user_status = "not_attempted"
+                quiz.user_sitting = None
+    
     return render(
         request, "quiz/quiz_list.html", {"quizzes": quizzes, "course": course}
     )
@@ -656,8 +692,8 @@ class QuizUserProgressView(TemplateView):
         context = super().get_context_data(**kwargs)
         progress, _ = Progress.objects.get_or_create(user=self.request.user)
         context["cat_scores"] = progress.list_all_cat_scores
-        context["exams"] = progress.show_exams()
-        context["exams_counter"] = context["exams"].count()
+        context["exams"] = progress.show_all_exams()
+        context["exams_counter"] = len(context["exams"])
         return context
 
 
@@ -843,10 +879,26 @@ class QuizTake(FormView):
 
     def dispatch(self, request, *args, **kwargs):
         self.quiz = get_object_or_404(Quiz, slug=self.kwargs["slug"])
-        self.course = get_object_or_404(Course, pk=self.kwargs["pk"])
+        self.course = self.quiz.course  # Obtener el curso directamente del examen
         if not Question.objects.filter(quiz=self.quiz).exists():
             messages.warning(request, "Este examen no tiene preguntas disponibles")
             return redirect("quiz_index", slug=self.course.slug)
+
+        # Verificar si el usuario ya aprobó este examen
+        if request.user.is_student:
+            approved_sitting = Sitting.objects.filter(
+                user=request.user,
+                quiz=self.quiz,
+                course=self.course,
+                complete=True
+            ).first()
+            
+            if approved_sitting and approved_sitting.check_if_passed:
+                messages.info(
+                    request,
+                    "Ya has aprobado este examen. No puedes volver a tomarlo.",
+                )
+                return redirect("quiz_index", slug=self.course.slug)
 
         self.sitting = Sitting.objects.user_sitting(
             request.user, self.quiz, self.course
@@ -1002,49 +1054,66 @@ Fecha: {sitting.end.strftime('%d/%m/%Y') if sitting.end else 'N/A'}
 @login_required
 @lecturer_required
 def buscar_usuarios_ajax(request):
-    """Vista AJAX para búsqueda de usuarios en tiempo real"""
-    query = request.GET.get('q', '').strip()
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        query = request.GET.get('q', '')
+        if len(query) >= 2:
+            users = User.objects.filter(
+                Q(first_name__icontains=query) | 
+                Q(last_name__icontains=query) | 
+                Q(username__icontains=query)
+            )[:10]
+            data = [{'id': user.id, 'text': f"{user.first_name} {user.last_name} ({user.username})"} for user in users]
+            return JsonResponse({'results': data})
+    return JsonResponse({'results': []})
+
+@login_required
+def quiz_retake(request, sitting_id):
+    """
+    Vista para permitir a un usuario reintentar un examen que no ha aprobado.
+    Crea un nuevo intento (Sitting) y redirige al usuario al examen.
+    """
+    # Obtener el intento fallido
+    previous_sitting = get_object_or_404(Sitting, id=sitting_id, user=request.user)
     
-    if len(query) < 2:  # Mínimo 2 caracteres para buscar
-        return JsonResponse({'usuarios': []})
+    # Verificar si ya existe un intento aprobado para este examen
+    approved_sitting = Sitting.objects.filter(
+        user=request.user,
+        quiz=previous_sitting.quiz,
+        course=previous_sitting.course,
+        complete=True
+    ).first()
     
-    # Obtener usuarios que han completado exámenes
-    if request.user.is_superuser:
-        # Administrador ve todos los usuarios
-        usuarios = User.objects.filter(
-            Q(first_name__icontains=query) |
-            Q(last_name__icontains=query) |
-            Q(username__icontains=query) |
-            Q(email__icontains=query),
-            sitting__complete=True
-        ).distinct().values('id', 'first_name', 'last_name', 'username', 'email')[:10]
+    # Verificar si el intento encontrado está aprobado
+    if approved_sitting and approved_sitting.check_if_passed:
+        messages.error(request, "No puedes reintentar un examen que ya has aprobado.")
+        return redirect('quiz_progress')
+    
+    # Verificar que el examen no sea de un solo intento
+    if previous_sitting.quiz.single_attempt:
+        messages.error(request, "Este examen solo permite un intento.")
+        return redirect('quiz_progress')
+    
+    # Verificar si ya existe un Sitting incompleto para este usuario y examen
+    existing_sitting = Sitting.objects.filter(
+        user=request.user,
+        quiz=previous_sitting.quiz,
+        course=previous_sitting.course,
+        complete=False
+    ).first()
+    
+    if existing_sitting:
+        # Si ya existe un intento incompleto, usar ese
+        sitting_to_use = existing_sitting
     else:
-        # Instructor ve solo usuarios de sus cursos asignados
-        usuarios = User.objects.filter(
-            Q(first_name__icontains=query) |
-            Q(last_name__icontains=query) |
-            Q(username__icontains=query) |
-            Q(email__icontains=query),
-            sitting__complete=True,
-            sitting__quiz__course__allocated_course__lecturer=request.user
-        ).distinct().values('id', 'first_name', 'last_name', 'username', 'email')[:10]
+        # Crear un nuevo intento usando el método del manager
+        sitting_to_use = Sitting.objects.new_sitting(
+            user=request.user,
+            quiz=previous_sitting.quiz,
+            course=previous_sitting.course
+        )
     
-    # Formatear resultados
-    resultados = []
-    for usuario in usuarios:
-        nombre_completo = f"{usuario['first_name']} {usuario['last_name']}".strip()
-        if not nombre_completo:
-            nombre_completo = usuario['username']
-        
-        resultados.append({
-            'id': usuario['id'],
-            'nombre_completo': nombre_completo,
-            'username': usuario['username'],
-            'email': usuario['email'],
-            'texto_busqueda': f"{nombre_completo} ({usuario['username']})"
-        })
-    
-    return JsonResponse({'usuarios': resultados})
+    # Redirigir al usuario al inicio del intento
+    return redirect('quiz_take', slug=previous_sitting.quiz.slug)
 
 @login_required
 @lecturer_required

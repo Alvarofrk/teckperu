@@ -57,7 +57,31 @@
                 {% endif %}
 
                 <div class="d-flex align-items-center">
-                    <a class="btn btn-block btn-secondary w-100" href="{% url 'quiz_take' pk=course.pk slug=quiz.slug %}">{% trans "Iniciar cuestionario" %} &raquo;</a>
+                    {% if request.user.is_student %}
+                        {% if quiz.user_status == "not_attempted" %}
+                            <!-- No ha intentado el examen -->
+                            <a class="btn btn-block btn-secondary w-100" href="{% url 'quiz_take' slug=quiz.slug %}">{% trans "Iniciar cuestionario" %} &raquo;</a>
+                        {% elif quiz.user_status == "failed" %}
+                            <!-- Lo desaprobó, puede volver a intentar -->
+                            <a class="btn btn-block btn-danger w-100" href="{% url 'quiz_retake' quiz.user_sitting.id %}">
+                                <i class="fas fa-redo me-2"></i>{% trans "Volver a intentar" %}
+                            </a>
+                        {% elif quiz.user_status == "approved" %}
+                            <!-- Ya lo aprobó, mostrar estado -->
+                            <div class="w-100 text-center">
+                                <span class="badge bg-success mb-2">{% trans "Aprobado" %}</span>
+                                <br>
+                                <small class="text-muted">{{ quiz.user_sitting.get_percent_correct }}% - {{ quiz.user_sitting.end|date:"d/m/Y" }}</small>
+                                <br>
+                                <a href="{% url 'quiz_progress' %}" class="btn btn-sm btn-outline-primary mt-1">
+                                    <i class="fas fa-certificate me-1"></i>{% trans "Ver certificado" %}
+                                </a>
+                            </div>
+                        {% endif %}
+                    {% else %}
+                        <!-- Para instructores, siempre mostrar el botón de iniciar -->
+                        <a class="btn btn-block btn-secondary w-100" href="{% url 'quiz_take' slug=quiz.slug %}">{% trans "Iniciar cuestionario" %} &raquo;</a>
+                    {% endif %}
 
                     {% if request.user.is_superuser or request.user.is_lecturer %}
                         <div class="dropup">

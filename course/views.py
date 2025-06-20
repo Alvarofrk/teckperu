@@ -685,9 +685,47 @@ def download_courses_pdf(request):
 
 @login_required
 def user_course_list(request):
+    """
+    Shows a list of courses the current user is registered for.
+    """
+    if request.user.is_student:
+        student = get_object_or_404(Student, student__id=request.user.id)
+        courses = TakenCourse.objects.select_related('course').filter(student=student)
+        
+        # Inyecta la ruta de la imagen en cada objeto del curso
+        for taken_course in courses:
+            taken_course.course.image_path = get_course_image_path(taken_course.course.code)
+        
+        # Calcular estadísticas
+        total_courses = courses.count()
+        active_courses = courses.filter(course__is_active=True).count()
+        
+        # Calcular progreso (simulado por ahora)
+        courses_in_progress = 0
+        completed_courses = 0
+        
+        # Paginación
+        paginator = Paginator(courses, 9)  # 9 cursos por página
+        page_number = request.GET.get('page')
+        page_obj = paginator.get_page(page_number)
+        
+        context = {
+            "student": student,
+            "taken_courses": page_obj,
+            "total_courses": total_courses,
+            "active_courses": active_courses,
+            "courses_in_progress": courses_in_progress,
+            "completed_courses": completed_courses,
+        }
+        return render(request, "course/user_course_list.html", context)
+
     if request.user.is_lecturer:
         # Obtener cursos asignados al instructor
-        courses = Course.objects.filter(allocated_course__lecturer__pk=request.user.id).order_by('title')
+        courses = Course.objects.filter(
+            id__in=CourseAllocation.objects.select_related('lecturer').filter(lecturer=request.user).values_list(
+                "courses__id", flat=True
+            )
+        ).order_by('title')
         
         # Calcular estadísticas
         total_courses = courses.count()
@@ -707,7 +745,7 @@ def user_course_list(request):
         for course in courses:
             total_materials += course.upload_set.count() + course.uploadvideo_set.count()
         
-        # Agregar rutas de imágenes a cada curso
+        # Inyecta la ruta de la imagen en cada objeto del curso
         for course in courses:
             course.image_path = get_course_image_path(course.code)
         
@@ -723,37 +761,6 @@ def user_course_list(request):
             "total_students": total_students,
             "total_quizzes": total_quizzes,
             "total_materials": total_materials,
-        }
-        return render(request, "course/user_course_list.html", context)
-
-    if request.user.is_student:
-        student = get_object_or_404(Student, student__pk=request.user.id)
-        taken_courses = TakenCourse.objects.filter(student=student).order_by('course__title')
-        
-        # Calcular estadísticas
-        total_courses = taken_courses.count()
-        active_courses = taken_courses.filter(course__is_active=True).count()
-        
-        # Calcular progreso (simulado por ahora)
-        courses_in_progress = 0
-        completed_courses = 0
-        
-        # Agregar rutas de imágenes a cada curso tomado
-        for taken_course in taken_courses:
-            taken_course.course.image_path = get_course_image_path(taken_course.course.code)
-        
-        # Paginación
-        paginator = Paginator(taken_courses, 9)  # 9 cursos por página
-        page_number = request.GET.get('page')
-        page_obj = paginator.get_page(page_number)
-        
-        context = {
-            "student": student,
-            "taken_courses": page_obj,
-            "total_courses": total_courses,
-            "active_courses": active_courses,
-            "courses_in_progress": courses_in_progress,
-            "completed_courses": completed_courses,
         }
         return render(request, "course/user_course_list.html", context)
 

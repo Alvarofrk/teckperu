@@ -184,6 +184,44 @@ class Progress(models.Model):
                 "-end"
             )
 
+    def show_all_exams(self):
+        """
+        Muestra el mejor intento por examen del usuario.
+        Si hay un intento aprobado, muestra solo ese.
+        Si no hay aprobados, muestra el intento más reciente.
+        Para estudiantes, solo muestra sus propios exámenes.
+        Para superusuarios, muestra todos los exámenes.
+        """
+        if self.user.is_superuser:
+            # Para superusuarios, obtener todos los exámenes completados
+            all_sittings = Sitting.objects.filter(complete=True).order_by("-end")
+        else:
+            # Para estudiantes, obtener solo sus exámenes completados
+            all_sittings = Sitting.objects.filter(user=self.user, complete=True).order_by("-end")
+        
+        # Agrupar por examen y obtener el mejor intento de cada uno
+        best_attempts = []
+        exam_groups = {}
+        
+        for sitting in all_sittings:
+            exam_key = sitting.quiz.id  # Usar el ID del examen como clave
+            
+            if exam_key not in exam_groups:
+                exam_groups[exam_key] = []
+            exam_groups[exam_key].append(sitting)
+        
+        # Para cada examen, seleccionar el mejor intento
+        for exam_key, sittings in exam_groups.items():
+            # Ordenar por: 1) Aprobado primero, 2) Fecha más reciente
+            sorted_sittings = sorted(sittings, 
+                                   key=lambda x: (not x.check_if_passed, -x.end.timestamp()))
+            
+            # Tomar el mejor intento (primero en la lista ordenada)
+            best_attempts.append(sorted_sittings[0])
+        
+        # Ordenar por fecha de finalización (más reciente primero)
+        return sorted(best_attempts, key=lambda x: x.end, reverse=True)
+
 
 class SittingManager(models.Manager):
     def new_sitting(self, user, quiz, course):
@@ -356,6 +394,14 @@ class Sitting(models.Model):
             return _("¡Has aprobado este examen, felicitaciones!")
         else:
             return _("No has podido pasar este examen, inténtalo de nuevo.")
+
+    @property
+    def fecha_validez_certificado(self):
+        """Calcula la fecha de validez del certificado (fecha de aprobación + 1 año)"""
+        if self.fecha_aprobacion:
+            from datetime import timedelta
+            return self.fecha_aprobacion + timedelta(days=365)
+        return None
 
     def add_user_answer(self, question, guess):
         user_answers = json.loads(self.user_answers)
