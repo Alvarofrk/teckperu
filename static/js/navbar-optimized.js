@@ -30,6 +30,15 @@
             // AJUSTE: Configurar dinámicamente el padding del contenido
             adjustContentPadding();
 
+            // Verificar que Bootstrap esté disponible
+            if (typeof bootstrap !== 'undefined') {
+                console.log('Bootstrap detectado, inicializando dropdowns...');
+                initializeBootstrapDropdowns();
+            } else {
+                console.warn('Bootstrap no detectado, esperando...');
+                setTimeout(setupNavbar, 100);
+            }
+
             console.log('Navbar optimizado inicializado correctamente');
         } catch (error) {
             console.error('Error al inicializar navbar:', error);
@@ -63,116 +72,78 @@
         const dropdown = document.querySelector('#top-navbar .nav-wrapper .dropdown');
         const progressCard = document.getElementById('progress-card');
 
-        if (!dropdown) return;
+        if (!dropdown) {
+            console.warn('Dropdown del avatar no encontrado');
+            return;
+        }
 
-        // Prevenir cierre accidental del dropdown
+        // Configuración básica del dropdown
         const dropdownMenu = dropdown.querySelector('.dropdown-menu');
+        const avatar = dropdown.querySelector('.avatar');
+
         if (dropdownMenu) {
+            // Prevenir cierre accidental del dropdown
             dropdownMenu.addEventListener('click', function (e) {
                 e.stopPropagation();
             });
         }
 
-        // SOLUCIÓN QUE FUNCIONABA: Crear portal para el dropdown original
-        setupDropdownPortal(dropdown, dropdownMenu);
-
-        // Manejar conflicto con #progress-card
-        if (progressCard) {
-            // Observar cambios en el dropdown usando MutationObserver
-            const observer = new MutationObserver(function (mutations) {
-                mutations.forEach(function (mutation) {
-                    if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
-                        const isOpen = dropdown.classList.contains('show');
-                        handleProgressCardVisibility(isOpen, progressCard);
-                    }
-                });
-            });
-
-            observer.observe(dropdown, {
-                attributes: true,
-                attributeFilter: ['class']
-            });
-
-            // También escuchar eventos de Bootstrap
-            dropdown.addEventListener('show.bs.dropdown', function () {
-                handleProgressCardVisibility(true, progressCard);
-            });
-
-            dropdown.addEventListener('hide.bs.dropdown', function () {
-                setTimeout(function () {
-                    handleProgressCardVisibility(false, progressCard);
-                }, 300);
-            });
-        }
-
         // Prevenir que el avatar cierre el dropdown al hacer clic
-        const avatar = dropdown.querySelector('.avatar');
         if (avatar) {
             avatar.addEventListener('click', function (e) {
                 e.stopPropagation();
             });
         }
-    }
 
-    /**
-     * SOLUCIÓN QUE FUNCIONABA: Crear un portal para el dropdown
-     */
-    function setupDropdownPortal(dropdown, dropdownMenu) {
-        if (!dropdown || !dropdownMenu) return;
+        // Función de respaldo para toggle manual del dropdown
+        function toggleDropdown() {
+            const isOpen = dropdown.classList.contains('show');
 
-        // Crear un contenedor para el dropdown en el body
-        let portalContainer = document.getElementById('dropdown-portal');
-        if (!portalContainer) {
-            portalContainer = document.createElement('div');
-            portalContainer.id = 'dropdown-portal';
-            portalContainer.style.cssText = `
-                position: fixed;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                pointer-events: none;
-                z-index: 999999;
-            `;
-            document.body.appendChild(portalContainer);
+            if (isOpen) {
+                dropdown.classList.remove('show');
+                if (dropdownMenu) {
+                    dropdownMenu.classList.remove('show');
+                }
+            } else {
+                dropdown.classList.add('show');
+                if (dropdownMenu) {
+                    dropdownMenu.classList.add('show');
+                }
+            }
         }
 
-        // Clonar el dropdown menu
-        const clonedMenu = dropdownMenu.cloneNode(true);
-        clonedMenu.id = 'dropdown-menu-portal';
+        // Agregar evento de clic al avatar como respaldo
+        if (avatar) {
+            avatar.addEventListener('click', function (e) {
+                e.preventDefault();
+                e.stopPropagation();
 
-        // Añadir una clase para aplicar estilos desde el CSS
-        clonedMenu.classList.add('dropdown-menu-portal-styled');
+                // Intentar usar Bootstrap primero
+                if (typeof bootstrap !== 'undefined') {
+                    const bsDropdown = bootstrap.Dropdown.getInstance(dropdown);
+                    if (bsDropdown) {
+                        bsDropdown.toggle();
+                    } else {
+                        toggleDropdown();
+                    }
+                } else {
+                    toggleDropdown();
+                }
+            });
+        }
 
-        portalContainer.appendChild(clonedMenu);
+        // Manejar conflicto con #progress-card si existe
+        if (progressCard) {
+            dropdown.addEventListener('show.bs.dropdown', function () {
+                progressCard.style.display = 'none';
+            });
 
-        // Escuchar eventos del dropdown original
-        dropdown.addEventListener('show.bs.dropdown', function () {
-            console.log('🚀 Mostrando dropdown en portal...');
-            clonedMenu.style.display = 'block';
-
-            // Ocultar el dropdown original para evitar el "flicker"
-            if (dropdownMenu) {
-                dropdownMenu.style.setProperty('opacity', '0', 'important');
-                dropdownMenu.style.setProperty('visibility', 'hidden', 'important');
-                dropdownMenu.style.setProperty('pointer-events', 'none', 'important');
-            }
-
-            // Ocultar todos los elementos que puedan interferir
-            hideInterferingElements();
-        });
-
-        dropdown.addEventListener('hide.bs.dropdown', function () {
-            console.log('🔒 Ocultando dropdown del portal...');
-            clonedMenu.style.display = 'none';
-
-            // Restaurar los estilos del dropdown original
-            if (dropdownMenu) {
-                dropdownMenu.style.removeProperty('opacity');
-                dropdownMenu.style.removeProperty('visibility');
-                dropdownMenu.style.removeProperty('pointer-events');
-            }
-        });
+            dropdown.addEventListener('hide.bs.dropdown', function () {
+                setTimeout(function () {
+                    progressCard.style.display = '';
+                }, 300);
+            });
+        }
 
         // Cerrar dropdown al hacer clic fuera
         document.addEventListener('click', function (e) {
@@ -184,72 +155,28 @@
             }
 
             const isOpen = dropdown.classList.contains('show');
-            if (isOpen && !dropdown.contains(e.target) && !clonedMenu.contains(e.target)) {
-                const bsDropdown = bootstrap.Dropdown.getInstance(dropdown);
-                if (bsDropdown) {
-                    bsDropdown.hide();
+            if (isOpen && !dropdown.contains(e.target)) {
+                // Intentar usar Bootstrap primero
+                if (typeof bootstrap !== 'undefined') {
+                    const bsDropdown = bootstrap.Dropdown.getInstance(dropdown);
+                    if (bsDropdown) {
+                        bsDropdown.hide();
+                    } else {
+                        dropdown.classList.remove('show');
+                        if (dropdownMenu) {
+                            dropdownMenu.classList.remove('show');
+                        }
+                    }
+                } else {
+                    dropdown.classList.remove('show');
+                    if (dropdownMenu) {
+                        dropdownMenu.classList.remove('show');
+                    }
                 }
             }
         });
-    }
 
-    /**
-     * Ocultar elementos que puedan interferir
-     */
-    function hideInterferingElements() {
-        // Ocultar #progress-card
-        const progressCard = document.getElementById('progress-card');
-        if (progressCard) {
-            progressCard.style.display = 'none';
-            progressCard.style.visibility = 'hidden';
-            progressCard.style.opacity = '0';
-            progressCard.style.zIndex = '-1';
-        }
-
-        // Ocultar cualquier modal
-        const modals = document.querySelectorAll('.modal, .modal-backdrop, [class*="overlay"], [class*="modal"]');
-        modals.forEach(function (modal) {
-            if (modal.id !== 'dropdown-portal' && !modal.id.includes('dropdown')) {
-                modal.style.display = 'none';
-                modal.style.visibility = 'hidden';
-                modal.style.opacity = '0';
-                modal.style.zIndex = '-1';
-            }
-        });
-
-        // Ocultar elementos con z-index alto
-        const allElements = document.querySelectorAll('*');
-        allElements.forEach(function (element) {
-            const style = window.getComputedStyle(element);
-            const zIndex = parseInt(style.zIndex);
-
-            if (zIndex > 1000 && zIndex !== 999999 &&
-                element.id !== 'dropdown-portal' &&
-                !element.id.includes('dropdown')) {
-
-                element.style.zIndex = '1';
-            }
-        });
-    }
-
-    function handleProgressCardVisibility(isOpen, progressCard) {
-        if (!progressCard) return;
-
-        if (isOpen) {
-            // Ocultar #progress-card cuando dropdown está abierto
-            progressCard.style.display = 'none';
-            progressCard.style.visibility = 'hidden';
-            progressCard.style.opacity = '0';
-            progressCard.style.zIndex = '-1';
-        } else {
-            // Restaurar #progress-card cuando dropdown se cierra
-            setTimeout(function () {
-                progressCard.style.display = '';
-                progressCard.style.visibility = '';
-                progressCard.style.opacity = '';
-                progressCard.style.zIndex = '';
-            }, 300);
-        }
+        console.log('Dropdown del avatar configurado correctamente');
     }
 
     /**
@@ -278,6 +205,22 @@
 
         // Llamada inicial
         setPadding();
+    }
+
+    function initializeBootstrapDropdowns() {
+        // Inicializar todos los dropdowns de Bootstrap
+        const dropdownElementList = document.querySelectorAll('.dropdown-toggle');
+        dropdownElementList.forEach(function (dropdownToggleEl) {
+            new bootstrap.Dropdown(dropdownToggleEl);
+        });
+
+        // También inicializar dropdowns que usan data-bs-toggle
+        const dropdownsWithDataBs = document.querySelectorAll('[data-bs-toggle="dropdown"]');
+        dropdownsWithDataBs.forEach(function (dropdownEl) {
+            new bootstrap.Dropdown(dropdownEl);
+        });
+
+        console.log('Dropdowns de Bootstrap inicializados');
     }
 
     // Exponer función toggleSidebar globalmente para compatibilidad

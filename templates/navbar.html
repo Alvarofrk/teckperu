@@ -3,7 +3,7 @@
     <div class="container">
         <div class="nav-wrapper">
 
-            <div class="toggle-btn" onclick="toggleSidebar()" role="button" tabindex="0" aria-label="{% trans 'Alternar menú lateral' %}">
+            <div class="toggle-btn" role="button" tabindex="0" aria-label="{% trans 'Alternar menú lateral' %}" onclick="toggleSidebar()">
                 <i class="fas fa-bars"></i>
             </div>
 
@@ -79,9 +79,12 @@
                     </a>
                     <hr>
                     <div style="display: flex; justify-content: center; align-items: center;">
-                        <a class="btn btn-secondary" href="{% url 'logout' %}">
-                            <i class="fas fa-sign-out-alt"></i> {% trans 'Cerrar sesión' %}
-                        </a>
+                        <form method="post" action="{% url 'logout' %}" style="margin: 0;">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-secondary" style="width: 100%; text-align: center;">
+                                <i class="fas fa-sign-out-alt"></i> {% trans 'Cerrar sesión' %}
+                            </button>
+                        </form>
                     </div>
                 </div>
             </div>

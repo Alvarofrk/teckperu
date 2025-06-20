@@ -13,6 +13,7 @@
     --shadow-soft: rgba(0, 0, 0, 0.08);
     --shadow-medium: rgba(0, 0, 0, 0.12);
     --shadow-strong: rgba(0, 0, 0, 0.15);
+    --overlay-bg: rgba(0, 0, 0, 0.5);
 }
 
 /* Contenedor principal del sidebar */
@@ -21,7 +22,7 @@
     position: fixed;
     left: 0;
     top: 0;
-    bottom: 0;
+    height: 100vh;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
@@ -141,6 +142,7 @@
     cursor: pointer;
     transition: all 0.3s ease;
     backdrop-filter: blur(10px);
+    z-index: 10;
 }
 
 #side-nav .top-side .desktop-hide .toggle-btn:hover {
@@ -199,29 +201,25 @@
     left: 100%;
 }
 
-/* Iconos */
+/* Iconos del menú */
 #side-nav .nav-link i {
-    margin-right: 12px !important;
-    font-size: 1.1rem;
     width: 20px;
-    text-align: center;
+    margin-right: 12px;
+    font-size: 1.1rem;
     transition: all 0.3s ease;
-    color: var(--gray-medium);
 }
 
-/* Texto del enlace */
+/* Texto del menú */
 #side-nav .nav-text {
-    flex: 1;
-    transition: all 0.3s ease;
+    font-weight: 500;
 }
 
-/* Estados de hover - AUMENTADA ESPECIFICIDAD */
+/* Hover de elementos del menú */
 #side-nav .nav-item .nav-link:hover {
+    background: linear-gradient(135deg, rgba(186, 96, 34, 0.1) 0%, rgba(186, 96, 34, 0.05) 100%) !important;
     color: var(--primary-orange) !important;
-    background: linear-gradient(135deg, rgba(186, 96, 34, 0.08) 0%, rgba(253, 187, 94, 0.05) 100%) !important;
     transform: translateX(8px);
-    box-shadow: 0 4px 15px rgba(186, 96, 34, 0.15);
-    padding-left: 1.7rem !important;
+    box-shadow: 0 4px 20px rgba(186, 96, 34, 0.15);
 }
 
 #side-nav .nav-item .nav-link:hover i {
@@ -229,55 +227,29 @@
     transform: scale(1.1);
 }
 
-/* Estado activo - AUMENTADA ESPECIFICIDAD */
-#side-nav .nav-item.active {
-    background: linear-gradient(135deg, var(--primary-orange) 0%, var(--primary-orange-dark) 100%) !important;
-    box-shadow: 0 4px 20px rgba(186, 96, 34, 0.3) !important;
-    transform: translateX(8px);
-}
-
-#side-nav .nav-item.active .nav-link {
-    color: var(--white) !important;
-    background: transparent !important;
-    padding-left: 1.7rem !important;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2) !important;
-}
-
-#side-nav .nav-item.active .nav-link i {
-    color: var(--white) !important;
-}
-
-#side-nav .nav-item.active .nav-link:hover {
-    color: var(--white) !important;
-    background: transparent !important;
-}
-
-/* Separador "Otros" */
+/* Separadores del menú */
 #side-nav .nav-separator {
-    margin: 2rem 1rem 1rem 1rem;
-    list-style: none !important;
+    margin: 1.5rem 1rem 1rem 1rem;
+    border-top: 1px solid rgba(186, 96, 34, 0.1);
 }
 
 #side-nav .separator-text {
+    margin-top: -0.5rem;
+    padding: 0 1rem;
+    background: var(--white);
     color: var(--gray-medium);
     font-size: 0.8rem;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 1px;
-    margin: 0;
-    padding: 0.5rem 1.25rem;
-    opacity: 0.7;
-    border-left: 3px solid var(--primary-orange);
-    background: rgba(186, 96, 34, 0.05);
-    border-radius: 0 8px 8px 0;
+    display: inline-block;
 }
 
 /* Footer del sidebar */
 #side-nav .sidebar-footer {
-    background: var(--gray-light) !important;
+    padding: 1rem 1.5rem;
     border-top: 1px solid rgba(186, 96, 34, 0.1);
-    padding: 1.5rem;
-    margin-top: auto;
+    background: var(--white-soft);
 }
 
 #side-nav .footer-content {
@@ -288,7 +260,7 @@
     color: var(--gray-medium);
     font-size: 0.8rem;
     margin: 0;
-    line-height: 1.5;
+    font-weight: 500;
 }
 
 /* Animaciones de entrada */
@@ -346,50 +318,225 @@
 }
 
 #side-nav .nav-item:nth-child(10) {
-    animation-delay: 1.0s;
+    animation-delay: 1s;
 }
 
-/* Estados de toggle */
+/* Estado activo del sidebar */
 #side-nav.toggle-active {
     transform: translateX(-100%);
     box-shadow: none;
 }
 
-/* Responsive */
-@media screen and (max-width: 1150px) {
+/* ===== RESPONSIVE DESIGN MEJORADO ===== */
+
+/* Tablet y dispositivos medianos */
+@media screen and (max-width: 1024px) {
     #side-nav {
-        left: -280px;
+        width: 260px !important;
     }
 
-    #side-nav.toggle-active {
-        left: 0;
-        box-shadow: 8px 0 32px var(--shadow-soft);
+    #side-nav .top-side .brand-logo {
+        width: 160px;
     }
 
-    #side-nav .top-side .desktop-hide {
-        display: block;
+    #side-nav .nav-link {
+        padding: 0.9rem 1rem !important;
+        font-size: 0.9rem;
     }
 
-    #side-nav .top-side {
-        padding-top: 3rem !important;
+    #side-nav .nav-link i {
+        width: 18px;
+        margin-right: 10px;
+        font-size: 1rem;
     }
 }
 
-/* Efectos adicionales para elementos específicos */
+/* Dispositivos móviles grandes */
+@media screen and (max-width: 768px) {
+    #side-nav {
+        width: 100% !important;
+        max-width: 320px !important;
+        transform: translateX(-100%);
+        box-shadow: 8px 0 32px var(--shadow-strong) !important;
+    }
+
+    #side-nav.toggle-active {
+        transform: translateX(0);
+    }
+
+    #side-nav .top-side .desktop-hide {
+        display: block !important;
+    }
+
+    #side-nav .top-side {
+        padding: 1.5rem 1rem !important;
+        position: relative;
+    }
+
+    #side-nav .top-side .brand-logo {
+        width: 140px;
+    }
+
+    #side-nav .nav-item {
+        margin: 0.2rem 0.8rem;
+    }
+
+    #side-nav .nav-link {
+        padding: 1rem 1.2rem !important;
+        font-size: 1rem;
+    }
+
+    #side-nav .nav-link i {
+        width: 22px;
+        margin-right: 12px;
+        font-size: 1.1rem;
+    }
+
+    #side-nav .sidebar-footer {
+        padding: 1rem;
+    }
+}
+
+/* Dispositivos móviles medianos */
+@media screen and (max-width: 576px) {
+    #side-nav {
+        max-width: 100% !important;
+        width: 100% !important;
+    }
+
+    #side-nav .top-side {
+        padding: 1.2rem 1rem !important;
+    }
+
+    #side-nav .top-side .brand-logo {
+        width: 120px;
+    }
+
+    #side-nav .top-side .user-role-badge {
+        font-size: 0.7rem;
+        padding: 0.3rem 0.8rem;
+    }
+
+    #side-nav .nav-item {
+        margin: 0.15rem 0.6rem;
+    }
+
+    #side-nav .nav-link {
+        padding: 0.9rem 1rem !important;
+        font-size: 0.95rem;
+    }
+
+    #side-nav .nav-link i {
+        width: 20px;
+        margin-right: 10px;
+        font-size: 1rem;
+    }
+
+    #side-nav .nav-separator {
+        margin: 1rem 0.6rem 0.8rem 0.6rem;
+    }
+
+    #side-nav .separator-text {
+        font-size: 0.75rem;
+        padding: 0 0.8rem;
+    }
+}
+
+/* Dispositivos móviles pequeños */
+@media screen and (max-width: 480px) {
+    #side-nav .top-side {
+        padding: 1rem 0.8rem !important;
+    }
+
+    #side-nav .top-side .brand-logo {
+        width: 100px;
+    }
+
+    #side-nav .top-side .user-role-badge {
+        font-size: 0.65rem;
+        padding: 0.25rem 0.6rem;
+    }
+
+    #side-nav .nav-item {
+        margin: 0.1rem 0.5rem;
+    }
+
+    #side-nav .nav-link {
+        padding: 0.8rem 0.9rem !important;
+        font-size: 0.9rem;
+    }
+
+    #side-nav .nav-link i {
+        width: 18px;
+        margin-right: 8px;
+        font-size: 0.95rem;
+    }
+
+    #side-nav .sidebar-footer {
+        padding: 0.8rem;
+    }
+
+    #side-nav .footer-text {
+        font-size: 0.75rem;
+    }
+}
+
+/* Overlay para móviles */
+.sidebar-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: var(--overlay-bg);
+    z-index: 999;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(2px);
+}
+
+.sidebar-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Mejoras para touch devices */
+@media (hover: none) and (pointer: coarse) {
+    #side-nav .nav-link {
+        min-height: 48px;
+    }
+
+    #side-nav .top-side .desktop-hide .toggle-btn {
+        min-width: 48px;
+        min-height: 48px;
+    }
+
+    #side-nav .nav-item .nav-link:hover {
+        transform: none;
+    }
+
+    #side-nav .nav-item .nav-link:active {
+        background: linear-gradient(135deg, rgba(186, 96, 34, 0.15) 0%, rgba(186, 96, 34, 0.1) 100%) !important;
+        transform: scale(0.98);
+    }
+}
+
+/* Iconos específicos para diferentes secciones */
 #side-nav .nav-link[href*="dashboard"] i {
     color: #28a745;
 }
 
 #side-nav .nav-link[href*="home"] i {
-    color: #17a2b8;
+    color: #007bff;
 }
 
 #side-nav .nav-link[href*="profile"] i {
-    color: #6f42c1;
+    color: #17a2b8;
 }
 
 #side-nav .nav-link[href*="admin"] i {
-    color: #dc3545;
+    color: #6f42c1;
 }
 
 #side-nav .nav-link[href*="lecturer"] i {
@@ -401,212 +548,63 @@
 }
 
 #side-nav .nav-link[href*="course"] i {
-    color: #007bff;
-}
-
-#side-nav .nav-link[href*="quiz"] i {
     color: #e83e8c;
 }
 
+#side-nav .nav-link[href*="quiz"] i {
+    color: #dc3545;
+}
+
 #side-nav .nav-link[href*="session"] i {
-    color: #6c757d;
+    color: #ffc107;
 }
 
 #side-nav .nav-link[href*="semester"] i {
-    color: #495057;
+    color: #6c757d;
 }
 
 #side-nav .nav-link[href*="password"] i {
-    color: #ffc107;
+    color: #28a745;
 }
 
 #side-nav .nav-link[href*="cogs"] i {
     color: #6c757d;
 }
 
-/* Hover para iconos específicos */
+/* Hover de iconos */
 #side-nav .nav-link:hover i {
-    color: var(--primary-orange) !important;
+    animation: pulse 0.6s ease-in-out;
 }
 
-/* Efecto de pulso para elementos activos */
 @keyframes pulse {
     0% {
-        box-shadow: 0 4px 20px rgba(186, 96, 34, 0.3);
+        transform: scale(1);
     }
 
     50% {
-        box-shadow: 0 4px 25px rgba(186, 96, 34, 0.5);
+        transform: scale(1.2);
     }
 
     100% {
-        box-shadow: 0 4px 20px rgba(186, 96, 34, 0.3);
+        transform: scale(1);
     }
 }
 
-#side-nav .nav-item.active {
-    animation: pulse 2s infinite;
-}
-
-/* Efectos adicionales para mejorar la experiencia */
-#side-nav .nav-link:active {
-    transform: scale(0.98);
-}
-
-/* Efecto de brillo en hover */
-#side-nav .nav-link::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.1) 50%, transparent 70%);
-    transform: translateX(-100%);
-    transition: transform 0.6s ease;
-}
-
-#side-nav .nav-link:hover::after {
-    transform: translateX(100%);
-}
-
-/* ===== REGLAS DE MÁXIMA PRIORIDAD ===== */
-/* Estas reglas tienen la máxima especificidad para asegurar que se apliquen */
-
-/* Override completo para elementos activos */
-body #side-nav .nav-item.active .nav-link {
-    background: transparent !important;
-    color: var(--white) !important;
-    padding-left: 1.7rem !important;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2) !important;
-}
-
-body #side-nav .nav-item.active .nav-link i {
-    color: var(--white) !important;
-}
-
-body #side-nav .nav-item.active .nav-link:hover {
-    background: transparent !important;
-    color: var(--white) !important;
-}
-
-/* Override para elementos hover */
-body #side-nav .nav-item .nav-link:hover {
-    color: var(--primary-orange) !important;
-    background: linear-gradient(135deg, rgba(186, 96, 34, 0.08) 0%, rgba(253, 187, 94, 0.05) 100%) !important;
-    padding-left: 1.7rem !important;
-}
-
-body #side-nav .nav-item .nav-link:hover i {
-    color: var(--primary-orange) !important;
-}
-
-/* Override para el contenedor principal */
-body #side-nav {
-    background: linear-gradient(180deg, var(--white) 0%, var(--white-soft) 100%) !important;
-    box-shadow: 8px 0 32px var(--shadow-soft) !important;
-}
-
-/* Override para el header */
-body #side-nav .top-side {
-    background: linear-gradient(135deg, var(--primary-orange) 0%, var(--primary-orange-dark) 100%) !important;
-}
-
-/* Override para elementos activos con máxima especificidad */
-body #side-nav .nav-item.active {
-    background: linear-gradient(135deg, var(--primary-orange) 0%, var(--primary-orange-dark) 100%) !important;
-    box-shadow: 0 4px 20px rgba(186, 96, 34, 0.3) !important;
-    transform: translateX(8px);
-}
-
-/* ===== OVERRIDE COMPLETO PARA ESTRUCTURA ACTUAL ===== */
-/* Estas reglas coinciden exactamente con la estructura del template */
-
-/* Override para la estructura li.nav-item.active */
-body #side-nav ul li.nav-item.active {
-    background: linear-gradient(135deg, var(--primary-orange) 0%, var(--primary-orange-dark) 100%) !important;
-    box-shadow: 0 4px 20px rgba(186, 96, 34, 0.3) !important;
-    transform: translateX(8px);
-}
-
-body #side-nav ul li.nav-item.active a.nav-link {
-    background: transparent !important;
-    color: var(--white) !important;
-    padding-left: 1.7rem !important;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2) !important;
-}
-
-body #side-nav ul li.nav-item.active a.nav-link i {
-    color: var(--white) !important;
-}
-
-body #side-nav ul li.nav-item.active a.nav-link:hover {
-    background: transparent !important;
-    color: var(--white) !important;
-}
-
-/* Override para hover en la estructura actual */
-body #side-nav ul li.nav-item a.nav-link:hover {
-    color: var(--primary-orange) !important;
-    background: linear-gradient(135deg, rgba(186, 96, 34, 0.08) 0%, rgba(253, 187, 94, 0.05) 100%) !important;
-    padding-left: 1.7rem !important;
-}
-
-body #side-nav ul li.nav-item a.nav-link:hover i {
-    color: var(--primary-orange) !important;
-}
-
-/* Override específico para el selector original que está causando conflicto */
-body #side-nav ul li.active a {
-    background: linear-gradient(135deg, var(--primary-orange) 0%, var(--primary-orange-dark) 100%) !important;
-    color: var(--white) !important;
-    padding-left: 1.7rem !important;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2) !important;
-}
-
-body #side-nav ul li.active a:hover {
-    background: linear-gradient(135deg, var(--primary-orange) 0%, var(--primary-orange-dark) 100%) !important;
-    color: var(--white) !important;
-}
-
-/* Regla de máxima especificidad para cualquier elemento activo */
-body #side-nav *[class*="active"] a {
-    background: linear-gradient(135deg, var(--primary-orange) 0%, var(--primary-orange-dark) 100%) !important;
-    color: var(--white) !important;
-}
-
-/* ===== REGLA DE MÁXIMA ESPECIFICIDAD ===== */
-/* Esta regla tiene la máxima especificidad posible */
-html body #side-nav ul li.nav-item.active a.nav-link {
-    background: linear-gradient(135deg, var(--primary-orange) 0%, var(--primary-orange-dark) 100%) !important;
-    color: var(--white) !important;
-    padding-left: 1.7rem !important;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2) !important;
-}
-
-html body #side-nav ul li.nav-item.active a.nav-link i {
-    color: var(--white) !important;
-}
-
-html body #side-nav ul li.nav-item.active a.nav-link:hover {
-    background: linear-gradient(135deg, var(--primary-orange) 0%, var(--primary-orange-dark) 100%) !important;
-    color: var(--white) !important;
-}
-
-/* Regla para el contenedor activo */
+/* Estados activos */
 html body #side-nav ul li.nav-item.active {
     background: linear-gradient(135deg, var(--primary-orange) 0%, var(--primary-orange-dark) 100%) !important;
     box-shadow: 0 4px 20px rgba(186, 96, 34, 0.3) !important;
-    transform: translateX(8px);
+    transform: translateX(8px) !important;
+    border-radius: 12px !important;
+    margin: 0.25rem 1rem !important;
 }
 
-/* ===== REGLA FINAL CON MÁXIMA ESPECIFICIDAD ===== */
-/* Esta regla debe coincidir exactamente con la estructura del template */
 html body #side-nav ul li.nav-item.active a.nav-link {
     background: transparent !important;
     color: var(--white) !important;
     padding-left: 1.7rem !important;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2) !important;
+    border-radius: 12px !important;
 }
 
 html body #side-nav ul li.nav-item.active a.nav-link i {
@@ -616,23 +614,34 @@ html body #side-nav ul li.nav-item.active a.nav-link i {
 html body #side-nav ul li.nav-item.active a.nav-link:hover {
     background: transparent !important;
     color: var(--white) !important;
+    padding-left: 1.7rem !important;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2) !important;
+    border-radius: 12px !important;
 }
 
-/* Regla adicional para asegurar que funcione */
-html body #side-nav ul li.nav-item.active a {
-    background: transparent !important;
-    color: var(--white) !important;
-}
-
-/* Regla para cualquier elemento con clase active */
+/* Reglas de respaldo para elementos activos */
 html body #side-nav ul li.active a {
     background: linear-gradient(135deg, var(--primary-orange) 0%, var(--primary-orange-dark) 100%) !important;
     color: var(--white) !important;
     padding-left: 1.7rem !important;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2) !important;
+    border-radius: 12px !important;
+    transform: translateX(8px) !important;
 }
 
 html body #side-nav ul li.active a:hover {
     background: linear-gradient(135deg, var(--primary-orange) 0%, var(--primary-orange-dark) 100%) !important;
     color: var(--white) !important;
+    padding-left: 1.7rem !important;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2) !important;
+    border-radius: 12px !important;
+    transform: translateX(8px) !important;
+}
+
+html body #side-nav ul li.active {
+    background: linear-gradient(135deg, var(--primary-orange) 0%, var(--primary-orange-dark) 100%) !important;
+    box-shadow: 0 4px 20px rgba(186, 96, 34, 0.3) !important;
+    transform: translateX(8px) !important;
+    border-radius: 12px !important;
+    margin: 0.25rem 1rem !important;
 }

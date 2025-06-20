@@ -165,10 +165,15 @@ video {
 }
 
 #main {
-    padding-top: 65px;
-    padding-bottom: 3rem;
-    padding-left: 300px;
-    transition: .5s
+    min-height: 100vh;
+    background: #f8f9fa;
+    transition: all 0.3s ease;
+    padding-top: 65px !important;
+    padding-bottom: 3rem !important;
+    padding-left: 280px !important;
+    width: auto !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
 }
 
 @media(max-width: 800px) {
@@ -272,22 +277,75 @@ video {
 
 /* Mejoras en la responsividad */
 @media (max-width: 768px) {
-    #top-navbar {
-        left: 0;
-        /* El navbar ocupa todo el ancho en pantallas pequeñas */
+    #main {
+        padding-left: 0 !important;
+        padding-top: 70px !important;
+        width: 100vw !important;
+        margin-top: 0 !important;
     }
 
-    #top-navbar .nav-wrapper {
-        flex-direction: column;
-        align-items: stretch;
+    #main.toggle-active {
+        padding-left: 0 !important;
+        width: 100vw !important;
     }
 
-    #top-navbar .nav-wrapper .form-header {
-        margin-bottom: 10px;
+    #main-content {
+        padding: 16px !important;
+        margin-top: 0;
+        margin-left: 0 !important;
+        width: 100% !important;
     }
 
-    #top-navbar .nav-wrapper .toggle-btn {
-        padding: 0.5rem;
+    /* Mejorar espaciado en móviles */
+    .container-fluid {
+        padding-left: 16px !important;
+        padding-right: 16px !important;
+        max-width: 100% !important;
+        width: 100% !important;
+    }
+
+    /* Ajustar cards y elementos */
+    .card {
+        margin-bottom: 16px;
+        border-radius: 12px !important;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+        width: 100% !important;
+    }
+
+    .row {
+        margin-left: -8px !important;
+        margin-right: -8px !important;
+        width: 100% !important;
+    }
+
+    .col-md-4,
+    .col-md-6,
+    .col-md-8,
+    .col-md-12 {
+        padding-left: 8px !important;
+        padding-right: 8px !important;
+    }
+
+    /* Mejorar breadcrumb */
+    .breadcrumb {
+        margin-bottom: 20px !important;
+        padding: 12px 16px !important;
+        background: white !important;
+        border-radius: 8px !important;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1) !important;
+        width: 100% !important;
+    }
+
+    /* Mejorar manage-wrap */
+    .manage-wrap {
+        margin-bottom: 20px !important;
+        width: 100% !important;
+    }
+
+    .manage-wrap .btn {
+        width: 100% !important;
+        padding: 12px 16px !important;
+        font-size: 16px !important;
     }
 }
 
@@ -548,7 +606,8 @@ video {
 }
 
 #main.toggle-active {
-    padding-left: 0px;
+    padding-left: 0 !important;
+    width: 100vw !important;
 }
 
 #input-nav {
@@ -1336,3 +1395,530 @@ video {
 }
 
 /*# sourceMappingURL=style.min.css.map */
+
+/* ===== ESTILOS RESPONSIVE PARA CONTENIDO PRINCIPAL ===== */
+
+/* Contenedor principal - SOBRESCRIBIR ESTILOS ANTIGUOS */
+#main {
+    min-height: 100vh;
+    background: #f8f9fa;
+    transition: all 0.3s ease;
+    padding-top: 65px !important;
+    padding-bottom: 3rem !important;
+    padding-left: 280px !important;
+    width: auto !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+}
+
+#main-content {
+    padding: 20px;
+    min-height: calc(100vh - 80px);
+    transition: margin 0.3s ease;
+    margin-left: 0 !important;
+    margin-top: 0 !important;
+    width: 100% !important;
+}
+
+/* Responsive para contenido principal */
+@media (max-width: 1024px) {
+    #main {
+        padding-left: 260px !important;
+        width: auto !important;
+    }
+
+    #main.toggle-active {
+        padding-left: 0 !important;
+        width: 100vw !important;
+    }
+
+    #main-content {
+        padding: 16px;
+        margin-top: 0;
+        width: 100% !important;
+    }
+}
+
+@media (max-width: 768px) {
+    #main {
+        padding-left: 0 !important;
+        padding-top: 70px !important;
+        width: 100vw !important;
+        margin-top: 0 !important;
+    }
+
+    #main.toggle-active {
+        padding-left: 0 !important;
+        width: 100vw !important;
+    }
+
+    #main-content {
+        padding: 16px !important;
+        margin-top: 0;
+        margin-left: 0 !important;
+        width: 100% !important;
+    }
+
+    /* Mejorar espaciado en móviles */
+    .container-fluid {
+        padding-left: 16px !important;
+        padding-right: 16px !important;
+        max-width: 100% !important;
+        width: 100% !important;
+    }
+
+    /* Ajustar cards y elementos */
+    .card {
+        margin-bottom: 16px;
+        border-radius: 12px !important;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+        width: 100% !important;
+    }
+
+    .row {
+        margin-left: -8px !important;
+        margin-right: -8px !important;
+        width: 100% !important;
+    }
+
+    .col-md-4,
+    .col-md-6,
+    .col-md-8,
+    .col-md-12 {
+        padding-left: 8px !important;
+        padding-right: 8px !important;
+    }
+
+    /* Mejorar breadcrumb */
+    .breadcrumb {
+        margin-bottom: 20px !important;
+        padding: 12px 16px !important;
+        background: white !important;
+        border-radius: 8px !important;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1) !important;
+        width: 100% !important;
+    }
+
+    /* Mejorar manage-wrap */
+    .manage-wrap {
+        margin-bottom: 20px !important;
+        width: 100% !important;
+    }
+
+    .manage-wrap .btn {
+        width: 100% !important;
+        padding: 12px 16px !important;
+        font-size: 16px !important;
+    }
+}
+
+@media (max-width: 576px) {
+    #main {
+        padding-top: 66px !important;
+        width: 100vw !important;
+    }
+
+    #main.toggle-active {
+        width: 100vw !important;
+    }
+
+    #main-content {
+        padding: 12px !important;
+        width: 100% !important;
+    }
+
+    .container-fluid {
+        padding-left: 12px !important;
+        padding-right: 12px !important;
+        width: 100% !important;
+    }
+
+    .row {
+        margin-left: -6px !important;
+        margin-right: -6px !important;
+        width: 100% !important;
+    }
+
+    .col-md-4,
+    .col-md-6,
+    .col-md-8,
+    .col-md-12 {
+        padding-left: 6px !important;
+        padding-right: 6px !important;
+    }
+
+    /* Mejorar legibilidad en móviles */
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
+        word-wrap: break-word;
+        margin-bottom: 16px !important;
+    }
+
+    /* Optimizar tablas para móviles */
+    .table-responsive {
+        font-size: 14px;
+        border-radius: 8px !important;
+        overflow: hidden !important;
+        width: 100% !important;
+    }
+
+    /* Mejorar scroll horizontal de tablas en móviles */
+    .table-responsive {
+        overflow-x: auto !important;
+        overflow-y: hidden !important;
+        -webkit-overflow-scrolling: touch !important;
+        scrollbar-width: thin !important;
+        scrollbar-color: rgba(186, 96, 34, 0.3) transparent !important;
+    }
+
+    .table-responsive::-webkit-scrollbar {
+        height: 6px !important;
+    }
+
+    .table-responsive::-webkit-scrollbar-track {
+        background: rgba(0, 0, 0, 0.05) !important;
+        border-radius: 3px !important;
+    }
+
+    .table-responsive::-webkit-scrollbar-thumb {
+        background: linear-gradient(90deg, rgba(186, 96, 34, 0.6) 0%, rgba(186, 96, 34, 0.3) 100%) !important;
+        border-radius: 3px !important;
+        transition: background 0.3s ease !important;
+    }
+
+    .table-responsive::-webkit-scrollbar-thumb:hover {
+        background: linear-gradient(90deg, rgba(186, 96, 34, 0.8) 0%, rgba(186, 96, 34, 0.5) 100%) !important;
+    }
+
+    /* Asegurar que las tablas tengan ancho mínimo para scroll */
+    .table-responsive .table {
+        min-width: 600px !important;
+        white-space: nowrap !important;
+    }
+
+    /* Mejorar legibilidad de las tablas en scroll */
+    .table-responsive .table th,
+    .table-responsive .table td {
+        padding: 12px 8px !important;
+        font-size: 13px !important;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.1) !important;
+    }
+
+    .table-responsive .table th {
+        background: rgba(186, 96, 34, 0.05) !important;
+        font-weight: 600 !important;
+        position: sticky !important;
+        top: 0 !important;
+        z-index: 10 !important;
+    }
+
+    /* Indicador visual de scroll */
+    .table-responsive::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        width: 20px;
+        background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.8) 100%);
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .table-responsive.has-scroll::after {
+        opacity: 1;
+    }
+
+    /* Mejorar formularios en móviles */
+    .form-control {
+        font-size: 16px;
+        padding: 12px 16px !important;
+        border-radius: 8px !important;
+        width: 100% !important;
+    }
+
+    .btn {
+        min-height: 44px;
+        font-size: 16px;
+        padding: 12px 16px !important;
+        border-radius: 8px !important;
+    }
+
+    /* Mejorar cards de noticias */
+    .bg-white.border {
+        border-radius: 12px !important;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+        margin-bottom: 16px !important;
+        width: 100% !important;
+    }
+
+    .card-header-ne {
+        border-radius: 12px 12px 0 0 !important;
+        padding: 16px !important;
+    }
+
+    .bg-white.border .p-2 {
+        padding: 16px !important;
+    }
+
+    .bg-white.border .bg-light {
+        border-radius: 0 0 12px 12px !important;
+        padding: 12px 16px !important;
+    }
+}
+
+@media (max-width: 480px) {
+    #main {
+        width: 100vw !important;
+        padding-top: 62px !important;
+    }
+
+    #main.toggle-active {
+        width: 100vw !important;
+    }
+
+    #main-content {
+        padding: 8px !important;
+        width: 100% !important;
+    }
+
+    .container-fluid {
+        padding-left: 8px !important;
+        padding-right: 8px !important;
+        width: 100% !important;
+    }
+
+    /* Ocultar elementos no esenciales en móviles muy pequeños */
+    .d-none-mobile {
+        display: none !important;
+    }
+
+    /* Ajustar tamaños de texto */
+    .title-1 {
+        font-size: 1.5rem;
+        margin-bottom: 20px !important;
+    }
+
+    .title-2 {
+        font-size: 1.25rem;
+        margin-bottom: 16px !important;
+    }
+
+    /* Mejorar botones en móviles muy pequeños */
+    .btn {
+        min-height: 40px;
+        font-size: 14px;
+        padding: 10px 14px !important;
+    }
+
+    /* Mejorar formularios en móviles muy pequeños */
+    .form-control {
+        font-size: 14px;
+        padding: 10px 14px !important;
+    }
+}
+
+/* Móviles extremadamente pequeños */
+@media (max-width: 360px) {
+    #main {
+        width: 100vw !important;
+        padding-top: 58px !important;
+    }
+
+    #main.toggle-active {
+        width: 100vw !important;
+    }
+
+    #main-content {
+        padding: 6px !important;
+        width: 100% !important;
+    }
+
+    .container-fluid {
+        padding-left: 6px !important;
+        padding-right: 6px !important;
+        width: 100% !important;
+    }
+
+    /* Ocultar elementos no esenciales en móviles extremadamente pequeños */
+    .d-none-mobile {
+        display: none !important;
+    }
+
+    /* Ajustar tamaños de texto */
+    .title-1 {
+        font-size: 1.25rem;
+        margin-bottom: 16px !important;
+    }
+
+    .title-2 {
+        font-size: 1.1rem;
+        margin-bottom: 12px !important;
+    }
+
+    /* Mejorar botones en móviles extremadamente pequeños */
+    .btn {
+        min-height: 36px;
+        font-size: 12px;
+        padding: 8px 12px !important;
+    }
+
+    /* Mejorar formularios en móviles extremadamente pequeños */
+    .form-control {
+        font-size: 12px;
+        padding: 8px 12px !important;
+    }
+}
+
+/* Mejoras para dispositivos táctiles */
+@media (hover: none) and (pointer: coarse) {
+
+    /* Aumentar área de toque */
+    .btn,
+    .nav-link,
+    .dropdown-item {
+        min-height: 44px;
+        display: flex;
+        align-items: center;
+    }
+
+    /* Mejorar scroll */
+    * {
+        -webkit-overflow-scrolling: touch;
+    }
+
+    /* Prevenir selección de texto accidental */
+    .nav-link,
+    .btn {
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+    }
+}
+
+/* Optimizaciones de rendimiento */
+#main,
+#main-content {
+    will-change: transform, margin;
+}
+
+/* Mejoras de accesibilidad */
+@media (prefers-reduced-motion: reduce) {
+
+    #main,
+    #main-content,
+    .sidebar-overlay,
+    .navbar-overlay {
+        transition: none !important;
+        animation: none !important;
+    }
+}
+
+/* Soporte para modo oscuro del sistema */
+@media (prefers-color-scheme: dark) {
+    #main {
+        background: #1a1a1a;
+        color: #ffffff;
+    }
+
+    #main-content {
+        background: #1a1a1a;
+    }
+}
+
+/* Mejoras para pantallas de alta densidad */
+@media (-webkit-min-device-pixel-ratio: 2),
+(min-resolution: 192dpi) {
+
+    #main,
+    #main-content {
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+    }
+}
+
+/* Mejorar formularios en móviles muy pequeños */
+.form-control {
+    font-size: 14px;
+    padding: 10px 14px !important;
+}
+
+/* Mejorar scroll horizontal de tablas en móviles pequeños */
+.table-responsive {
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    -webkit-overflow-scrolling: touch !important;
+    scrollbar-width: thin !important;
+    scrollbar-color: rgba(186, 96, 34, 0.3) transparent !important;
+}
+
+.table-responsive::-webkit-scrollbar {
+    height: 4px !important;
+}
+
+.table-responsive::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.05) !important;
+    border-radius: 2px !important;
+}
+
+.table-responsive::-webkit-scrollbar-thumb {
+    background: linear-gradient(90deg, rgba(186, 96, 34, 0.6) 0%, rgba(186, 96, 34, 0.3) 100%) !important;
+    border-radius: 2px !important;
+}
+
+.table-responsive .table {
+    min-width: 500px !important;
+    white-space: nowrap !important;
+}
+
+.table-responsive .table th,
+.table-responsive .table td {
+    padding: 10px 6px !important;
+    font-size: 12px !important;
+}
+
+/* Mejorar formularios en móviles extremadamente pequeños */
+.form-control {
+    font-size: 12px;
+    padding: 8px 12px !important;
+}
+
+/* Mejorar scroll horizontal de tablas en móviles extremadamente pequeños */
+.table-responsive {
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    -webkit-overflow-scrolling: touch !important;
+    scrollbar-width: thin !important;
+    scrollbar-color: rgba(186, 96, 34, 0.3) transparent !important;
+}
+
+.table-responsive::-webkit-scrollbar {
+    height: 3px !important;
+}
+
+.table-responsive::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.05) !important;
+    border-radius: 1.5px !important;
+}
+
+.table-responsive::-webkit-scrollbar-thumb {
+    background: linear-gradient(90deg, rgba(186, 96, 34, 0.6) 0%, rgba(186, 96, 34, 0.3) 100%) !important;
+    border-radius: 1.5px !important;
+}
+
+.table-responsive .table {
+    min-width: 400px !important;
+    white-space: nowrap !important;
+}
+
+.table-responsive .table th,
+.table-responsive .table td {
+    padding: 8px 4px !important;
+    font-size: 11px !important;
+}
