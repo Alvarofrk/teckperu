@@ -20,7 +20,7 @@
     top: 0 !important;
     left: 300px !important;
     right: 0 !important;
-    z-index: 1000 !important;
+    z-index: 1001 !important;
     background: linear-gradient(135deg, var(--navbar-bg) 0%, var(--navbar-bg-hover) 100%) !important;
     box-shadow: 0 4px 20px var(--navbar-shadow) !important;
     border-radius: 0 0 12px 12px !important;

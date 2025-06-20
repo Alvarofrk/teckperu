@@ -28,7 +28,7 @@
             setupAvatarDropdown();
 
             // AJUSTE: Configurar dinámicamente el padding del contenido
-            adjustMainContentPadding();
+            adjustContentPadding();
 
             console.log('Navbar optimizado inicializado correctamente');
         } catch (error) {
@@ -256,32 +256,50 @@
      * Ajusta el padding-top del contenido principal para evitar
      * que sea solapado por el navbar fijo.
      */
-    function adjustMainContentPadding() {
+    function adjustContentPadding() {
         const navbar = document.getElementById('top-navbar');
-        const mainContent = document.getElementById('main');
+        const mainContent = document.getElementById('main-content');
 
-        if (!navbar || !mainContent) {
-            console.error('No se encontró el navbar o el contenido principal para ajustar el padding.');
+        if (!navbar) {
+            console.error('No se encontró el navbar (#top-navbar).');
             return;
         }
 
-        // Usar ResizeObserver para detectar cambios de altura en el navbar
-        const observer = new ResizeObserver(entries => {
-            for (let entry of entries) {
-                const navbarHeight = entry.target.offsetHeight;
-                console.log(`Ajustando padding-top de #main a: ${navbarHeight}px`);
+        const setPadding = () => {
+            const navbarHeight = navbar.offsetHeight;
+            if (mainContent) {
                 mainContent.style.paddingTop = `${navbarHeight}px`;
             }
-        });
+        };
 
-        // Empezar a observar el navbar
+        // Usar ResizeObserver para detectar cambios de altura en el navbar
+        const observer = new ResizeObserver(setPadding);
         observer.observe(navbar);
+
+        // Llamada inicial
+        setPadding();
     }
 
     // Exponer función toggleSidebar globalmente para compatibilidad
     window.toggleSidebar = toggleSidebar;
 
-    // Inicializar
-    init();
+    /**
+     * Solución para la franja blanca en el sidebar.
+     * Inicia el scroll del sidebar 17px más abajo y evita que vuelva a 0.
+     */
+    const sideNav = document.getElementById('side-nav');
+    if (sideNav) {
+        // Iniciar el scroll 17px hacia abajo al cargar
+        sideNav.scrollTop = 17;
 
+        // Añadir un listener para mantener el scroll alejado del borde superior
+        sideNav.addEventListener('scroll', () => {
+            if (sideNav.scrollTop < 17) {
+                sideNav.scrollTop = 17;
+            }
+        });
+    }
+
+    // Inicializar todas las funcionalidades del navbar
+    init();
 })(); 
