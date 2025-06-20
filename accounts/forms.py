@@ -117,6 +117,7 @@ class StaffAddForm(UserCreationForm):
 
     class Meta(UserCreationForm.Meta):
         model = User
+        fields = ["username", "first_name", "last_name", "gender", "address", "phone", "email"]
 
     @transaction.atomic()
     def save(self, commit=True):
@@ -377,7 +378,7 @@ class ProfileUpdateForm(UserChangeForm):
 
     class Meta:
         model = User
-        fields = ["last_name", "first_name", "picture", "address", "phone", "gender"]
+        fields = ["last_name", "first_name", "picture", "address", "phone", "gender", "email"]
         labels = {
             'last_name': 'Apellidos',
             'first_name': 'Nombres',
@@ -385,6 +386,7 @@ class ProfileUpdateForm(UserChangeForm):
             'address': 'Dirección',
             'phone': 'N° de Móvil',
             'gender': 'Género',
+            'email': 'Correo Electrónico',
         }
 
 
