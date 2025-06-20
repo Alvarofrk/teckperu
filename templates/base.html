@@ -26,6 +26,9 @@
     <!-- Navbar Optimizado -->
     <link rel="stylesheet" type="text/css" href="{% static 'css/navbar-optimized.css' %}">
 
+    <!-- CSS adicional específico de páginas -->
+    {% block extra_css %}{% endblock %}
+
     <!-- <script src="https://js.stripe.com/v3/"></script> -->
     {% block header %}{% endblock %}
 </head>
