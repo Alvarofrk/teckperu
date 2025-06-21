@@ -53,19 +53,115 @@
 
         if (!searchInput || !topNavbar) return;
 
-        searchInput.addEventListener('focus', function () {
-            if (topNavbar) topNavbar.classList.add('dim');
-            if (sideNav) sideNav.style.pointerEvents = 'none';
-            if (mainContent) mainContent.style.pointerEvents = 'none';
-        });
+        // Función mejorada para verificar si estamos en una página de examen
+        function isExamPage() {
+            // Verificar múltiples indicadores de página de examen
+            const hasQuizForm = document.getElementById('quiz-form') !== null;
+            const hasQuizWrapper = document.querySelector('.quiz-wrapper') !== null;
+            const hasExamPageAttr = document.querySelector('[data-exam-page="true"]') !== null;
+            const hasExamPageBody = document.body.getAttribute('data-exam-page') === 'true';
+            const hasExamPageData = document.body.getAttribute('data-page') === 'quiz' ||
+                document.body.getAttribute('data-page') === 'exam';
+            const urlContainsQuiz = window.location.pathname.includes('/quiz/') ||
+                window.location.pathname.includes('/exam/');
+            const titleContainsExam = document.title.includes('Examen') ||
+                document.title.includes('Quiz') ||
+                document.title.includes('Cuestionario');
 
-        searchInput.addEventListener('blur', function () {
-            setTimeout(function () {
-                if (topNavbar) topNavbar.classList.remove('dim');
-                if (sideNav) sideNav.style.pointerEvents = 'auto';
-                if (mainContent) mainContent.style.pointerEvents = 'auto';
-            }, 200);
-        });
+            // Verificar si hay elementos específicos de examen
+            const hasQuestionContent = document.querySelector('.lead') !== null &&
+                document.querySelector('.lead').textContent.includes('Pregunta');
+            const hasSubmitBtn = document.getElementById('submit-btn') !== null;
+
+            return hasQuizForm || hasQuizWrapper || hasExamPageAttr || hasExamPageBody ||
+                hasExamPageData || urlContainsQuiz || titleContainsExam ||
+                hasQuestionContent || hasSubmitBtn;
+        }
+
+        // Función para prevenir que se agregue la clase dim en páginas de examen
+        function preventDimInExamPages() {
+            if (isExamPage()) {
+                // Remover clase dim si existe
+                if (topNavbar.classList.contains('dim')) {
+                    topNavbar.classList.remove('dim');
+                    console.log('🛡️ Clase dim removida en página de examen');
+                }
+
+                // Asegurar que el navbar sea completamente funcional
+                topNavbar.style.opacity = '1';
+                topNavbar.style.pointerEvents = 'auto';
+                topNavbar.style.zIndex = '1001';
+
+                // Asegurar que el sidebar y contenido principal sean funcionales
+                if (sideNav) {
+                    sideNav.style.pointerEvents = 'auto';
+                    sideNav.style.zIndex = '1000';
+                }
+
+                if (mainContent) {
+                    mainContent.style.pointerEvents = 'auto';
+                    mainContent.style.zIndex = '1';
+                }
+
+                return true; // Indicar que es una página de examen
+            }
+            return false; // No es una página de examen
+        }
+
+        // Verificar si es página de examen antes de configurar eventos
+        if (preventDimInExamPages()) {
+            console.log('🛡️ Página de examen detectada, deshabilitando eventos problemáticos del navbar');
+
+            // En páginas de examen, NO agregar eventos que puedan causar bloqueos
+            searchInput.addEventListener('focus', function (e) {
+                e.stopPropagation();
+                // NO hacer nada que pueda bloquear la página
+                console.log('🔍 Campo de búsqueda enfocado en página de examen (sin efectos)');
+            });
+
+            searchInput.addEventListener('blur', function (e) {
+                e.stopPropagation();
+                // NO hacer nada que pueda bloquear la página
+                console.log('🔍 Campo de búsqueda desenfocado en página de examen (sin efectos)');
+            });
+
+            // Configurar observer para prevenir que se agregue la clase dim
+            const observer = new MutationObserver(function (mutations) {
+                mutations.forEach(function (mutation) {
+                    if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+                        if (topNavbar.classList.contains('dim')) {
+                            topNavbar.classList.remove('dim');
+                            console.log('🛡️ Clase dim removida automáticamente en página de examen');
+                        }
+                    }
+                });
+            });
+
+            observer.observe(topNavbar, { attributes: true });
+
+            // Monitoreo continuo para prevenir bloqueos
+            setInterval(function () {
+                if (isExamPage()) {
+                    preventDimInExamPages();
+                }
+            }, 1000);
+
+        } else {
+            // Comportamiento normal para páginas que no son de examen
+            searchInput.addEventListener('focus', function () {
+                if (topNavbar) topNavbar.classList.add('dim');
+                if (sideNav) sideNav.style.pointerEvents = 'none';
+                if (mainContent) mainContent.style.pointerEvents = 'none';
+            });
+
+            searchInput.addEventListener('blur', function () {
+                setTimeout(function () {
+                    if (topNavbar) topNavbar.classList.remove('dim');
+                    if (sideNav) sideNav.style.pointerEvents = 'auto';
+                    if (mainContent) mainContent.style.pointerEvents = 'auto';
+                }, 200);
+            });
+        }
     }
 
     function setupAvatarDropdown() {

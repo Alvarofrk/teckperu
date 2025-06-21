@@ -1,0 +1,188 @@
+/* ===== REGLAS ESPECÍFICAS PARA PÁGINAS DE EXAMEN ===== */
+/* Estas reglas tienen prioridad máxima para evitar bloqueos */
+
+/* Asegurar que las páginas de examen no tengan interferencias */
+body:has(#quiz-form),
+body:has(.quiz-wrapper) {
+    overflow-x: hidden;
+
+    /* Forzar que el navbar no interfiera */
+    #top-navbar {
+        pointer-events: auto !important;
+        z-index: 1000 !important;
+        opacity: 1 !important;
+
+        &.dim {
+            pointer-events: auto !important;
+            opacity: 1 !important;
+        }
+    }
+
+    /* Asegurar que el contenido principal sea interactivo */
+    #main-content {
+        pointer-events: auto !important;
+        z-index: 1 !important;
+        position: relative !important;
+    }
+
+    /* Asegurar que el sidebar no interfiera */
+    #side-nav {
+        pointer-events: auto !important;
+        z-index: 999 !important;
+    }
+
+    /* Formulario de examen con máxima prioridad */
+    #quiz-form {
+        pointer-events: auto !important;
+        z-index: 10 !important;
+        position: relative !important;
+
+        * {
+            pointer-events: auto !important;
+        }
+
+        input[type="submit"],
+        button[type="submit"] {
+            pointer-events: auto !important;
+            cursor: pointer !important;
+            z-index: 11 !important;
+            position: relative !important;
+        }
+
+        .list-group-item {
+            pointer-events: auto !important;
+            cursor: pointer !important;
+
+            input[type="radio"],
+            input[type="checkbox"] {
+                pointer-events: auto !important;
+                cursor: pointer !important;
+            }
+        }
+    }
+
+    /* Modal de instrucciones con máxima prioridad */
+    #instractionModal {
+        z-index: 1050 !important;
+
+        .modal-dialog {
+            z-index: 1051 !important;
+        }
+
+        .modal-content {
+            z-index: 1052 !important;
+        }
+    }
+
+    /* Asegurar que los botones de examen funcionen */
+    .btn-primary,
+    .btn-secondary,
+    .btn-large {
+        pointer-events: auto !important;
+        cursor: pointer !important;
+        z-index: 11 !important;
+        position: relative !important;
+    }
+
+    /* Remover cualquier overlay que pueda estar bloqueando */
+    .modal-backdrop {
+        z-index: 1049 !important;
+    }
+
+    /* Asegurar que las alertas sean visibles */
+    .alert {
+        pointer-events: auto !important;
+        z-index: 12 !important;
+        position: relative !important;
+    }
+
+    /* Asegurar que las tablas sean interactivas */
+    .table {
+        pointer-events: auto !important;
+
+        * {
+            pointer-events: auto !important;
+        }
+    }
+
+    /* Asegurar que las cards sean interactivas */
+    .card {
+        pointer-events: auto !important;
+
+        * {
+            pointer-events: auto !important;
+        }
+    }
+}
+
+/* Reglas específicas para el botón de envío del examen */
+#submit-btn {
+    pointer-events: auto !important;
+    cursor: pointer !important;
+    z-index: 11 !important;
+    position: relative !important;
+    user-select: none !important;
+
+    &:disabled {
+        pointer-events: none !important;
+        opacity: 0.6 !important;
+    }
+
+    &:not(:disabled) {
+        pointer-events: auto !important;
+        opacity: 1 !important;
+    }
+}
+
+/* Asegurar que las opciones de respuesta sean clickeables */
+.list-group-item {
+    pointer-events: auto !important;
+    cursor: pointer !important;
+
+    input[type="radio"],
+    input[type="checkbox"] {
+        pointer-events: auto !important;
+        cursor: pointer !important;
+    }
+
+    label {
+        pointer-events: auto !important;
+        cursor: pointer !important;
+    }
+}
+
+/* Asegurar que el breadcrumb sea interactivo */
+.breadcrumb {
+    pointer-events: auto !important;
+
+    * {
+        pointer-events: auto !important;
+    }
+}
+
+/* Asegurar que los contenedores principales sean interactivos */
+.container,
+.container-fluid {
+    pointer-events: auto !important;
+
+    * {
+        pointer-events: auto !important;
+    }
+}
+
+/* Reglas de emergencia para desbloquear la pantalla */
+body.quiz-page-unlocked {
+
+    #top-navbar,
+    #side-nav,
+    #main-content,
+    #quiz-form,
+    .btn,
+    .form-control,
+    .list-group-item {
+        pointer-events: auto !important;
+        z-index: auto !important;
+    }
+}
+
+/* ===== FIN DE REGLAS ESPECÍFICAS PARA EXAMEN ===== */

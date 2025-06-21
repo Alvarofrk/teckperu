@@ -77,21 +77,118 @@ function toggleSidebar() {
 
 // Función para ajustar layout al cambiar tamaño de ventana
 function adjustLayout() {
-  const wasMobile = isMobile;
   checkMobile();
+  // Ya no se manipula sidebarOpen ni se llama a toggleSidebar automáticamente
+}
 
-  // Si cambió de móvil a desktop o viceversa
-  if (wasMobile !== isMobile) {
-    if (isMobile) {
-      // En móvil, cerrar sidebar por defecto
-      if (sidebarOpen) {
-        toggleSidebar();
-      }
-    } else {
-      // En desktop, abrir sidebar por defecto
-      if (!sidebarOpen) {
-        toggleSidebar();
-      }
+// Función específica para limpiar estados problemáticos en páginas de examen
+function cleanupExamPageState() {
+  try {
+    console.log('Limpiando estado de página de examen...');
+
+    // Remover clases problemáticas del navbar
+    const topNavbar = document.getElementById('top-navbar');
+    if (topNavbar) {
+      topNavbar.classList.remove('dim');
+      topNavbar.style.pointerEvents = 'auto';
+      topNavbar.style.opacity = '1';
+    }
+
+    // Restaurar pointer-events en elementos principales
+    const sideNav = document.getElementById('side-nav');
+    const mainContent = document.getElementById('main-content');
+
+    if (sideNav) {
+      sideNav.style.pointerEvents = 'auto';
+      sideNav.style.zIndex = '999';
+    }
+
+    if (mainContent) {
+      mainContent.style.pointerEvents = 'auto';
+      mainContent.style.zIndex = '1';
+    }
+
+    // Asegurar que el formulario de examen sea interactivo
+    const quizForm = document.getElementById('quiz-form');
+    if (quizForm) {
+      quizForm.style.pointerEvents = 'auto';
+      quizForm.style.zIndex = '10';
+      quizForm.style.position = 'relative';
+
+      // Asegurar que todos los elementos del formulario sean interactivos
+      const formElements = quizForm.querySelectorAll('*');
+      formElements.forEach(element => {
+        element.style.pointerEvents = 'auto';
+      });
+    }
+
+    // Asegurar que el botón de envío funcione
+    const submitBtn = document.getElementById('submit-btn');
+    if (submitBtn) {
+      submitBtn.style.pointerEvents = 'auto';
+      submitBtn.style.cursor = 'pointer';
+      submitBtn.style.zIndex = '11';
+    }
+
+    // Asegurar que los modales de examen tengan prioridad
+    const instructionModal = document.getElementById('instractionModal');
+    if (instructionModal) {
+      instructionModal.style.zIndex = '1050';
+    }
+
+    console.log('Estado de página de examen limpiado correctamente');
+
+  } catch (error) {
+    console.error('Error al limpiar estado de página de examen:', error);
+  }
+}
+
+// Función para verificar si estamos en una página de examen
+function isExamPage() {
+  return document.getElementById('quiz-form') !== null ||
+    document.querySelector('.quiz-wrapper') !== null ||
+    document.querySelector('[data-exam-page="true"]') !== null ||
+    window.location.pathname.includes('/quiz/') ||
+    window.location.pathname.includes('/exam/') ||
+    document.title.includes('Examen') ||
+    document.title.includes('Quiz');
+}
+
+// Función para prevenir que se agregue la clase dim en páginas de examen
+function preventDimInExamPages() {
+  if (isExamPage()) {
+    // Remover clase dim si existe
+    const topNavbar = document.getElementById('top-navbar');
+    if (topNavbar) {
+      topNavbar.classList.remove('dim');
+    }
+
+    // Asegurar que no se pueda agregar la clase dim
+    const observer = new MutationObserver(function (mutations) {
+      mutations.forEach(function (mutation) {
+        if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+          const target = mutation.target;
+          if (target.id === 'top-navbar' && target.classList.contains('dim')) {
+            target.classList.remove('dim');
+            console.log('Clase dim removida automáticamente en página de examen');
+          }
+        }
+      });
+    });
+
+    if (topNavbar) {
+      observer.observe(topNavbar, { attributes: true });
+    }
+
+    // Deshabilitar eventos de foco en el campo de búsqueda
+    const searchInput = document.getElementById('primary-search');
+    if (searchInput) {
+      searchInput.removeEventListener('focus', function () {
+        $("#top-navbar").addClass("dim");
+      });
+      searchInput.removeEventListener('blur', function () {
+        $("#top-navbar").removeClass("dim");
+      });
     }
   }
 }
@@ -103,19 +200,27 @@ document.addEventListener('DOMContentLoaded', function () {
   // Verificar estado inicial
   checkMobile();
 
-  // Ajustar layout inicial
-  if (isMobile) {
-    // En móvil, sidebar cerrado por defecto
-    sidebarOpen = false;
-    const sideNav = document.getElementById('side-nav');
-    const topNavbar = document.getElementById('top-navbar');
-    const mainContent = document.getElementById('main');
+  // Eliminar lógica automática de apertura/cierre del sidebar en móvil/desktop
+  // El sidebar solo responde al botón toggleSidebar()
 
-    if (sideNav && topNavbar && mainContent) {
-      sideNav.classList.add('toggle-active');
-      topNavbar.style.left = '0';
-      topNavbar.style.width = '100vw';
-    }
+  // Si estamos en una página de examen, aplicar protecciones especiales
+  if (isExamPage()) {
+    console.log('Página de examen detectada, aplicando protecciones especiales...');
+    preventDimInExamPages();
+    cleanupExamPageState();
+    setTimeout(function () {
+      preventDimInExamPages();
+      cleanupExamPageState();
+    }, 100);
+    setTimeout(function () {
+      preventDimInExamPages();
+      cleanupExamPageState();
+    }, 500);
+    setInterval(function () {
+      if (isExamPage()) {
+        preventDimInExamPages();
+      }
+    }, 1000);
   }
 
   // Escuchar cambios de tamaño de ventana
@@ -129,6 +234,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
 // Hacer la función disponible globalmente
 window.toggleSidebar = toggleSidebar;
+window.cleanupExamPageState = cleanupExamPageState;
 
 // #################################
 // popup
@@ -186,80 +292,52 @@ function showCourses(btn) {
 }
 
 $(document).ready(function () {
-  $("#primary-search").focus(function () {
-    $("#top-navbar").addClass("dim");
-    $("#side-nav").css("pointer-events", "none");
-    $("#main-content").css("pointer-events", "none");
-  });
-  $("#primary-search").focusout(function () {
+  // Solo aplicar estos eventos si NO estamos en una página de examen
+  if (!isExamPage()) {
+    $("#primary-search").focus(function () {
+      $("#top-navbar").addClass("dim");
+      $("#side-nav").css("pointer-events", "none");
+      $("#main-content").css("pointer-events", "none");
+    });
+    $("#primary-search").focusout(function () {
+      $("#top-navbar").removeClass("dim");
+      $("#side-nav").css("pointer-events", "auto");
+      $("#main-content").css("pointer-events", "auto");
+    });
+  } else {
+    // En páginas de examen, asegurar que el campo de búsqueda no cause problemas
+    $("#primary-search").off('focus focusout');
     $("#top-navbar").removeClass("dim");
     $("#side-nav").css("pointer-events", "auto");
     $("#main-content").css("pointer-events", "auto");
-  });
+  }
 });
 
-// Función para mejorar el scroll horizontal de tablas en móviles
+// Función para configurar scroll de tablas
 function setupTableScroll() {
-  const tableResponsives = document.querySelectorAll('.table-responsive');
+  const tables = document.querySelectorAll('.table-responsive');
 
-  tableResponsives.forEach(function (container) {
-    const table = container.querySelector('.table');
-    if (!table) return;
-
-    // Función para verificar si necesita scroll
+  tables.forEach(table => {
     function checkScroll() {
-      const needsScroll = table.scrollWidth > container.clientWidth;
+      const scrollLeft = table.scrollLeft;
+      const scrollWidth = table.scrollWidth;
+      const clientWidth = table.clientWidth;
 
-      if (needsScroll) {
-        container.classList.add('has-scroll');
-
-        // Agregar indicador de scroll si no existe
-        if (!container.querySelector('.scroll-indicator')) {
-          const indicator = document.createElement('div');
-          indicator.className = 'scroll-indicator';
-          indicator.innerHTML = '<i class="fas fa-arrows-alt-h"></i>';
-          indicator.style.cssText = `
-            position: absolute;
-            bottom: 5px;
-            right: 5px;
-            background: rgba(186, 96, 34, 0.8);
-            color: white;
-            padding: 4px 8px;
-            border-radius: 12px;
-            font-size: 10px;
-            z-index: 100;
-            pointer-events: none;
-            opacity: 0.8;
-            transition: opacity 0.3s ease;
-          `;
-          container.style.position = 'relative';
-          container.appendChild(indicator);
-        }
+      // Agregar/remover clases para indicadores de scroll
+      if (scrollLeft > 0) {
+        table.classList.add('has-scroll-left');
       } else {
-        container.classList.remove('has-scroll');
-        const indicator = container.querySelector('.scroll-indicator');
-        if (indicator) {
-          indicator.remove();
-        }
+        table.classList.remove('has-scroll-left');
+      }
+
+      if (scrollLeft < scrollWidth - clientWidth - 1) {
+        table.classList.add('has-scroll-right');
+      } else {
+        table.classList.remove('has-scroll-right');
       }
     }
 
-    // Verificar al cargar
-    checkScroll();
-
-    // Verificar al cambiar tamaño de ventana
-    window.addEventListener('resize', checkScroll);
-
-    // Verificar al hacer scroll
-    container.addEventListener('scroll', function () {
-      const indicator = container.querySelector('.scroll-indicator');
-      if (indicator) {
-        indicator.style.opacity = '0.3';
-        clearTimeout(indicator.fadeTimeout);
-        indicator.fadeTimeout = setTimeout(function () {
-          indicator.style.opacity = '0.8';
-        }, 1000);
-      }
-    });
+    table.addEventListener('scroll', checkScroll);
+    checkScroll(); // Verificar estado inicial
   });
 }

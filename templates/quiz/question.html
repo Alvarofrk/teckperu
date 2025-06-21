@@ -4,6 +4,117 @@
 {% block title %} {{ quiz.title }} | {% trans 'Sistema de gestión de aprendizaje' %} {% endblock %}
 {% block description %} {{ quiz.title }} - {{ quiz.description }} {% endblock %}
 
+{% block extra_css %}
+<style>
+/* Estilos específicos para páginas de examen - PREVENCIÓN TOTAL */
+body[data-exam-page="true"] {
+    /* Prevenir cualquier bloqueo */
+    overflow: auto !important;
+}
+
+body[data-exam-page="true"] #top-navbar {
+    /* Prevenir que el navbar se bloquee */
+    pointer-events: auto !important;
+    opacity: 1 !important;
+    z-index: 1001 !important;
+}
+
+body[data-exam-page="true"] #top-navbar.dim {
+    /* Anular completamente la clase dim en páginas de examen */
+    opacity: 1 !important;
+    pointer-events: auto !important;
+    box-shadow: 0 4px 20px var(--navbar-shadow) !important;
+    background: linear-gradient(135deg, var(--navbar-bg) 0%, var(--navbar-bg-hover) 100%) !important;
+}
+
+body[data-exam-page="true"] #side-nav {
+    /* Mantener sidebar funcional */
+    pointer-events: auto !important;
+    z-index: 1000 !important;
+}
+
+body[data-exam-page="true"] #main-content {
+    /* Mantener contenido principal funcional */
+    pointer-events: auto !important;
+    z-index: 1 !important;
+}
+
+body[data-exam-page="true"] #quiz-form {
+    /* Asegurar que el formulario sea completamente interactivo */
+    pointer-events: auto !important;
+    z-index: 1060 !important;
+    position: relative !important;
+}
+
+body[data-exam-page="true"] #quiz-form * {
+    /* Todos los elementos del formulario deben ser interactivos */
+    pointer-events: auto !important;
+}
+
+body[data-exam-page="true"] #submit-btn {
+    /* Botón de envío con máxima prioridad */
+    pointer-events: auto !important;
+    cursor: pointer !important;
+    z-index: 1070 !important;
+    position: relative !important;
+}
+
+/* Prevenir que cualquier elemento bloquee la interactividad */
+body[data-exam-page="true"] *[style*="pointer-events: none"] {
+    pointer-events: auto !important;
+}
+
+body[data-exam-page="true"] *[style*="z-index: -1"] {
+    z-index: auto !important;
+}
+
+/* Asegurar que el campo de búsqueda no cause problemas */
+body[data-exam-page="true"] #primary-search {
+    pointer-events: auto !important;
+}
+
+/* Prevenir overlays problemáticos */
+body[data-exam-page="true"] *[style*="box-shadow: 0 0 0 10000px"] {
+    box-shadow: none !important;
+}
+
+body[data-exam-page="true"] *[style*="box-shadow: 0 0 0 100vmax"] {
+    box-shadow: none !important;
+}
+
+/* Instrucciones integradas en la página */
+.exam-instructions {
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 20px;
+    border-left: 4px solid #007bff;
+}
+
+.exam-instructions h5 {
+    color: #007bff;
+    margin-bottom: 10px;
+    font-weight: 600;
+}
+
+.exam-instructions p {
+    margin-bottom: 8px;
+    color: #495057;
+}
+
+.exam-instructions ul {
+    margin-bottom: 0;
+    padding-left: 20px;
+}
+
+.exam-instructions li {
+    color: #495057;
+    margin-bottom: 5px;
+}
+</style>
+{% endblock %}
+
 {% block content %}
 
 <nav style="--bs-breadcrumb-divider: '>';" aria-label="breadcrumb">
@@ -94,26 +205,18 @@
 	{% if question %}
 
 	{% if progress.0|add:1 == 1 %}
-
-	<div class="modal fade show" id="instractionModal" tabindex="-1" aria-labelledby="instractionModalLabel" aria-hidden="true">
-		<div class="modal-dialog">
-		  <div class="modal-content">
-			<div class="modal-header">
-			  <h1 class="modal-title fs-5" id="instractionModalLabel">{% trans 'Instrucciones del cuestionario' %}</h1>
-			  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
-			</div>
-			<div class="modal-body">
-				{% blocktrans %} 
-				No puedes volver a la pregunta anterior después de enviarla, 
-				¡así que verifica tu respuesta antes de proceder a la siguiente!
-				{% endblocktrans %}
-			</div>
-			<div class="modal-footer">
-			  <button type="button" class="btn btn-primary" data-bs-dismiss="modal">{% trans 'Entendido' %}</button>
-			</div>
-		  </div>
-	 </div>
-	  </div>
+	<!-- INSTRUCCIONES INTEGRADAS EN LA PÁGINA - SIN MODAL -->
+	<div class="exam-instructions">
+		<h5><i class="fas fa-info-circle"></i> {% trans 'Instrucciones del examen' %}</h5>
+		<p><strong>{% trans 'Importante:' %}</strong></p>
+		<ul>
+			<li>{% trans 'Lee cuidadosamente cada pregunta antes de responder' %}</li>
+			<li>{% trans 'No puedes volver a la pregunta anterior después de enviarla' %}</li>
+			<li>{% trans 'Verifica tu respuesta antes de proceder a la siguiente' %}</li>
+			<li>{% trans 'Una vez que envíes tu respuesta, no podrás cambiarla' %}</li>
+		</ul>
+		<p class="mb-0"><small class="text-muted">{% trans 'Haz clic en "Verificar" cuando estés seguro de tu respuesta.' %}</small></p>
+	</div>
 	{% endif %}
 
 	{% if progress %}
@@ -139,7 +242,7 @@
 		{% endif %}
 	
 		<div class="card-subtitle p-4">
-			<form action="" method="POST">{% csrf_token %}
+			<form action="" method="POST" id="quiz-form">{% csrf_token %}
 				<input type="hidden" name="question_id" value="{{ question.id }}">
 	
 				<ul class="list-group">
@@ -150,7 +253,7 @@
 					{% endfor %}
 				</ul>
 				<br>
-				<input type="submit" value="{% trans "Verificar" %}" class="btn btn-large btn-block btn-primary" />
+				<input type="submit" value="{% trans "Verificar" %}" class="btn btn-large btn-block btn-primary" id="submit-btn" />
 			</form>
 		</div>
 
@@ -163,9 +266,155 @@
 
 {% block js %}
 <script>
-	const instractionModal = new bootstrap.Modal('#instractionModal', {
-		keyboard: false
-	})
-	instractionModal.show();
+// ===== SISTEMA DE PROTECCIÓN SIMPLIFICADO PARA PÁGINAS DE EXAMEN =====
+
+// Marcar esta página como página de examen inmediatamente
+document.body.setAttribute('data-exam-page', 'true');
+
+// Función principal de protección simplificada
+function setupExamProtection() {
+    console.log('🛡️ Configurando protección simplificada para página de examen...');
+    
+    // 1. DESHABILITAR COMPLETAMENTE LA CLASE DIM
+    disableDimClass();
+    
+    // 2. PROTEGER EL FORMULARIO
+    protectQuizForm();
+    
+    // 3. DESHABILITAR EVENTOS PROBLEMÁTICOS
+    disableProblematicEvents();
+    
+    // 4. CONFIGURAR MONITOREO CONTINUO
+    setupContinuousMonitoring();
+    
+    console.log('✅ Protección de examen configurada correctamente');
+}
+
+// Función para deshabilitar completamente la clase dim
+function disableDimClass() {
+    const topNavbar = document.getElementById('top-navbar');
+    if (topNavbar) {
+        // Remover clase dim si existe
+        topNavbar.classList.remove('dim');
+        
+        // Crear un observer para prevenir que se agregue la clase dim
+        const observer = new MutationObserver(function(mutations) {
+            mutations.forEach(function(mutation) {
+                if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+                    if (topNavbar.classList.contains('dim')) {
+                        topNavbar.classList.remove('dim');
+                        console.log('🛡️ Clase dim removida automáticamente');
+                    }
+                }
+            });
+        });
+        
+        observer.observe(topNavbar, { attributes: true });
+        
+        // Aplicar estilos de protección
+        topNavbar.style.opacity = '1';
+        topNavbar.style.pointerEvents = 'auto';
+        topNavbar.style.zIndex = '1001';
+    }
+}
+
+// Función para proteger el formulario
+function protectQuizForm() {
+    const quizForm = document.getElementById('quiz-form');
+    const submitBtn = document.getElementById('submit-btn');
+    
+    if (quizForm) {
+        // Asegurar que el formulario sea completamente interactivo
+        quizForm.style.pointerEvents = 'auto';
+        quizForm.style.zIndex = '1060';
+        quizForm.style.position = 'relative';
+        
+        // Asegurar que todos los elementos del formulario sean interactivos
+        const formElements = quizForm.querySelectorAll('*');
+        formElements.forEach(function(element) {
+            element.style.pointerEvents = 'auto';
+        });
+        
+        // Prevenir envío múltiple
+        quizForm.addEventListener('submit', function(e) {
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.value = 'Procesando...';
+            }
+        });
+    }
+    
+    if (submitBtn) {
+        submitBtn.style.pointerEvents = 'auto';
+        submitBtn.style.cursor = 'pointer';
+        submitBtn.style.zIndex = '1070';
+        submitBtn.style.position = 'relative';
+    }
+}
+
+// Función para deshabilitar eventos problemáticos
+function disableProblematicEvents() {
+    // Deshabilitar eventos del campo de búsqueda
+    const searchInput = document.getElementById('primary-search');
+    if (searchInput) {
+        // Remover todos los event listeners existentes
+        const newSearchInput = searchInput.cloneNode(true);
+        searchInput.parentNode.replaceChild(newSearchInput, searchInput);
+        
+        // Prevenir que se agreguen nuevos eventos problemáticos
+        newSearchInput.addEventListener('focus', function(e) {
+            e.stopPropagation();
+            // NO hacer nada que pueda bloquear la página
+        });
+        
+        newSearchInput.addEventListener('blur', function(e) {
+            e.stopPropagation();
+            // NO hacer nada que pueda bloquear la página
+        });
+    }
+}
+
+// Función para configurar monitoreo continuo
+function setupContinuousMonitoring() {
+    // Monitorear continuamente para prevenir bloqueos
+    setInterval(function() {
+        // Verificar que la clase dim no esté presente
+        const topNavbar = document.getElementById('top-navbar');
+        if (topNavbar && topNavbar.classList.contains('dim')) {
+            topNavbar.classList.remove('dim');
+        }
+        
+        // Verificar que el formulario sea interactivo
+        const quizForm = document.getElementById('quiz-form');
+        if (quizForm && quizForm.style.pointerEvents !== 'auto') {
+            quizForm.style.pointerEvents = 'auto';
+        }
+        
+        // Verificar que el botón de envío sea interactivo
+        const submitBtn = document.getElementById('submit-btn');
+        if (submitBtn && submitBtn.style.pointerEvents !== 'auto') {
+            submitBtn.style.pointerEvents = 'auto';
+            submitBtn.style.cursor = 'pointer';
+        }
+    }, 1000);
+}
+
+// Inicializar protección cuando el DOM esté listo
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🚀 Inicializando protección de examen...');
+    setupExamProtection();
+});
+
+// Inicializar protección también inmediatamente si el DOM ya está listo
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', setupExamProtection);
+} else {
+    setupExamProtection();
+}
+
+// Hacer función disponible globalmente
+window.setupExamProtection = setupExamProtection;
+
+console.log('🛡️ Sistema de protección de examen cargado (sin modal)');
 </script>
 {% endblock js %}
