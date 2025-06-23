@@ -312,9 +312,11 @@ def anexo_form(request, sitting_id):
             # Generar el anexo con los datos del formulario
             return generar_anexo4(request, sitting_id, fecha_ingreso, ocupacion, area_trabajo, empresa, distrito, provincia)
     else:
-        form = AnexoForm()
+        # Si no es POST, redirigir a la página de progreso
+        return redirect('quiz_progress')
 
-    return render(request, 'quiz/anexo_form.html', {'form': form})
+    # Esta línea nunca se ejecutará, pero la mantenemos por seguridad
+    return redirect('quiz_progress')
 
 def generar_anexo4(request, sitting_id, fecha_ingreso, ocupacion, area_trabajo, empresa, distrito, provincia):
     # Obtener el examen y validar que el usuario tiene permiso

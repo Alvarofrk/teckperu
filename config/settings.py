@@ -328,3 +328,29 @@ SEMESTER_CHOICES = (
     (SECOND, _("Second")),
     (THIRD, _("Third")),
 )
+
+# === SEGURIDAD: FORZAR HTTPS Y COOKIES SEGURAS ===
+
+# Redirige automáticamente todo el tráfico HTTP a HTTPS
+SECURE_SSL_REDIRECT = True
+
+# Solo permite cookies de sesión por HTTPS
+SESSION_COOKIE_SECURE = True
+
+# Solo permite cookies CSRF por HTTPS
+CSRF_COOKIE_SECURE = True
+
+# HSTS: Obliga a los navegadores a usar siempre HTTPS
+SECURE_HSTS_SECONDS = 31536000  # 1 año
+SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+SECURE_HSTS_PRELOAD = True
+
+# Evita que el navegador intente adivinar el tipo de contenido
+SECURE_CONTENT_TYPE_NOSNIFF = True
+
+# Evita que tu sitio sea embebido en iframes (protege contra clickjacking)
+X_FRAME_OPTIONS = 'DENY'
+
+# Opcional: marca las cookies como HttpOnly (no accesibles por JS)
+SESSION_COOKIE_HTTPONLY = True
+CSRF_COOKIE_HTTPONLY = True

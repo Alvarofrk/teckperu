@@ -256,8 +256,10 @@
                                                     {% trans "Certificado" %}
                                                 </a>
                                                 {% if exam.quiz.course.code == "0001" %}
-                                                    <button onclick="document.getElementById('anexoModal{{ exam.id }}').style.display='block'" 
-                                                            class="btn btn-anexo">
+                                                    <button type="button" 
+                                                            class="btn btn-anexo"
+                                                            data-bs-toggle="modal" 
+                                                            data-bs-target="#anexoModal{{ exam.id }}">
                                                         <i class="fas fa-file-pdf"></i>
                                                         {% trans "Anexo" %}
                                                     </button>
@@ -295,12 +297,11 @@
                                     {% trans "Descargar Anexo" %}
                                 </h5>
                                 <button type="button" class="btn-close btn-close-white" 
-                                        onclick="document.getElementById('anexoModal{{ exam.id }}').style.display='none'">
+                                        data-bs-dismiss="modal" aria-label="Close">
                                 </button>
                             </div>
                             <div class="modal-body p-4">
-                                <form method="POST" action="{% url 'anexo_form' sitting_id=exam.id %}" 
-                                      onsubmit="document.getElementById('anexoModal{{ exam.id }}').style.display='none';">
+                                <form method="POST" action="{% url 'anexo_form' sitting_id=exam.id %}">
                                     {% csrf_token %}
                                     <div class="row">
                                         <div class="col-md-6 mb-3">
@@ -352,7 +353,7 @@
                                     </div>
                                     <div class="text-end">
                                         <button type="button" class="btn btn-secondary me-2" 
-                                                onclick="document.getElementById('anexoModal{{ exam.id }}').style.display='none'">
+                                                data-bs-dismiss="modal">
                                             {% trans "Cancelar" %}
                                         </button>
                                         <button type="submit" class="btn btn-orange">
@@ -372,15 +373,18 @@
 
 <!-- Scripts para modales -->
 <script>
-    // Cerrar modales al hacer clic fuera
-    window.onclick = function(event) {
-        var modals = document.querySelectorAll('[id^="anexoModal"]');
+    // Los modales de Bootstrap se manejan automáticamente
+    // No necesitamos JavaScript personalizado para modales básicos
+    document.addEventListener('DOMContentLoaded', function() {
+        // Asegurar que los modales de Bootstrap funcionen correctamente
+        var modals = document.querySelectorAll('.modal');
         modals.forEach(function(modal) {
-            if (event.target == modal) {
-                modal.style.display = "none";
+            // Verificar que Bootstrap esté cargado
+            if (typeof bootstrap !== 'undefined') {
+                new bootstrap.Modal(modal);
             }
         });
-    }
+    });
 </script>
 
 {% endif %}
