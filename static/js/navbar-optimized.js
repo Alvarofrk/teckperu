@@ -73,6 +73,17 @@
                 document.querySelector('.lead').textContent.includes('Pregunta');
             const hasSubmitBtn = document.getElementById('submit-btn') !== null;
 
+            // IMPORTANTE: Excluir la página de progreso para que los modales funcionen
+            const isProgressPage = window.location.pathname.includes('/quiz/progress/') ||
+                document.title.includes('Página de Progreso') ||
+                document.querySelector('.progress-header') !== null;
+
+            // Si es página de progreso, NO es página de examen
+            if (isProgressPage) {
+                console.log('📊 Página de progreso detectada - permitiendo modales');
+                return false;
+            }
+
             return hasQuizForm || hasQuizWrapper || hasExamPageAttr || hasExamPageBody ||
                 hasExamPageData || urlContainsQuiz || titleContainsExam ||
                 hasQuestionContent || hasSubmitBtn;
