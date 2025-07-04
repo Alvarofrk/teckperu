@@ -4,6 +4,9 @@ from .views import (
     home_view,
     home_view_test,
     home_view_simple,
+    home_view_basic,
+    home_view_env_check,
+    home_view_ssl_check,
     home_view_debug,
     home_view_debug_simple,
     post_add,
@@ -23,7 +26,10 @@ from .views import (
 
 urlpatterns = [
     # Accounts url
-    path("", home_view_simple, name="home"),  # Temporal: vista súper simple
+    path("", home_view_basic, name="home"),  # Temporal: vista súper básica
+    path("simple/", home_view_simple, name="home_simple"),  # Vista simple
+    path("env/", home_view_env_check, name="env_check"),  # Verificar variables de entorno
+    path("ssl/", home_view_ssl_check, name="ssl_check"),  # Verificar configuración SSL
     path("test/", home_view_test, name="home_test"),  # Vista con diagnóstico
     path("debug/", home_view_debug, name="home_debug"),  # Vista de debug
     path("debug2/", home_view_debug_simple, name="home_debug_simple"),  # Vista de debug simple

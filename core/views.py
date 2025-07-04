@@ -59,6 +59,80 @@ def home_view_simple(request):
     return HttpResponse("¡Hola! La vista simple funciona correctamente.", status=200)
 
 
+def home_view_basic(request):
+    """Vista súper básica sin nada de Django"""
+    try:
+        return HttpResponse("Vista básica funciona", status=200)
+    except Exception as e:
+        return HttpResponse(f"Error en vista básica: {str(e)}", status=500)
+
+
+def home_view_env_check(request):
+    """Vista para verificar variables de entorno"""
+    try:
+        from decouple import config
+        import os
+        
+        # Verificar variables críticas
+        secret_key = config("SECRET_KEY", default="NO_DEFINIDA")
+        debug = config("DEBUG", default="NO_DEFINIDA")
+        allowed_hosts = config("ALLOWED_HOSTS", default="NO_DEFINIDA")
+        
+        # Verificar si las variables están vacías
+        secret_key_status = "OK" if secret_key and secret_key != "NO_DEFINIDA" else "ERROR"
+        debug_status = "OK" if debug != "NO_DEFINIDA" else "ERROR"
+        allowed_hosts_status = "OK" if allowed_hosts and allowed_hosts != "NO_DEFINIDA" else "ERROR"
+        
+        response = f"""
+        <h1>Verificación de Variables de Entorno</h1>
+        <p><strong>SECRET_KEY:</strong> {secret_key_status} - {secret_key[:10] if secret_key and secret_key != "NO_DEFINIDA" else "NO DEFINIDA"}...</p>
+        <p><strong>DEBUG:</strong> {debug_status} - {debug}</p>
+        <p><strong>ALLOWED_HOSTS:</strong> {allowed_hosts_status} - {allowed_hosts}</p>
+        <p><strong>DATABASE_NAME:</strong> {config('DATABASE_NAME', default='NO_DEFINIDA')}</p>
+        <p><strong>DATABASE_HOST:</strong> {config('DATABASE_HOST', default='NO_DEFINIDA')}</p>
+        """
+        
+        return HttpResponse(response, status=200)
+    except Exception as e:
+        return HttpResponse(f"Error verificando variables: {str(e)}", status=500)
+
+
+def home_view_ssl_check(request):
+    """Vista para verificar configuración SSL/HTTPS"""
+    try:
+        from django.conf import settings
+        
+        # Verificar configuración de seguridad
+        debug = getattr(settings, 'DEBUG', None)
+        secure_ssl_redirect = getattr(settings, 'SECURE_SSL_REDIRECT', None)
+        secure_proxy_ssl_header = getattr(settings, 'SECURE_PROXY_SSL_HEADER', None)
+        
+        # Verificar headers de la request
+        is_secure = request.is_secure()
+        x_forwarded_proto = request.META.get('HTTP_X_FORWARDED_PROTO', 'NO')
+        x_forwarded_ssl = request.META.get('HTTP_X_FORWARDED_SSL', 'NO')
+        
+        response = f"""
+        <h1>Verificación de Configuración SSL/HTTPS</h1>
+        <h2>Configuración Django:</h2>
+        <p><strong>DEBUG:</strong> {debug}</p>
+        <p><strong>SECURE_SSL_REDIRECT:</strong> {secure_ssl_redirect}</p>
+        <p><strong>SECURE_PROXY_SSL_HEADER:</strong> {secure_proxy_ssl_header}</p>
+        
+        <h2>Headers de la Request:</h2>
+        <p><strong>request.is_secure():</strong> {is_secure}</p>
+        <p><strong>HTTP_X_FORWARDED_PROTO:</strong> {x_forwarded_proto}</p>
+        <p><strong>HTTP_X_FORWARDED_SSL:</strong> {x_forwarded_ssl}</p>
+        
+        <h2>URL de la Request:</h2>
+        <p><strong>request.build_absolute_uri():</strong> {request.build_absolute_uri()}</p>
+        """
+        
+        return HttpResponse(response, status=200)
+    except Exception as e:
+        return HttpResponse(f"Error verificando SSL: {str(e)}", status=500)
+
+
 def home_view_debug(request):
     """Vista de diagnóstico paso a paso"""
     try:
