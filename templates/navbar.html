@@ -32,40 +32,52 @@
                      tabindex="0"
                      aria-label="{% trans 'Menú de usuario' %}"
                      style="width: 40px; height: 40px; border-radius: 50%; font-size: 1.2rem;">
-                    {% with initial=request.user.first_name|default_if_none:""|slice:":1"|upper %}
-                        {% if not initial %}
-                            {% with initial=request.user.last_name|default_if_none:""|slice:":1"|upper %}
-                                {% if not initial %}
-                                    {{ request.user.username|default_if_none:""|slice:":1"|upper }}
-                                {% else %}
-                                    {{ initial }}
-                                {% endif %}
-                            {% endwith %}
-                        {% else %}
-                            {{ initial }}
-                        {% endif %}
-                    {% endwith %}
+                    {% if request.user.is_authenticated %}
+                        {% with initial=request.user.first_name|default_if_none:""|slice:":1"|upper %}
+                            {% if not initial %}
+                                {% with initial=request.user.last_name|default_if_none:""|slice:":1"|upper %}
+                                    {% if not initial %}
+                                        {{ request.user.username|default_if_none:""|slice:":1"|upper }}
+                                    {% else %}
+                                        {{ initial }}
+                                    {% endif %}
+                                {% endwith %}
+                            {% else %}
+                                {{ initial }}
+                            {% endif %}
+                        {% endwith %}
+                    {% else %}
+                        ?
+                    {% endif %}
                 </div>
                 <div class="dropdown-menu" style="min-width: 14rem !important;">
                     <div class="d-flex flex-column align-items-center">
                         <div class="avatar avatar-md border fw-bold d-flex align-items-center justify-content-center" style="width: 60px; height: 60px; border-radius: 50%; font-size: 2rem; background: #BA6022 !important; color: #fff !important;">
-                            {% with initial=request.user.first_name|default_if_none:""|slice:":1"|upper %}
-                                {% if not initial %}
-                                    {% with initial=request.user.last_name|default_if_none:""|slice:":1"|upper %}
-                                        {% if not initial %}
-                                            {{ request.user.username|default_if_none:""|slice:":1"|upper }}
-                                        {% else %}
-                                            {{ initial }}
-                                        {% endif %}
-                                    {% endwith %}
-                                {% else %}
-                                    {{ initial }}
-                                {% endif %}
-                            {% endwith %}
+                            {% if request.user.is_authenticated %}
+                                {% with initial=request.user.first_name|default_if_none:""|slice:":1"|upper %}
+                                    {% if not initial %}
+                                        {% with initial=request.user.last_name|default_if_none:""|slice:":1"|upper %}
+                                            {% if not initial %}
+                                                {{ request.user.username|default_if_none:""|slice:":1"|upper }}
+                                            {% else %}
+                                                {{ initial }}
+                                            {% endif %}
+                                        {% endwith %}
+                                    {% else %}
+                                        {{ initial }}
+                                    {% endif %}
+                                {% endwith %}
+                            {% else %}
+                                ?
+                            {% endif %}
                         </div>
     
                         <h6 class="mb-1 text-center fw-bold">
-                            {{ request.user.get_full_name|default:request.user.username }}
+                            {% if request.user.is_authenticated %}
+                                {{ request.user.get_full_name|default:request.user.username }}
+                            {% else %}
+                                {% trans 'Usuario' %}
+                            {% endif %}
                         </h6>
                         <p class="small text-muted text-center mb-0">
                             {% if request.user.is_authenticated %}
@@ -75,33 +87,43 @@
                     </div>
                     <hr>
 
-                    {% if request.user.is_lecturer or request.user.is_student %}
-                    <a class="dropdown-item" href="{% url 'user_course_list' %}">
-                        <i class="fas fa-book me-2"></i>{% trans 'Mis cursos' %}
-                    </a>
-                    {% endif %}
+                    {% if request.user.is_authenticated %}
+                        {% if request.user.is_lecturer or request.user.is_student %}
+                        <a class="dropdown-item" href="{% url 'user_course_list' %}">
+                            <i class="fas fa-book me-2"></i>{% trans 'Mis cursos' %}
+                        </a>
+                        {% endif %}
 
-                    {% if request.user.is_superuser %}
-                    <a class="dropdown-item" href="{% url 'admin_panel' %}">
-                        <i class="fas fa-user-tie me-2"></i>{% trans 'Panel de administración' %}
-                    </a>
-                    {% endif %}
+                        {% if request.user.is_superuser %}
+                        <a class="dropdown-item" href="{% url 'admin_panel' %}">
+                            <i class="fas fa-user-tie me-2"></i>{% trans 'Panel de administración' %}
+                        </a>
+                        {% endif %}
 
-                    <a class="dropdown-item" href="{% url 'profile' %}">
-                        <i class="fas fa-user me-2"></i>{% trans 'Perfil' %}
-                    </a>
-                    <a class="dropdown-item" href="{% url 'edit_profile' %}">
-                        <i class="fas fa-cog me-2"></i>{% trans 'Configuración' %}
-                    </a>
+                        <a class="dropdown-item" href="{% url 'profile' %}">
+                            <i class="fas fa-user me-2"></i>{% trans 'Perfil' %}
+                        </a>
+                        <a class="dropdown-item" href="{% url 'edit_profile' %}">
+                            <i class="fas fa-cog me-2"></i>{% trans 'Configuración' %}
+                        </a>
+                    {% endif %}
                     <hr>
-                    <div style="display: flex; justify-content: center; align-items: center;">
-                        <form method="post" action="{% url 'logout' %}" style="margin: 0;">
-                            {% csrf_token %}
-                            <button type="submit" class="btn btn-secondary" style="width: 100%; text-align: center;">
-                                <i class="fas fa-sign-out-alt"></i> {% trans 'Cerrar sesión' %}
-                            </button>
-                        </form>
-                    </div>
+                    {% if request.user.is_authenticated %}
+                        <div style="display: flex; justify-content: center; align-items: center;">
+                            <form method="post" action="{% url 'logout' %}" style="margin: 0;">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-secondary" style="width: 100%; text-align: center;">
+                                    <i class="fas fa-sign-out-alt"></i> {% trans 'Cerrar sesión' %}
+                                </button>
+                            </form>
+                        </div>
+                    {% else %}
+                        <div style="display: flex; justify-content: center; align-items: center;">
+                            <a href="{% url 'login' %}" class="btn btn-primary" style="width: 100%; text-align: center;">
+                                <i class="fas fa-sign-in-alt"></i> {% trans 'Iniciar sesión' %}
+                            </a>
+                        </div>
+                    {% endif %}
                 </div>
             </div>
         </div>
