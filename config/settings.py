@@ -41,10 +41,15 @@ DEBUG = config("DEBUG", default=True, cast=bool)
 # --- Configuración de hosts y CSRF según entorno ---
 
 if not DEBUG:
-    ALLOWED_HOSTS = ['seguridadteckperu.com', 'www.seguridadteckperu.com']
+    ALLOWED_HOSTS = [
+        'seguridadteckperu.com',
+        'www.seguridadteckperu.com',
+        'teckperu.onrender.com',  # Dominio temporal de Render
+    ]
     CSRF_TRUSTED_ORIGINS = [
         'https://seguridadteckperu.com',
         'https://www.seguridadteckperu.com',
+        'https://teckperu.onrender.com',  # Dominio temporal de Render
     ]
 else:
     ALLOWED_HOSTS = ['*']
