@@ -25,14 +25,38 @@ def home_view(request):
 def home_view_test(request):
     """Vista de prueba temporal sin login_required"""
     try:
-        items = NewsAndEvents.objects.all().order_by("-updated_date")
-        context = {
-            "title": "News & Events",
-            "items": items,
-        }
-        return render(request, "core/index.html", context)
+        # Paso 1: Verificar que podemos importar el modelo
+        from core.models import NewsAndEvents
+        
+        # Paso 2: Verificar que la tabla existe
+        try:
+            items = NewsAndEvents.objects.all().order_by("-updated_date")
+            items_count = items.count()
+        except Exception as db_error:
+            return HttpResponse(f"Error en base de datos: {str(db_error)}", status=500)
+        
+        # Paso 3: Verificar que podemos crear el contexto
+        try:
+            context = {
+                "title": "News & Events",
+                "items": items,
+            }
+        except Exception as context_error:
+            return HttpResponse(f"Error creando contexto: {str(context_error)}", status=500)
+        
+        # Paso 4: Verificar que podemos renderizar el template
+        try:
+            return render(request, "core/index.html", context)
+        except Exception as template_error:
+            return HttpResponse(f"Error en template: {str(template_error)}", status=500)
+            
     except Exception as e:
-        return HttpResponse(f"Error en home_view: {str(e)}", status=500)
+        return HttpResponse(f"Error general en home_view: {str(e)}", status=500)
+
+
+def home_view_simple(request):
+    """Vista súper simple para diagnóstico"""
+    return HttpResponse("¡Hola! La vista simple funciona correctamente.", status=200)
 
 
 @login_required

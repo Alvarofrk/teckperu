@@ -3,6 +3,7 @@ from django.urls import path
 from .views import (
     home_view,
     home_view_test,
+    home_view_simple,
     post_add,
     edit_post,
     delete_post,
@@ -20,18 +21,19 @@ from .views import (
 
 urlpatterns = [
     # Accounts url
-    path("", home_view_test, name="home"),  # Temporal: sin login_required
+    path("", home_view_simple, name="home"),  # Temporal: vista súper simple
+    path("test/", home_view_test, name="home_test"),  # Vista con diagnóstico
     path("home_secure/", home_view, name="home_secure"),  # Original con login_required
     path("add_item/", post_add, name="add_item"),
     path("item/<int:pk>/edit/", edit_post, name="edit_post"),
     path("item/<int:pk>/delete/", delete_post, name="delete_post"),
     path("session/", session_list_view, name="session_list"),
-    path("session/add/", session_add_view, name="add_session"),
-    path("session/<int:pk>/edit/", session_update_view, name="edit_session"),
-    path("session/<int:pk>/delete/", session_delete_view, name="delete_session"),
+    path("session/add/", session_add_view, name="session_add"),
+    path("session/<int:pk>/edit/", session_update_view, name="session_update"),
+    path("session/<int:pk>/delete/", session_delete_view, name="session_delete"),
     path("semester/", semester_list_view, name="semester_list"),
-    path("semester/add/", semester_add_view, name="add_semester"),
-    path("semester/<int:pk>/edit/", semester_update_view, name="edit_semester"),
-    path("semester/<int:pk>/delete/", semester_delete_view, name="delete_semester"),
+    path("semester/add/", semester_add_view, name="semester_add"),
+    path("semester/<int:pk>/edit/", semester_update_view, name="semester_update"),
+    path("semester/<int:pk>/delete/", semester_delete_view, name="semester_delete"),
     path("dashboard/", dashboard_view, name="dashboard"),
 ]
