@@ -356,3 +356,52 @@ def unset_current_semester():
     if current_semester:
         current_semester.is_current_semester = False
         current_semester.save()
+
+
+def home_view_static_check(request):
+    """Vista para verificar problemas de staticfiles"""
+    try:
+        from django.conf import settings
+        from django.contrib.staticfiles.finders import find
+        from django.contrib.staticfiles.storage import staticfiles_storage
+        
+        # Verificar archivos problemáticos
+        dashboard_js = find('js/dashboard.js')
+        brand_svg = find('img/brand.svg')
+        login_css = find('css/login-modern.css')
+        
+        # Verificar si están en staticfiles
+        dashboard_js_static = staticfiles_storage.exists('js/dashboard.js')
+        brand_svg_static = staticfiles_storage.exists('img/brand.svg')
+        login_css_static = staticfiles_storage.exists('css/login-modern.css')
+        
+        response = f"""
+        <h1>Verificación de Staticfiles</h1>
+        <h2>Archivos problemáticos:</h2>
+        <p><strong>js/dashboard.js:</strong></p>
+        <ul>
+            <li>Encontrado por find(): {dashboard_js}</li>
+            <li>Existe en staticfiles: {dashboard_js_static}</li>
+        </ul>
+        
+        <p><strong>img/brand.svg:</strong></p>
+        <ul>
+            <li>Encontrado por find(): {brand_svg}</li>
+            <li>Existe en staticfiles: {brand_svg_static}</li>
+        </ul>
+        
+        <p><strong>css/login-modern.css:</strong></p>
+        <ul>
+            <li>Encontrado por find(): {login_css}</li>
+            <li>Existe en staticfiles: {login_css_static}</li>
+        </ul>
+        
+        <h2>Configuración:</h2>
+        <p><strong>STATIC_ROOT:</strong> {settings.STATIC_ROOT}</p>
+        <p><strong>STATIC_URL:</strong> {settings.STATIC_URL}</p>
+        <p><strong>STATICFILES_STORAGE:</strong> {settings.STATICFILES_STORAGE}</p>
+        """
+        
+        return HttpResponse(response, status=200)
+    except Exception as e:
+        return HttpResponse(f"Error verificando staticfiles: {str(e)}", status=500)
