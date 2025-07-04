@@ -2,387 +2,248 @@
 
 /**
  * MAIN.JS - TECKPERU
- * Funcionalidad principal responsive para sidebar y navbar
+ * Funcionalidad simplificada para sidebar y navbar
+ * 
+ * Copyright (c) 2025 Alvaro Franco Cerna Ramos
+ * Propiedad Intelectual - Plataforma Educativa Seguridad TECK Perú
+ * Desarrollado exclusivamente para TECK Perú a través de G.P.D. CONSULTORES S.A.C.
+ * Todos los derechos reservados.
+ * 
+ * Este archivo contiene funcionalidades únicas de navegación y prevención
+ * de bloqueos en páginas de examen. Prohibida su reproducción o modificación
+ * sin autorización expresa del desarrollador.
  */
 
-(function () {
-  'use strict';
+// Variables globales
+let sidebarOpen = true;
+let isMobile = false;
 
-  // Variables globales
-  let sidebarState = {
-    isOpen: true,
-    isMobile: false,
-    overlay: null
-  };
+// Función para detectar si es móvil
+function checkMobile() {
+  isMobile = window.innerWidth <= 768;
+  return isMobile;
+}
 
-  // Esperar a que el DOM esté completamente cargado
-  function init() {
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', init);
-      return;
-    }
+// Función principal de toggle del sidebar
+function toggleSidebar() {
+  console.log('toggleSidebar ejecutado');
 
-    // Esperar un poco más para asegurar que Bootstrap esté cargado
-    setTimeout(function () {
-      setupResponsiveLayout();
-      setupSidebar();
-      setupNavbar();
-      setupOverlays();
-      setupTouchOptimizations();
-      console.log('TeckPeru responsive layout inicializado correctamente');
-    }, 100);
+  const sideNav = document.getElementById('side-nav');
+  const topNavbar = document.getElementById('top-navbar');
+  const mainContent = document.getElementById('main');
+  const toggleBtn = document.querySelector('.toggle-btn');
+
+  if (!sideNav || !topNavbar || !mainContent) {
+    console.error('Elementos necesarios no encontrados');
+    return;
   }
 
-  /**
-   * Configurar layout responsive
-   */
-  function setupResponsiveLayout() {
-    const sideNav = document.getElementById('side-nav');
-    const topNavbar = document.getElementById('top-navbar');
-    const mainContent = document.getElementById('main-content');
+  // Cambiar estado
+  sidebarOpen = !sidebarOpen;
 
-    if (!sideNav || !topNavbar || !mainContent) return;
+  // Aplicar clases CSS
+  sideNav.classList.toggle('toggle-active');
+  topNavbar.classList.toggle('toggle-active');
+  mainContent.classList.toggle('toggle-active');
 
-    // Detectar si es móvil
-    function checkMobile() {
-      const wasMobile = sidebarState.isMobile;
-      sidebarState.isMobile = window.innerWidth <= 768;
+  // Aplicar estilos inline solo al navbar para asegurar que funcione
+  if (sidebarOpen) {
+    // Abrir sidebar
+    console.log('Abriendo sidebar');
 
-      // Si cambió de desktop a móvil o viceversa
-      if (wasMobile !== sidebarState.isMobile) {
-        handleLayoutChange();
-      }
-    }
-
-    // Manejar cambio de layout
-    function handleLayoutChange() {
-      if (sidebarState.isMobile) {
-        // En móvil, sidebar cerrado por defecto
-        closeSidebar();
-        adjustNavbarForMobile();
-      } else {
-        // En desktop, sidebar abierto por defecto
-        openSidebar();
-        adjustNavbarForDesktop();
-      }
-    }
-
-    // Ajustar navbar para móvil
-    function adjustNavbarForMobile() {
+    if (isMobile) {
+      // En móvil, mostrar overlay
       topNavbar.style.left = '0';
       topNavbar.style.width = '100vw';
-      topNavbar.style.borderRadius = '0';
-      mainContent.style.marginLeft = '0';
-      mainContent.style.marginTop = '60px';
-    }
-
-    // Ajustar navbar para desktop
-    function adjustNavbarForDesktop() {
-      const sidebarWidth = getSidebarWidth();
+    } else {
+      // En desktop, ajustar layout del navbar
+      const sidebarWidth = window.innerWidth <= 1024 ? 260 : 280;
       topNavbar.style.left = sidebarWidth + 'px';
       topNavbar.style.width = `calc(100vw - ${sidebarWidth}px)`;
-      topNavbar.style.borderRadius = '0 0 12px 12px';
-      mainContent.style.marginLeft = sidebarWidth + 'px';
-      mainContent.style.marginTop = '80px';
     }
 
-    // Obtener ancho del sidebar
-    function getSidebarWidth() {
-      if (sidebarState.isMobile) return 0;
-
-      if (window.innerWidth <= 1024) return 260;
-      return 280;
-    }
-
-    // Escuchar cambios de tamaño de ventana
-    window.addEventListener('resize', function () {
-      checkMobile();
-    });
-
-    // Verificación inicial
-    checkMobile();
-  }
-
-  /**
-   * Configurar sidebar
-   */
-  function setupSidebar() {
-    const sideNav = document.getElementById('side-nav');
-    if (!sideNav) return;
-
-    // Botón de toggle en el sidebar (móvil)
-    const sidebarToggleBtn = sideNav.querySelector('.desktop-hide .toggle-btn');
-    if (sidebarToggleBtn) {
-      sidebarToggleBtn.addEventListener('click', function (e) {
-        e.preventDefault();
-        e.stopPropagation();
-        closeSidebar();
-      });
-    }
-
-    // Cerrar sidebar al hacer clic en enlaces (móvil)
-    const sidebarLinks = sideNav.querySelectorAll('.nav-link');
-    sidebarLinks.forEach(function (link) {
-      link.addEventListener('click', function () {
-        if (sidebarState.isMobile) {
-          setTimeout(closeSidebar, 300);
-        }
-      });
-    });
-
-    // Cerrar sidebar al hacer clic fuera (móvil)
-    document.addEventListener('click', function (e) {
-      if (sidebarState.isMobile && sidebarState.isOpen) {
-        if (!sideNav.contains(e.target) && !e.target.closest('.toggle-btn')) {
-          closeSidebar();
-        }
-      }
-    });
-
-    // Prevenir cierre accidental al hacer clic dentro del sidebar
-    sideNav.addEventListener('click', function (e) {
-      e.stopPropagation();
-    });
-  }
-
-  /**
-   * Configurar navbar
-   */
-  function setupNavbar() {
-    const topNavbar = document.getElementById('top-navbar');
-    if (!topNavbar) return;
-
-    // Botón de toggle en el navbar - MEJORADO
-    const navbarToggleBtn = topNavbar.querySelector('.toggle-btn');
-    if (navbarToggleBtn) {
-      // Remover event listeners existentes para evitar duplicados
-      navbarToggleBtn.removeEventListener('click', handleToggleClick);
-      navbarToggleBtn.addEventListener('click', handleToggleClick);
-
-      // También agregar event listener para touch events
-      navbarToggleBtn.addEventListener('touchstart', handleToggleClick, { passive: false });
-    }
-
-    // Optimizar búsqueda
-    const searchInput = topNavbar.querySelector('#primary-search');
-    if (searchInput) {
-      searchInput.addEventListener('focus', function () {
-        if (sidebarState.isMobile) {
-          closeSidebar();
-        }
-      });
-    }
-  }
-
-  /**
-   * Manejador del clic del botón toggle - NUEVA FUNCIÓN
-   */
-  function handleToggleClick(e) {
-    e.preventDefault();
-    e.stopPropagation();
-
-    console.log('Botón hamburguesa clickeado - Estado móvil:', sidebarState.isMobile);
-    console.log('Sidebar abierto:', sidebarState.isOpen);
-
-    toggleSidebar();
-  }
-
-  /**
-   * Función principal de toggle del sidebar
-   */
-  function toggleSidebar() {
-    console.log('Ejecutando toggleSidebar...');
-
-    if (sidebarState.isOpen) {
-      closeSidebar();
-    } else {
-      openSidebar();
-    }
-  }
-
-  /**
-   * Configurar overlays
-   */
-  function setupOverlays() {
-    // Crear overlay para sidebar
-    sidebarState.overlay = document.createElement('div');
-    sidebarState.overlay.className = 'sidebar-overlay';
-    sidebarState.overlay.addEventListener('click', closeSidebar);
-    document.body.appendChild(sidebarState.overlay);
-
-    // Crear overlay para navbar (si es necesario)
-    const navbarOverlay = document.createElement('div');
-    navbarOverlay.className = 'navbar-overlay';
-    navbarOverlay.addEventListener('click', function () {
-      // Cerrar dropdowns si están abiertos
-      const dropdowns = document.querySelectorAll('.dropdown.show');
-      dropdowns.forEach(function (dropdown) {
-        dropdown.classList.remove('show');
-      });
-    });
-    document.body.appendChild(navbarOverlay);
-  }
-
-  /**
-   * Configurar optimizaciones para dispositivos táctiles
-   */
-  function setupTouchOptimizations() {
-    // Mejorar scroll en dispositivos táctiles
-    document.body.style.webkitOverflowScrolling = 'touch';
-
-    // Prevenir zoom en inputs en iOS
-    const inputs = document.querySelectorAll('input, textarea, select');
-    inputs.forEach(function (input) {
-      input.addEventListener('focus', function () {
-        if (sidebarState.isMobile) {
-          closeSidebar();
-        }
-      });
-    });
-
-    // Mejorar área de toque para botones
-    const buttons = document.querySelectorAll('.btn, .nav-link, .dropdown-item');
-    buttons.forEach(function (button) {
-      button.style.minHeight = '44px';
-      button.style.display = 'flex';
-      button.style.alignItems = 'center';
-    });
-  }
-
-  /**
-   * Abrir sidebar
-   */
-  function openSidebar() {
-    const sideNav = document.getElementById('side-nav');
-    const topNavbar = document.getElementById('top-navbar');
-    const mainContent = document.getElementById('main-content');
-    const toggleBtn = topNavbar.querySelector('.toggle-btn');
-
-    if (!sideNav || !topNavbar || !mainContent) {
-      console.error('Elementos necesarios no encontrados');
-      return;
-    }
-
-    console.log('Abriendo sidebar...');
-    sidebarState.isOpen = true;
-    sideNav.classList.remove('toggle-active');
-
-    // Agregar clase activa al botón
+    // Activar botón
     if (toggleBtn) {
       toggleBtn.classList.add('active');
     }
 
-    if (sidebarState.isMobile) {
-      // En móvil, mostrar overlay
-      if (sidebarState.overlay) {
-        sidebarState.overlay.classList.add('active');
-      }
-      document.body.style.overflow = 'hidden';
-    } else {
-      // En desktop, ajustar layout
-      const sidebarWidth = getSidebarWidth();
-      topNavbar.style.left = sidebarWidth + 'px';
-      topNavbar.style.width = `calc(100vw - ${sidebarWidth}px)`;
-      mainContent.style.marginLeft = sidebarWidth + 'px';
-    }
+  } else {
+    // Cerrar sidebar
+    console.log('Cerrando sidebar');
 
-    // Animar entrada
-    sideNav.style.transform = 'translateX(0)';
-    sideNav.style.boxShadow = '8px 0 32px rgba(0, 0, 0, 0.15)';
+    // En todos los casos, expandir completamente el navbar
+    topNavbar.style.left = '0';
+    topNavbar.style.width = '100vw';
 
-    console.log('Sidebar abierto exitosamente');
-  }
-
-  /**
-   * Cerrar sidebar
-   */
-  function closeSidebar() {
-    const sideNav = document.getElementById('side-nav');
-    const topNavbar = document.getElementById('top-navbar');
-    const mainContent = document.getElementById('main-content');
-    const toggleBtn = topNavbar.querySelector('.toggle-btn');
-
-    if (!sideNav || !topNavbar || !mainContent) {
-      console.error('Elementos necesarios no encontrados');
-      return;
-    }
-
-    console.log('Cerrando sidebar...');
-    sidebarState.isOpen = false;
-    sideNav.classList.add('toggle-active');
-
-    // Remover clase activa del botón
+    // Desactivar botón
     if (toggleBtn) {
       toggleBtn.classList.remove('active');
     }
+  }
 
-    if (sidebarState.isMobile) {
-      // En móvil, ocultar overlay
-      if (sidebarState.overlay) {
-        sidebarState.overlay.classList.remove('active');
-      }
-      document.body.style.overflow = '';
-    } else {
-      // En desktop, ajustar layout
-      topNavbar.style.left = '0';
-      topNavbar.style.width = '100vw';
-      mainContent.style.marginLeft = '0';
+  console.log('Estado del sidebar:', sidebarOpen ? 'abierto' : 'cerrado');
+}
+
+// Función para ajustar layout al cambiar tamaño de ventana
+function adjustLayout() {
+  checkMobile();
+  // Ya no se manipula sidebarOpen ni se llama a toggleSidebar automáticamente
+}
+
+// Función específica para limpiar estados problemáticos en páginas de examen
+function cleanupExamPageState() {
+  try {
+    console.log('Limpiando estado de página de examen...');
+
+    // Remover clases problemáticas del navbar
+    const topNavbar = document.getElementById('top-navbar');
+    if (topNavbar) {
+      topNavbar.classList.remove('dim');
+      topNavbar.style.pointerEvents = 'auto';
+      topNavbar.style.opacity = '1';
     }
 
-    // Animar salida
-    sideNav.style.transform = 'translateX(-100%)';
-    sideNav.style.boxShadow = 'none';
-
-    console.log('Sidebar cerrado exitosamente');
-  }
-
-  /**
-   * Obtener ancho del sidebar
-   */
-  function getSidebarWidth() {
-    if (sidebarState.isMobile) return 0;
-
-    if (window.innerWidth <= 1024) return 260;
-    return 280;
-  }
-
-  /**
-   * Ajustar padding del contenido principal
-   */
-  function adjustContentPadding() {
+    // Restaurar pointer-events en elementos principales
+    const sideNav = document.getElementById('side-nav');
     const mainContent = document.getElementById('main-content');
-    if (!mainContent) return;
 
-    const setPadding = () => {
-      const isMobile = window.innerWidth <= 768;
-      const sidebarWidth = isMobile ? 0 : (window.innerWidth <= 1024 ? 260 : 280);
-      const navbarHeight = isMobile ? 60 : 80;
+    if (sideNav) {
+      sideNav.style.pointerEvents = 'auto';
+      sideNav.style.zIndex = '999';
+    }
 
-      mainContent.style.marginLeft = sidebarWidth + 'px';
-      mainContent.style.marginTop = navbarHeight + 'px';
-      mainContent.style.transition = 'margin 0.3s ease';
-    };
+    if (mainContent) {
+      mainContent.style.pointerEvents = 'auto';
+      mainContent.style.zIndex = '1';
+    }
 
-    setPadding();
-    window.addEventListener('resize', setPadding);
+    // Asegurar que el formulario de examen sea interactivo
+    const quizForm = document.getElementById('quiz-form');
+    if (quizForm) {
+      quizForm.style.pointerEvents = 'auto';
+      quizForm.style.zIndex = '10';
+      quizForm.style.position = 'relative';
+
+      // Asegurar que todos los elementos del formulario sean interactivos
+      const formElements = quizForm.querySelectorAll('*');
+      formElements.forEach(element => {
+        element.style.pointerEvents = 'auto';
+      });
+    }
+
+    // Asegurar que el botón de envío funcione
+    const submitBtn = document.getElementById('submit-btn');
+    if (submitBtn) {
+      submitBtn.style.pointerEvents = 'auto';
+      submitBtn.style.cursor = 'pointer';
+      submitBtn.style.zIndex = '11';
+    }
+
+    // Asegurar que los modales de examen tengan prioridad
+    const instructionModal = document.getElementById('instractionModal');
+    if (instructionModal) {
+      instructionModal.style.zIndex = '1050';
+    }
+
+    console.log('Estado de página de examen limpiado correctamente');
+
+  } catch (error) {
+    console.error('Error al limpiar estado de página de examen:', error);
+  }
+}
+
+// Función para verificar si estamos en una página de examen
+function isExamPage() {
+  return document.getElementById('quiz-form') !== null ||
+    document.querySelector('.quiz-wrapper') !== null ||
+    document.querySelector('[data-exam-page="true"]') !== null ||
+    window.location.pathname.includes('/quiz/') ||
+    window.location.pathname.includes('/exam/') ||
+    document.title.includes('Examen') ||
+    document.title.includes('Quiz');
+}
+
+// Función para prevenir que se agregue la clase dim en páginas de examen
+function preventDimInExamPages() {
+  if (isExamPage()) {
+    // Remover clase dim si existe
+    const topNavbar = document.getElementById('top-navbar');
+    if (topNavbar) {
+      topNavbar.classList.remove('dim');
+    }
+
+    // Asegurar que no se pueda agregar la clase dim
+    const observer = new MutationObserver(function (mutations) {
+      mutations.forEach(function (mutation) {
+        if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+          const target = mutation.target;
+          if (target.id === 'top-navbar' && target.classList.contains('dim')) {
+            target.classList.remove('dim');
+            console.log('Clase dim removida automáticamente en página de examen');
+          }
+        }
+      });
+    });
+
+    if (topNavbar) {
+      observer.observe(topNavbar, { attributes: true });
+    }
+
+    // Deshabilitar eventos de foco en el campo de búsqueda
+    const searchInput = document.getElementById('primary-search');
+    if (searchInput) {
+      searchInput.removeEventListener('focus', function () {
+        $("#top-navbar").addClass("dim");
+      });
+      searchInput.removeEventListener('blur', function () {
+        $("#top-navbar").removeClass("dim");
+      });
+    }
+  }
+}
+
+// Inicializar cuando el DOM esté listo
+document.addEventListener('DOMContentLoaded', function () {
+  console.log('DOM cargado, inicializando...');
+
+  // Verificar estado inicial
+  checkMobile();
+
+  // Eliminar lógica automática de apertura/cierre del sidebar en móvil/desktop
+  // El sidebar solo responde al botón toggleSidebar()
+
+  // Si estamos en una página de examen, aplicar protecciones especiales
+  if (isExamPage()) {
+    console.log('Página de examen detectada, aplicando protecciones especiales...');
+    preventDimInExamPages();
+    cleanupExamPageState();
+    setTimeout(function () {
+      preventDimInExamPages();
+      cleanupExamPageState();
+    }, 100);
+    setTimeout(function () {
+      preventDimInExamPages();
+      cleanupExamPageState();
+    }, 500);
+    setInterval(function () {
+      if (isExamPage()) {
+        preventDimInExamPages();
+      }
+    }, 1000);
   }
 
-  // Inicializar cuando el DOM esté listo
-  init();
+  // Escuchar cambios de tamaño de ventana
+  window.addEventListener('resize', adjustLayout);
 
-  // Exportar funciones para uso global
-  window.TeckPeru = {
-    toggleSidebar: toggleSidebar,
-    openSidebar: openSidebar,
-    closeSidebar: closeSidebar,
-    isMobile: () => sidebarState.isMobile,
-    isSidebarOpen: () => sidebarState.isOpen
-  };
+  // Configurar scroll de tablas
+  setupTableScroll();
 
-  // Hacer toggleSidebar disponible globalmente
-  window.toggleSidebar = toggleSidebar;
+  console.log('Inicialización completada');
+});
 
-})();
+// Hacer la función disponible globalmente
+window.toggleSidebar = toggleSidebar;
+window.cleanupExamPageState = cleanupExamPageState;
 
 // #################################
 // popup
@@ -398,18 +259,6 @@ function pop() {
   }
 }
 
-// const popupMessagesButtons = document.querySelectorAll('popup-btn-messages')
-
-// popupMessagesButtons.forEach(button, () => {
-//     button.addEventListener('click', () => {
-//         document.getElementById('popup-box-messages').style.display = 'none';
-//     })
-// })
-
-// const popupMessagesButtom = document.getElementById('popup-btn-messages')
-// popupMessagesButtom.addEventListener('click', () => {
-//     document.getElementById('popup-box-messages').style.display = 'none';
-// })
 // ##################################
 
 // Example starter JavaScript for disabling form submissions if there are invalid fields
@@ -452,14 +301,52 @@ function showCourses(btn) {
 }
 
 $(document).ready(function () {
-  $("#primary-search").focus(function () {
-    $("#top-navbar").attr("class", "dim");
-    $("#side-nav").css("pointer-events", "none");
-    $("#main-content").css("pointer-events", "none");
-  });
-  $("#primary-search").focusout(function () {
-    $("#top-navbar").removeAttr("class");
+  // Solo aplicar estos eventos si NO estamos en una página de examen
+  if (!isExamPage()) {
+    $("#primary-search").focus(function () {
+      $("#top-navbar").addClass("dim");
+      $("#side-nav").css("pointer-events", "none");
+      $("#main-content").css("pointer-events", "none");
+    });
+    $("#primary-search").focusout(function () {
+      $("#top-navbar").removeClass("dim");
+      $("#side-nav").css("pointer-events", "auto");
+      $("#main-content").css("pointer-events", "auto");
+    });
+  } else {
+    // En páginas de examen, asegurar que el campo de búsqueda no cause problemas
+    $("#primary-search").off('focus focusout');
+    $("#top-navbar").removeClass("dim");
     $("#side-nav").css("pointer-events", "auto");
     $("#main-content").css("pointer-events", "auto");
-  });
+  }
 });
+
+// Función para configurar scroll de tablas
+function setupTableScroll() {
+  const tables = document.querySelectorAll('.table-responsive');
+
+  tables.forEach(table => {
+    function checkScroll() {
+      const scrollLeft = table.scrollLeft;
+      const scrollWidth = table.scrollWidth;
+      const clientWidth = table.clientWidth;
+
+      // Agregar/remover clases para indicadores de scroll
+      if (scrollLeft > 0) {
+        table.classList.add('has-scroll-left');
+      } else {
+        table.classList.remove('has-scroll-left');
+      }
+
+      if (scrollLeft < scrollWidth - clientWidth - 1) {
+        table.classList.add('has-scroll-right');
+      } else {
+        table.classList.remove('has-scroll-right');
+      }
+    }
+
+    table.addEventListener('scroll', checkScroll);
+    checkScroll(); // Verificar estado inicial
+  });
+}
