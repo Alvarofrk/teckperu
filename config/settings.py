@@ -40,12 +40,18 @@ if DEBUG:
         '127.0.0.1',
         '0.0.0.0',
         '::1',
+        'seguridadteckperu.com', 
+        'www.seguridadteckperu.com', 
+        'teckperu.onrender.com'
     ]
     CSRF_TRUSTED_ORIGINS = [
         'http://localhost:8000',
         'http://127.0.0.1:8000',
         'http://localhost:3000',
         'http://127.0.0.1:3000',
+        'https://seguridadteckperu.com', 
+        'https://www.seguridadteckperu.com', 
+        'https://teckperu.onrender.com'
     ]
 else:
     # Configuración para producción - más flexible con variables de entorno
