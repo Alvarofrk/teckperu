@@ -68,7 +68,9 @@
                             {{ request.user.get_full_name|default:request.user.username }}
                         </h6>
                         <p class="small text-muted text-center mb-0">
-                            {% trans 'Último inicio de sesión:' %} {{ request.user.last_login|date }}
+                            {% if request.user.is_authenticated %}
+                                {% trans 'Último inicio de sesión:' %} {{ request.user.last_login|date }}
+                            {% endif %}
                         </p>
                     </div>
                     <hr>
