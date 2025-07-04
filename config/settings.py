@@ -27,37 +27,30 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # See https://docs.djangoproject.com/en/2.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = config(
-    "SECRET_KEY", default="o!ld8nrt4vc*h1zoey*wj48x*q0#ss12h=+zh)kk^6b3aygg=!"
-)
-
-
-
-
+SECRET_KEY = config("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config("DEBUG", default=True, cast=bool)
 
-# --- Configuración de hosts y CSRF según entorno ---
-
-if not DEBUG:
+# --- Configuración dinámica de hosts y CSRF según entorno ---
+if DEBUG:
+    # Configuración para desarrollo local
     ALLOWED_HOSTS = [
-        'seguridadteckperu.com',
-        'www.seguridadteckperu.com',
-        'teckperu.onrender.com',  # Dominio temporal de Render
+        'localhost',
+        '127.0.0.1',
+        '0.0.0.0',
+        '::1',
     ]
-    CSRF_TRUSTED_ORIGINS = [
-        'https://seguridadteckperu.com',
-        'https://www.seguridadteckperu.com',
-        'https://teckperu.onrender.com',  # Dominio temporal de Render
-    ]
-else:
-    ALLOWED_HOSTS = ['*']
     CSRF_TRUSTED_ORIGINS = [
         'http://localhost:8000',
         'http://127.0.0.1:8000',
-        # Puedes agregar otros dominios de desarrollo aquí
+        'http://localhost:3000',
+        'http://127.0.0.1:3000',
     ]
+else:
+    # Configuración para producción - más flexible con variables de entorno
+    ALLOWED_HOSTS = config("ALLOWED_HOSTS", default="teckperu.onrender.com").split(",")
+    CSRF_TRUSTED_ORIGINS = config("CSRF_TRUSTED_ORIGINS", default="https://teckperu.onrender.com").split(",")
 
 # change the default user models to our custom model
 AUTH_USER_MODEL = "accounts.User"
@@ -122,10 +115,10 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
-                # 'django.template.context_processors.i18n',
-                # 'django.template.context_processors.media',
-                # 'django.template.context_processors.static',
-                # 'django.template.context_processors.tz',
+                "django.template.context_processors.i18n",
+                "django.template.context_processors.media",
+                "django.template.context_processors.static",
+                "django.template.context_processors.tz",
             ],
         },
     },
@@ -136,57 +129,16 @@ WSGI_APPLICATION = "config.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/2.2/ref/settings/#databases
 
-# DATABASES = {
-#     "default": {
-#         "ENGINE": "django.db.backends.sqlite3",
-#         "NAME": os.path.join(BASE_DIR, "db.sqlite3"),
-#     }
-# }
-
-# DATABASES = {
-#     'default': {
-#         'ENGINE': config('DATABASE_ENGINE', default='django.db.backends.postgresql'),
-#         'NAME': config('DATABASE_NAME', default='seguridadteckdb'),
-#         'USER': config('DATABASE_USER', default='seguridadteckuser'),
-#         'PASSWORD': config('DATABASE_PASSWORD', default='1798'),
-#         'HOST': config('DATABASE_HOST', default='localhost'),
-#         'PORT': config('DATABASE_PORT', default='5432', cast=int),
-#     }
-# }
 DATABASES = {
     'default': {
-        'ENGINE': config('DATABASE_ENGINE'),
+        'ENGINE': config('DATABASE_ENGINE', default='django.db.backends.postgresql'),
         'NAME': config('DATABASE_NAME'),
         'USER': config('DATABASE_USER'),
         'PASSWORD': config('DATABASE_PASSWORD'),
         'HOST': config('DATABASE_HOST'),
-        'PORT': config('DATABASE_PORT'),
+        'PORT': config('DATABASE_PORT', cast=int),
     }
 }
-
-
-
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.postgresql',
-#         'NAME': 'db_seguridadteckperu',
-#         'USER': 'user_teck',  # Puedes usar el usuario predeterminado o uno que crees en tu base de datos
-#         'PASSWORD': '1798',  # La contraseña de la base de datos
-#         'HOST': '/cloudsql/seguridadteckperu:us-central1-a:dbseguridadteckperu', # Usando el nombre de tu instancia de Cloud SQL
-#         'PORT': '5432',
-#     }
-# }
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.postgresql',
-#         'NAME': 'db_seguridadteckperu',  # Nombre de la base de datos
-#         'USER': 'user_teck',  # Usuario
-#         'PASSWORD': '1798',  # Contraseña
-#         'HOST': '/cloudsql/seguridadteckperu:us-central1-a:dbseguridadteckperu',  # Ruta del socket de Cloud SQL
-#         'PORT': '5432',
-#     }
-# }
-
 
 # https://docs.djangoproject.com/en/stable/ref/settings/#std:setting-DEFAULT_AUTO_FIELD
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
@@ -209,14 +161,11 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
 # Internationalization
 # https://docs.djangoproject.com/en/2.2/topics/i18n/
 
-
 def gettext(s):
     return s
-
 
 LANGUAGES = (
     ("en", gettext("English")),
@@ -230,7 +179,7 @@ LOCALE_PATHS = (os.path.join(BASE_DIR, "locale"),)
 MODELTRANSLATION_DEFAULT_LANGUAGE = "es"
 LANGUAGE_CODE = "es-es"
 
-TIME_ZONE = "UTC"
+TIME_ZONE = "America/Lima"
 
 USE_I18N = True
 
@@ -238,19 +187,14 @@ USE_L10N = True
 
 USE_TZ = True
 
-
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/2.2/howto/static-files/
 
-# https://docs.djangoproject.com/en/dev/ref/settings/#static-url
 STATIC_URL = "/static/"
-# https://docs.djangoproject.com/en/dev/ref/contrib/staticfiles/#std:setting-STATICFILES_DIRS
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, "static"),
 ]
-# https://docs.djangoproject.com/en/dev/ref/settings/#static-root
 STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
-# https://docs.djangoproject.com/en/dev/ref/contrib/staticfiles/#staticfiles-finders
 STATICFILES_FINDERS = [
     "django.contrib.staticfiles.finders.FileSystemFinder",
     "django.contrib.staticfiles.finders.AppDirectoriesFinder",
@@ -281,8 +225,11 @@ CRISPY_TEMPLATE_PACK = "bootstrap5"
 LOGIN_REDIRECT_URL = "/"
 LOGOUT_REDIRECT_URL = "/"
 
+# Stripe payment config
+STRIPE_SECRET_KEY = config("STRIPE_SECRET_KEY", default="")
+STRIPE_PUBLISHABLE_KEY = config("STRIPE_PUBLISHABLE_KEY", default="")
 
-# LOGGING
+# LOGGING - Configuración mejorada para debugging
 # ------------------------------------------------------------------------------
 # https://docs.djangoproject.com/en/dev/ref/settings/#logging
 # See https://docs.djangoproject.com/en/dev/topics/logging for
@@ -294,16 +241,41 @@ LOGGING = {
         "verbose": {
             "format": "%(levelname)s %(asctime)s %(module)s "
             "%(process)d %(thread)d %(message)s"
-        }
+        },
+        "simple": {
+            "format": "%(levelname)s %(message)s"
+        },
     },
     "handlers": {
         "console": {
             "level": "DEBUG",
             "class": "logging.StreamHandler",
             "formatter": "verbose",
-        }
+        },
     },
-    "root": {"level": "DEBUG", "handlers": ["console"]},
+    "loggers": {
+        "django": {
+            "handlers": ["console"],
+            "level": "INFO",
+            "propagate": False,
+        },
+        "django.request": {
+            "handlers": ["console"],
+            "level": "DEBUG",
+            "propagate": False,
+        },
+        "django.db.backends": {
+            "handlers": ["console"],
+            "level": "DEBUG",
+            "propagate": False,
+        },
+        "django.security": {
+            "handlers": ["console"],
+            "level": "DEBUG",
+            "propagate": False,
+        },
+    },
+    "root": {"level": "INFO", "handlers": ["console"]},
 }
 
 # WhiteNoise configuration
@@ -311,7 +283,6 @@ STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 STUDENT_ID_PREFIX = config("STUDENT_ID_PREFIX", "ugr")
 LECTURER_ID_PREFIX = config("LECTURER_ID_PREFIX", "lec")
-
 
 # Constants
 YEARS = (
@@ -365,9 +336,16 @@ if not DEBUG:
     # Evita que tu sitio sea embebido en iframes (protege contra clickjacking)
     X_FRAME_OPTIONS = 'DENY'
 
-    # Opcional: marca las cookies como HttpOnly (no accesibles por JS)
+    # Marca las cookies como HttpOnly (no accesibles por JS)
     SESSION_COOKIE_HTTPONLY = True
     CSRF_COOKIE_HTTPONLY = True
+
+    # Configuración para proxies (como Render.com)
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+    # Configuración adicional de seguridad
+    SECURE_BROWSER_XSS_FILTER = True
+    SECURE_REFERRER_POLICY = 'strict-origin-when-cross-origin'
 else:
     # En desarrollo local, desactivar redirecciones HTTPS
     SECURE_SSL_REDIRECT = False
