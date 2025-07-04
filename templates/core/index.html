@@ -61,7 +61,7 @@
 
                 <div class="bg-light p-1 small text-secondary text-end pe-3">
                     <i class="fa fa-calendar small unstyled"></i>
-                    {{ item.updated_date|timesince }} {% trans 'atrás' %}
+                    {{ item.updated_date|default:""|timesince }} {% trans 'atrás' %}
                 </div>
 
             </div>
