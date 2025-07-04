@@ -2,6 +2,7 @@ from django.urls import path
 
 from .views import (
     home_view,
+    home_view_test,
     post_add,
     edit_post,
     delete_post,
@@ -19,7 +20,8 @@ from .views import (
 
 urlpatterns = [
     # Accounts url
-    path("", home_view, name="home"),
+    path("", home_view_test, name="home"),  # Temporal: sin login_required
+    path("home_secure/", home_view, name="home_secure"),  # Original con login_required
     path("add_item/", post_add, name="add_item"),
     path("item/<int:pk>/edit/", edit_post, name="edit_post"),
     path("item/<int:pk>/delete/", delete_post, name="delete_post"),

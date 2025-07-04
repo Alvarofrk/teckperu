@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.http import HttpResponse
 
 from accounts.decorators import admin_required, lecturer_required
 from accounts.models import User, Student
@@ -19,6 +20,19 @@ def home_view(request):
         "items": items,
     }
     return render(request, "core/index.html", context)
+
+
+def home_view_test(request):
+    """Vista de prueba temporal sin login_required"""
+    try:
+        items = NewsAndEvents.objects.all().order_by("-updated_date")
+        context = {
+            "title": "News & Events",
+            "items": items,
+        }
+        return render(request, "core/index.html", context)
+    except Exception as e:
+        return HttpResponse(f"Error en home_view: {str(e)}", status=500)
 
 
 @login_required
