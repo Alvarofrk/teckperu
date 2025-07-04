@@ -2,14 +2,6 @@ from django.urls import path
 
 from .views import (
     home_view,
-    home_view_test,
-    home_view_simple,
-    home_view_basic,
-    home_view_env_check,
-    home_view_ssl_check,
-    home_view_static_check,
-    home_view_debug,
-    home_view_debug_simple,
     post_add,
     edit_post,
     delete_post,
@@ -22,34 +14,22 @@ from .views import (
     semester_update_view,
     semester_delete_view,
     dashboard_view,
-    home_view_raw,
-    home_view_minimal,
 )
 
 
 urlpatterns = [
     # Accounts url
-    path("", home_view_raw, name="home"),  # Temporal: vista súper mínima
-    path("basic/", home_view_basic, name="home_basic"),  # Vista básica
-    path("minimal/", home_view_minimal, name="home_minimal"),  # Vista mínima
-    path("simple/", home_view_simple, name="home_simple"),  # Vista simple
-    path("env/", home_view_env_check, name="env_check"),  # Verificar variables de entorno
-    path("ssl/", home_view_ssl_check, name="ssl_check"),  # Verificar configuración SSL
-    path("static/", home_view_static_check, name="static_check"),  # Verificar staticfiles
-    path("test/", home_view_test, name="home_test"),  # Vista con diagnóstico
-    path("debug/", home_view_debug, name="home_debug"),  # Vista de debug
-    path("debug2/", home_view_debug_simple, name="home_debug_simple"),  # Vista de debug simple
-    path("home_secure/", home_view, name="home_secure"),  # Original con login_required
+    path("", home_view, name="home"),
     path("add_item/", post_add, name="add_item"),
     path("item/<int:pk>/edit/", edit_post, name="edit_post"),
     path("item/<int:pk>/delete/", delete_post, name="delete_post"),
     path("session/", session_list_view, name="session_list"),
-    path("session/add/", session_add_view, name="session_add"),
-    path("session/<int:pk>/edit/", session_update_view, name="session_update"),
-    path("session/<int:pk>/delete/", session_delete_view, name="session_delete"),
+    path("session/add/", session_add_view, name="add_session"),
+    path("session/<int:pk>/edit/", session_update_view, name="edit_session"),
+    path("session/<int:pk>/delete/", session_delete_view, name="delete_session"),
     path("semester/", semester_list_view, name="semester_list"),
-    path("semester/add/", semester_add_view, name="semester_add"),
-    path("semester/<int:pk>/edit/", semester_update_view, name="semester_update"),
-    path("semester/<int:pk>/delete/", semester_delete_view, name="semester_delete"),
+    path("semester/add/", semester_add_view, name="add_semester"),
+    path("semester/<int:pk>/edit/", semester_update_view, name="edit_semester"),
+    path("semester/<int:pk>/delete/", semester_delete_view, name="delete_semester"),
     path("dashboard/", dashboard_view, name="dashboard"),
 ]
