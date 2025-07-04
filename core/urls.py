@@ -4,6 +4,8 @@ from .views import (
     home_view,
     home_view_test,
     home_view_simple,
+    home_view_debug,
+    home_view_debug_simple,
     post_add,
     edit_post,
     delete_post,
@@ -23,6 +25,8 @@ urlpatterns = [
     # Accounts url
     path("", home_view_simple, name="home"),  # Temporal: vista súper simple
     path("test/", home_view_test, name="home_test"),  # Vista con diagnóstico
+    path("debug/", home_view_debug, name="home_debug"),  # Vista de debug
+    path("debug2/", home_view_debug_simple, name="home_debug_simple"),  # Vista de debug simple
     path("home_secure/", home_view, name="home_secure"),  # Original con login_required
     path("add_item/", post_add, name="add_item"),
     path("item/<int:pk>/edit/", edit_post, name="edit_post"),

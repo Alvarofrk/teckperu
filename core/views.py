@@ -59,6 +59,43 @@ def home_view_simple(request):
     return HttpResponse("¡Hola! La vista simple funciona correctamente.", status=200)
 
 
+def home_view_debug(request):
+    """Vista de diagnóstico paso a paso"""
+    try:
+        # Paso 1: Probar solo el template base sin includes
+        return render(request, "base.html", {})
+    except Exception as e:
+        return HttpResponse(f"Error en base.html: {str(e)}", status=500)
+
+
+def home_view_debug_simple(request):
+    """Vista de diagnóstico sin javascript-catalog"""
+    try:
+        # Crear un template simple sin la línea problemática
+        template_content = """
+{% load static %}
+{% load i18n %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test</title>
+</head>
+<body>
+    <h1>Test sin javascript-catalog</h1>
+    <p>Si ves esto, el problema está en la línea del javascript-catalog</p>
+</body>
+</html>
+"""
+        from django.template import Template, Context
+        template = Template(template_content)
+        context = Context({})
+        return HttpResponse(template.render(context), status=200)
+    except Exception as e:
+        return HttpResponse(f"Error en template simple: {str(e)}", status=500)
+
+
 @login_required
 @admin_required
 def dashboard_view(request):
