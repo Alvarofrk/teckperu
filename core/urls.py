@@ -22,12 +22,16 @@ from .views import (
     semester_update_view,
     semester_delete_view,
     dashboard_view,
+    home_view_raw,
+    home_view_minimal,
 )
 
 
 urlpatterns = [
     # Accounts url
-    path("", home_view_basic, name="home"),  # Temporal: vista súper básica
+    path("", home_view_raw, name="home"),  # Temporal: vista súper mínima
+    path("basic/", home_view_basic, name="home_basic"),  # Vista básica
+    path("minimal/", home_view_minimal, name="home_minimal"),  # Vista mínima
     path("simple/", home_view_simple, name="home_simple"),  # Vista simple
     path("env/", home_view_env_check, name="env_check"),  # Verificar variables de entorno
     path("ssl/", home_view_ssl_check, name="ssl_check"),  # Verificar configuración SSL

@@ -98,7 +98,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    "django.middleware.locale.LocaleMiddleware",
+    # "django.middleware.locale.LocaleMiddleware",  # TEMPORALMENTE COMENTADO
     "whitenoise.middleware.WhiteNoiseMiddleware",  # whitenoise to serve static files
 ]
 

@@ -405,3 +405,20 @@ def home_view_static_check(request):
         return HttpResponse(response, status=200)
     except Exception as e:
         return HttpResponse(f"Error verificando staticfiles: {str(e)}", status=500)
+
+
+def home_view_minimal(request):
+    """Vista súper mínima sin HttpResponse"""
+    try:
+        from django.http import HttpResponse
+        return HttpResponse("Vista mínima funciona", status=200)
+    except Exception as e:
+        return f"Error en vista mínima: {str(e)}"
+
+
+def home_view_raw(request):
+    """Vista raw sin Django"""
+    try:
+        return "Vista raw funciona"
+    except Exception as e:
+        return f"Error en vista raw: {str(e)}"
