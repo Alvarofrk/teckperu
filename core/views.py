@@ -419,6 +419,7 @@ def home_view_minimal(request):
 def home_view_raw(request):
     """Vista raw sin Django"""
     try:
-        return "Vista raw funciona"
+        from django.http import HttpResponse
+        return HttpResponse("Vista raw funciona", status=200)
     except Exception as e:
-        return f"Error en vista raw: {str(e)}"
+        return HttpResponse(f"Error en vista raw: {str(e)}", status=500)
