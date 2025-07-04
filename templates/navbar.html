@@ -23,31 +23,20 @@
             </form>
 
             <div class="dropdown">
-                <div class="avatar border border-2" 
+                <div class="avatar border border-2 bg-primary text-white fw-bold d-flex align-items-center justify-content-center" 
                      type="button" 
                      data-bs-toggle="dropdown" 
                      aria-expanded="false"
                      role="button"
                      tabindex="0"
-                     aria-label="{% trans 'Menú de usuario' %}">
-                    {% if request.user.picture %}
-                        <img src="{{ request.user.picture.url }}" alt="{% trans 'Foto de perfil' %}" loading="lazy">
-                    {% else %}
-                        <div class="avatar-placeholder">
-                            <i class="fas fa-user"></i>
-                        </div>
-                    {% endif %}
+                     aria-label="{% trans 'Menú de usuario' %}"
+                     style="width: 40px; height: 40px; border-radius: 50%; font-size: 1.2rem;">
+                    {{ request.user.first_name|slice:":1" }}{{ request.user.last_name|slice:":1" }}
                 </div>
                 <div class="dropdown-menu" style="min-width: 14rem !important;">
                     <div class="d-flex flex-column align-items-center">
-                        <div class="avatar avatar-md border">
-                            {% if request.user.picture %}
-                                <img src="{{ request.user.picture.url }}" alt="{% trans 'Foto de perfil' %}" loading="lazy">
-                            {% else %}
-                                <div class="avatar-placeholder">
-                                    <i class="fas fa-user"></i>
-                                </div>
-                            {% endif %}
+                        <div class="avatar avatar-md border bg-primary text-white fw-bold d-flex align-items-center justify-content-center" style="width: 60px; height: 60px; border-radius: 50%; font-size: 2rem;">
+                            {{ request.user.first_name|slice:":1" }}{{ request.user.last_name|slice:":1" }}
                         </div>
     
                         <h6 class="mb-1 text-center fw-bold">

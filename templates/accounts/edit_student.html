@@ -156,9 +156,6 @@
         <li class="nav-item" role="presentation">
             <button class="nav-link" id="cursos-tab" data-bs-toggle="tab" data-bs-target="#cursos-pane" type="button" role="tab" aria-controls="cursos-pane" aria-selected="false"><i class="fas fa-graduation-cap me-2"></i>{% trans 'Gestión de Cursos' %}</button>
         </li>
-        <li class="nav-item" role="presentation">
-            <button class="nav-link" id="foto-tab" data-bs-toggle="tab" data-bs-target="#foto-pane" type="button" role="tab" aria-controls="foto-pane" aria-selected="false"><i class="fas fa-camera me-2"></i>{% trans 'Foto de Perfil' %}</button>
-        </li>
     </ul>
 
     <div class="tab-content">
@@ -186,9 +183,6 @@
             <div class="course-list" id="course-list-container">
                 {{ student_form.courses }}
             </div>
-        </div>
-        <div class="tab-pane fade" id="foto-pane" role="tabpanel" aria-labelledby="foto-tab" tabindex="0">
-            {{ profile_form.picture|as_crispy_field }}
         </div>
     </div>
 

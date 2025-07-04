@@ -322,12 +322,8 @@
             <tr>
                 <td>
                     <div class="user-info">
-                        <div class="user-avatar">
-                            {% if student.student.picture and student.student.picture.url != '/media/default.png' %}
-                                <img src="{{ student.student.picture.url }}" alt="{{ student.student.get_full_name }}">
-                            {% else %}
-                                {{ student.student.first_name|first|upper }}{{ student.student.last_name|first|upper }}
-                            {% endif %}
+                        <div class="user-avatar bg-primary text-white fw-bold d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; border-radius: 50%; font-size: 1.2rem;">
+                            {{ student.student.first_name|slice:':1'|upper }}{{ student.student.last_name|slice:':1'|upper }}
                         </div>
                         <div class="user-details">
                             <a href="{% url 'profile_single' student.student.id %}" class="user-name">

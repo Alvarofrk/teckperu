@@ -257,13 +257,9 @@
     <div class="lecturer-card">
         <div class="lecturer-card__header"></div>
         <div class="lecturer-card__avatar">
-            {% if lecturer.picture and lecturer.picture.url != '/media/default.png' %}
-                <img src="{{ lecturer.picture.url }}" alt="{{ lecturer.get_full_name }}">
-            {% else %}
-                <div class="lecturer-card__avatar-placeholder">
-                    <i class="fas fa-user"></i>
-                </div>
-            {% endif %}
+            <div class="lecturer-card__avatar-placeholder bg-primary text-white fw-bold d-flex align-items-center justify-content-center" style="width: 60px; height: 60px; border-radius: 50%; font-size: 1.5rem;">
+                {{ lecturer.first_name|slice:':1'|upper }}{{ lecturer.last_name|slice:':1'|upper }}
+            </div>
         </div>
         <div class="lecturer-card__content">
             <h3 class="lecturer-card__name">
