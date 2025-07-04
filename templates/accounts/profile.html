@@ -22,8 +22,20 @@
     <div class="col-md-3 mx-auto">
         <div class="card  p-2">
             <div class="text-center">
-                <div class="avatar bg-primary text-white fw-bold d-flex align-items-center justify-content-center mx-auto" style="width: 100px; height: 100px; border-radius: 50%; font-size: 2.5rem;">
-                    {{ user.first_name|slice:':1' }}{{ user.last_name|slice:':1' }}
+                <div class="avatar fw-bold d-flex align-items-center justify-content-center mx-auto" style="width: 100px; height: 100px; border-radius: 50%; font-size: 2.5rem; background: #BA6022; color: #fff;">
+                    {% with initial=user.first_name|default_if_none:""|slice:":1"|upper %}
+                        {% if not initial %}
+                            {% with initial=user.last_name|default_if_none:""|slice:":1"|upper %}
+                                {% if not initial %}
+                                    {{ user.username|default_if_none:""|slice:":1"|upper }}
+                                {% else %}
+                                    {{ initial }}
+                                {% endif %}
+                            {% endwith %}
+                        {% else %}
+                            {{ initial }}
+                        {% endif %}
+                    {% endwith %}
                 </div>
                 <ul class="px-2 list-unstyled">
                     <li>{{ user.get_full_name|title }}</li>

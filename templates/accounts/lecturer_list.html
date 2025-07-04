@@ -256,10 +256,8 @@
     {% for lecturer in filter.qs %}
     <div class="lecturer-card">
         <div class="lecturer-card__header"></div>
-        <div class="lecturer-card__avatar">
-            <div class="lecturer-card__avatar-placeholder bg-primary text-white fw-bold d-flex align-items-center justify-content-center" style="width: 60px; height: 60px; border-radius: 50%; font-size: 1.5rem;">
-                {{ lecturer.first_name|slice:':1'|upper }}{{ lecturer.last_name|slice:':1'|upper }}
-            </div>
+        <div class="lecturer-card__avatar" style="width: 60px; height: 60px; border-radius: 50%; background: #BA6022; display: flex; align-items: center; justify-content: center; margin: -30px auto 0 auto; border: none; box-shadow: none;">
+            <span class="fw-bold" style="color: #fff; font-size: 1.5rem; width: 100%; text-align: center;">{{ lecturer.first_name|slice:':1'|upper }}{{ lecturer.last_name|slice:':1'|upper }}</span>
         </div>
         <div class="lecturer-card__content">
             <h3 class="lecturer-card__name">

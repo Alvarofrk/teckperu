@@ -23,7 +23,8 @@
             </form>
 
             <div class="dropdown">
-                <div class="avatar border border-2 bg-primary text-white fw-bold d-flex align-items-center justify-content-center" 
+                <div class="avatar border border-2 fw-bold d-flex align-items-center justify-content-center" 
+                     style="background: #BA6022; color: #fff;"
                      type="button" 
                      data-bs-toggle="dropdown" 
                      aria-expanded="false"
@@ -31,12 +32,36 @@
                      tabindex="0"
                      aria-label="{% trans 'Menú de usuario' %}"
                      style="width: 40px; height: 40px; border-radius: 50%; font-size: 1.2rem;">
-                    {{ request.user.first_name|slice:":1" }}{{ request.user.last_name|slice:":1" }}
+                    {% with initial=request.user.first_name|default_if_none:""|slice:":1"|upper %}
+                        {% if not initial %}
+                            {% with initial=request.user.last_name|default_if_none:""|slice:":1"|upper %}
+                                {% if not initial %}
+                                    {{ request.user.username|default_if_none:""|slice:":1"|upper }}
+                                {% else %}
+                                    {{ initial }}
+                                {% endif %}
+                            {% endwith %}
+                        {% else %}
+                            {{ initial }}
+                        {% endif %}
+                    {% endwith %}
                 </div>
                 <div class="dropdown-menu" style="min-width: 14rem !important;">
                     <div class="d-flex flex-column align-items-center">
-                        <div class="avatar avatar-md border bg-primary text-white fw-bold d-flex align-items-center justify-content-center" style="width: 60px; height: 60px; border-radius: 50%; font-size: 2rem;">
-                            {{ request.user.first_name|slice:":1" }}{{ request.user.last_name|slice:":1" }}
+                        <div class="avatar avatar-md border fw-bold d-flex align-items-center justify-content-center" style="width: 60px; height: 60px; border-radius: 50%; font-size: 2rem; background: #BA6022 !important; color: #fff !important;">
+                            {% with initial=request.user.first_name|default_if_none:""|slice:":1"|upper %}
+                                {% if not initial %}
+                                    {% with initial=request.user.last_name|default_if_none:""|slice:":1"|upper %}
+                                        {% if not initial %}
+                                            {{ request.user.username|default_if_none:""|slice:":1"|upper }}
+                                        {% else %}
+                                            {{ initial }}
+                                        {% endif %}
+                                    {% endwith %}
+                                {% else %}
+                                    {{ initial }}
+                                {% endif %}
+                            {% endwith %}
                         </div>
     
                         <h6 class="mb-1 text-center fw-bold">

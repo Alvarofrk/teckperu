@@ -378,11 +378,10 @@ class ProfileUpdateForm(UserChangeForm):
 
     class Meta:
         model = User
-        fields = ["last_name", "first_name", "picture", "address", "phone", "gender", "email"]
+        fields = ["last_name", "first_name", "address", "phone", "gender", "email"]
         labels = {
             'last_name': 'Apellidos',
             'first_name': 'Nombres',
-            'picture': 'Foto de Perfil',
             'address': 'Dirección',
             'phone': 'N° de Móvil',
             'gender': 'Género',

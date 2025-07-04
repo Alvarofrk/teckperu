@@ -132,7 +132,21 @@
 
 {% with student=profile_form.instance %}
 <div class="profile-header">
-    <img src="{{ student.get_picture }}" alt="Foto de perfil" class="profile-avatar">
+    <div class="profile-avatar fw-bold d-flex align-items-center justify-content-center" style="width: 80px; height: 80px; border-radius: 50%; font-size: 2rem; background: #BA6022; color: #fff;">
+        {% with initial=student.first_name|default_if_none:""|slice:":1"|upper %}
+            {% if not initial %}
+                {% with initial=student.last_name|default_if_none:""|slice:":1"|upper %}
+                    {% if not initial %}
+                        {{ student.username|default_if_none:""|slice:":1"|upper }}
+                    {% else %}
+                        {{ initial }}
+                    {% endif %}
+                {% endwith %}
+            {% else %}
+                {{ initial }}
+            {% endif %}
+        {% endwith %}
+    </div>
     <div>
         <h2 class="profile-name">{{ student.get_full_name }}</h2>
         <p class="profile-username">ID: {{ student.username }}</p>
