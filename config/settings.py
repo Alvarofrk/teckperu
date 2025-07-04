@@ -52,6 +52,9 @@ else:
     ALLOWED_HOSTS = config("ALLOWED_HOSTS", default="teckperu.onrender.com").split(",")
     CSRF_TRUSTED_ORIGINS = config("CSRF_TRUSTED_ORIGINS", default="https://teckperu.onrender.com").split(",")
 
+print("ALLOWED_HOSTS:", ALLOWED_HOSTS)
+print("CSRF_TRUSTED_ORIGINS:", CSRF_TRUSTED_ORIGINS)
+
 # change the default user models to our custom model
 AUTH_USER_MODEL = "accounts.User"
 
