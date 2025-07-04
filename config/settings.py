@@ -63,7 +63,7 @@ else:
 AUTH_USER_MODEL = "accounts.User"
 
 # Application definition
-
+ 
 DJANGO_APPS = [ 
     "modeltranslation",  # Translation
     "jet.dashboard",
