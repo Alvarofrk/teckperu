@@ -281,9 +281,6 @@ CRISPY_TEMPLATE_PACK = "bootstrap5"
 LOGIN_REDIRECT_URL = "/"
 LOGOUT_REDIRECT_URL = "/"
 
-# Strip payment config
-STRIPE_SECRET_KEY = config("STRIPE_SECRET_KEY", default="")
-STRIPE_PUBLISHABLE_KEY = config("STRIPE_PUBLISHABLE_KEY", default="")
 
 # LOGGING
 # ------------------------------------------------------------------------------
@@ -306,7 +303,7 @@ LOGGING = {
             "formatter": "verbose",
         }
     },
-    "root": {"level": "INFO", "handlers": ["console"]},
+    "root": {"level": "DEBUG", "handlers": ["console"]},
 }
 
 # WhiteNoise configuration
