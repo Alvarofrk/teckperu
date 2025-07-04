@@ -3,6 +3,15 @@
 /**
  * MAIN.JS - TECKPERU
  * Funcionalidad simplificada para sidebar y navbar
+ * 
+ * Copyright (c) 2025 Alvaro Franco Cerna Ramos
+ * Propiedad Intelectual - Plataforma Educativa Seguridad TECK Perú
+ * Desarrollado exclusivamente para TECK Perú a través de G.P.D. CONSULTORES S.A.C.
+ * Todos los derechos reservados.
+ * 
+ * Este archivo contiene funcionalidades únicas de navegación y prevención
+ * de bloqueos en páginas de examen. Prohibida su reproducción o modificación
+ * sin autorización expresa del desarrollador.
  */
 
 // Variables globales

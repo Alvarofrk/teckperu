@@ -8,6 +8,11 @@ https://docs.djangoproject.com/en/2.2/topics/settings/
 
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/2.2/ref/settings/
+
+Copyright (c) 2025 Alvaro Franco Cerna Ramos
+Propiedad Intelectual - Plataforma Educativa Seguridad TECK Perú
+Desarrollado exclusivamente para TECK Perú a través de G.P.D. CONSULTORES S.A.C.
+Todos los derechos reservados.
 """
 
 import os
@@ -33,16 +38,21 @@ SECRET_KEY = config(
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config("DEBUG", default=True, cast=bool)
 
-CSRF_TRUSTED_ORIGINS = [
-    'https://8c76-2800-200-fe60-513-81ae-df6a-53df-cef0.ngrok-free.app',
-    'https://*.ngrok-free.app',
-    'https://seguridadteckperu.ngrok.app',
-    'https://seguridadteckperu-409461866393.us-central1.run.app',
-    'https://teckperu.onrender.com/',
-    # Puedes agregar más URLs de Ngrok si es necesario
-]
-# ALLOWED_HOSTS = ["127.0.0.1", "adilmohak1.pythonanywhere.com"]
-ALLOWED_HOSTS=['*']
+# --- Configuración de hosts y CSRF según entorno ---
+
+if not DEBUG:
+    ALLOWED_HOSTS = ['seguridadteckperu.com', 'www.seguridadteckperu.com']
+    CSRF_TRUSTED_ORIGINS = [
+        'https://seguridadteckperu.com',
+        'https://www.seguridadteckperu.com',
+    ]
+else:
+    ALLOWED_HOSTS = ['*']
+    CSRF_TRUSTED_ORIGINS = [
+        'http://localhost:8000',
+        'http://127.0.0.1:8000',
+        # Puedes agregar otros dominios de desarrollo aquí
+    ]
 
 # change the default user models to our custom model
 AUTH_USER_MODEL = "accounts.User"

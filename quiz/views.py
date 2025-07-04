@@ -1,3 +1,14 @@
+"""
+Copyright (c) 2025 Alvaro Franco Cerna Ramos
+Propiedad Intelectual - Plataforma Educativa Seguridad TECK Perú
+Desarrollado exclusivamente para TECK Perú a través de G.P.D. CONSULTORES S.A.C.
+Todos los derechos reservados.
+
+Este módulo contiene funcionalidades únicas de generación de certificados PDF
+y sistema de anexos personalizados. Prohibida su reproducción o modificación
+sin autorización expresa del desarrollador.
+"""
+
 import os 
 import io
 import locale

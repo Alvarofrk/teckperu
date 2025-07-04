@@ -1,21 +1,153 @@
-MIT License
+LICENCIA DE USO LIMITADA - PLATAFORMA EDUCATIVA SEGURIDAD TECK PERÚ
+================================================================
 
-Copyright (c) 2023 Adil Mohak
+Copyright (c) 2025 Alvaro Franco Cerna Ramos
+Todos los derechos reservados.
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+PROPIEDAD INTELECTUAL
+====================
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+Este software y toda su documentación asociada ("Software") es propiedad intelectual 
+**EXCLUSIVA** de Alvaro Franco Cerna Ramos ("Propietario"). TECK Perú y G.P.D. CONSULTORES S.A.C. 
+NO son propietarios del código, solo tienen licencia de uso limitada. El Software incluye, pero 
+no se limita a:
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+- Código fuente en Python/Django
+- Estructura de base de datos
+- Diseños de interfaz de usuario
+- Lógica de negocio implementada
+- Documentación técnica
+- Scripts y utilidades
+- Configuraciones de despliegue
+
+LICENCIA DE USO
+===============
+
+Se otorga una licencia de uso limitada, no exclusiva y no transferible a:
+
+CLIENTE CON LICENCIA: TECK Perú
+INTERMEDIARIO: G.P.D. CONSULTORES S.A.C.
+PROYECTO: Plataforma Educativa Seguridad TECK Perú
+
+CONDICIONES DE USO
+==================
+
+PERMITIDO:
+----------
+1. Uso operativo del Software para el proyecto TECK Perú
+2. Acceso por personal autorizado de TECK Perú
+3. Copias de seguridad para el proyecto específico
+4. Mantenimiento técnico por personal autorizado
+5. Documentación para usuarios finales
+
+PROHIBIDO ESTRICTAMENTE:
+------------------------
+1. Redistribuir, vender, sublicenciar o transferir el Software
+2. Modificar, adaptar o crear trabajos derivados sin autorización expresa
+3. Usar el Software para proyectos diferentes a TECK Perú
+4. Realizar ingeniería inversa, descompilar o desensamblar el Software
+5. Compartir credenciales de acceso o código fuente
+6. Comercializar o explotar comercialmente el Software
+7. Usar el Software en múltiples proyectos o clientes
+8. Transferir derechos de uso a terceros
+
+CONFIDENCIALIDAD
+================
+
+El Software contiene información confidencial y propietaria. El Cliente y el 
+Intermediario se comprometen a:
+
+1. Mantener la confidencialidad del código fuente
+2. No divulgar información técnica a terceros
+3. Proteger el acceso al Software
+4. Reportar cualquier intento de acceso no autorizado
+5. Destruir copias no autorizadas
+
+DERECHOS DE PROPIEDAD INTELECTUAL
+=================================
+
+1. El Desarrollador conserva todos los derechos de propiedad intelectual
+2. No se transfieren derechos de autor, patentes o marcas comerciales
+3. El Cliente no adquiere propiedad del Software
+4. Cualquier mejora o modificación pertenece al Desarrollador
+5. Se prohíbe el registro de derechos sobre el Software
+
+TERMINACIÓN
+===========
+
+Esta licencia termina automáticamente si:
+1. Se viola cualquier término de esta licencia
+2. Finaliza el proyecto TECK Perú
+3. Se rescinde el contrato con G.P.D. CONSULTORES S.A.C.
+4. El Desarrollador lo determina por cualquier motivo
+
+Al terminar la licencia:
+- Se debe cesar inmediatamente el uso del Software
+- Se deben destruir todas las copias
+- Se debe devolver toda la documentación
+
+GARANTÍAS Y LIMITACIONES
+========================
+
+EL SOFTWARE SE PROPORCIONA "TAL COMO ESTÁ" SIN GARANTÍAS DE NINGÚN TIPO.
+
+El Desarrollador no será responsable por:
+- Daños directos, indirectos o consecuentes
+- Pérdida de datos o interrupciones del servicio
+- Problemas de compatibilidad o rendimiento
+- Cualquier otro daño relacionado con el uso del Software
+
+JURISDICCIÓN
+============
+
+Esta licencia se rige por las leyes del Perú, específicamente:
+- Ley sobre el Derecho de Autor (D.L. N.º 822)
+- Código Civil del Perú
+- Ley de Propiedad Intelectual
+
+Cualquier disputa se resolverá en los tribunales competentes de Lima, Perú.
+
+CONTACTO
+========
+
+Para consultas sobre esta licencia:
+- Intermediario: G.P.D. CONSULTORES S.A.C.
+- Desarrollador: Alvaro Franco Cerna Ramos
+
+ADVERTENCIA LEGAL
+=================
+
+El uso del Software fuera de los términos de esta licencia constituye una 
+violación de derechos de autor y puede resultar en acciones legales, incluyendo 
+pero no limitado a:
+
+- Demandas por daños y perjuicios
+- Órdenes judiciales de cesación
+- Penalidades civiles y penales
+- Responsabilidad por daños a terceros
+
+INVENTARIO DE PROPIEDAD INTELECTUAL
+===================================
+
+El Software incluye las siguientes innovaciones técnicas únicas:
+
+1. Sistema de navegación de videos con documentos sincronizados
+2. Generación automática de códigos de certificado únicos
+3. Prevención de bloqueos en páginas de examen
+4. Sistema de anexos personalizados (Anexo 4)
+5. Integración multi-pasarela de pagos
+6. Certificados PDF con plantillas personalizadas por curso
+7. Sistema de roles y permisos personalizado
+8. Lógica de cálculo de GPA/CGPA automática
+9. Sistema de logs de actividad detallado
+10. Internacionalización completa con modeltranslation
+
+Todas estas características son propiedad intelectual exclusiva del Desarrollador.
+
+---
+
+Copyright © 2025 Alvaro Franco Cerna Ramos
+Todos los derechos reservados.
+
+Esta licencia no otorga derechos de propiedad intelectual.
+El uso no autorizado está estrictamente prohibido.
