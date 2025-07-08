@@ -11,6 +11,6 @@ python manage.py migrate
 echo "Recopilando archivos estáticos..."
 python manage.py collectstatic --noinput
 
-# Iniciar Gunicorn
+# Iniciar Gunicorn con configuración optimizada
 echo "Iniciando Gunicorn..."
-exec gunicorn config.wsgi:application --bind 0.0.0.0:8080
+exec gunicorn config.wsgi:application --bind 0.0.0.0:8080 --workers 3 --timeout 120

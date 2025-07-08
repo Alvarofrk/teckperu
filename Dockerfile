@@ -34,5 +34,5 @@ COPY . .
 # Exponer el puerto que usará el contenedor (opcional, Cloud Run usa 8080 por defecto)
 EXPOSE 8080
 
-# Comando para ejecutar la aplicación usando Gunicorn
-CMD ["gunicorn", "config.wsgi:application", "--bind", "0.0.0.0:8080"]
+# Comando para ejecutar la aplicación usando Gunicorn con workers
+CMD ["gunicorn", "config.wsgi:application", "--bind", "0.0.0.0:8080", "--workers", "3", "--timeout", "120"]
