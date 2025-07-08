@@ -325,8 +325,8 @@ SEMESTER_CHOICES = (
 # Solo activar en producción (cuando DEBUG = False)
 
 if not DEBUG:
-    # Redirige automáticamente todo el tráfico HTTP a HTTPS
-    SECURE_SSL_REDIRECT = True
+    # Render maneja las redirecciones HTTPS automáticamente
+    # SECURE_SSL_REDIRECT = True  # Comentado para evitar conflictos con Render
 
     # Solo permite cookies de sesión por HTTPS
     SESSION_COOKIE_SECURE = True
