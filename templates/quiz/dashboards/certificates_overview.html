@@ -1,0 +1,364 @@
+{% extends 'quiz/dashboards/base_dashboard.html' %}
+{% load i18n %}
+
+{% block dashboard_title %}{% trans "Vista General de Certificados" %}{% endblock %}
+
+{% block dashboard_content %}
+<!-- Filtros de fecha -->
+<div class="card mb-4 border-0 shadow-sm">
+    <div class="card-header bg-gradient-primary text-white border-0">
+        <div class="d-flex align-items-center">
+            <i class="fas fa-filter me-2"></i>
+            <h5 class="mb-0">{% trans "Filtros de Fecha" %}</h5>
+        </div>
+    </div>
+    <div class="card-body p-4">
+        <form method="GET" action="{% url 'dashboards:certificates_dashboard' %}">
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label for="date_from" class="form-label fw-bold text-muted">
+                        <i class="fas fa-calendar me-1"></i>{% trans "Desde" %}
+                    </label>
+                    <input type="date" name="date_from" id="date_from" class="form-control" 
+                           value="{{ filters.date_from|default:'' }}">
+                </div>
+                <div class="col-md-4">
+                    <label for="date_to" class="form-label fw-bold text-muted">
+                        <i class="fas fa-calendar me-1"></i>{% trans "Hasta" %}
+                    </label>
+                    <input type="date" name="date_to" id="date_to" class="form-control" 
+                           value="{{ filters.date_to|default:'' }}">
+                </div>
+                <div class="col-md-4 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary me-2">
+                        <i class="fas fa-search me-1"></i>
+                        {% trans "Aplicar Filtros" %}
+                    </button>
+                    <a href="{% url 'dashboards:certificates_dashboard' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-times me-1"></i>
+                        {% trans "Limpiar" %}
+                    </a>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Indicador de rendimiento -->
+<div class="row mb-3">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center">
+            <div class="text-muted">
+                <small>
+                    <i class="fas fa-clock me-1"></i>
+                    Última actualización: {{ last_update|default:"Ahora" }}
+                </small>
+            </div>
+            <div class="text-muted">
+                <small>
+                    <i class="fas fa-database me-1"></i>
+                    Total registros: {{ total_records|default:"Calculando..." }}
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Tarjetas de métricas principales -->
+<div class="row users-count px-3 mb-4">
+    <div class="col-6 col-md-4 mb-3 px-2">
+        <div class="card-count p-3">
+            <h3><i class="fas fa-certificate bg-light-aqua"></i></h3>
+            <div class="text-right">
+                {% trans 'Certificados Otorgados' %}
+                <h2>{{ total_certificates }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-4 mb-3 px-2">
+        <div class="card-count p-3">
+            <h3><i class="fas fa-play-circle bg-light-green"></i></h3>
+            <div class="text-right">
+                {% trans 'Total Intentos' %}
+                <h2>{{ total_attempts }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-4 mb-3 px-2">
+        <div class="card-count p-3">
+            <h3><i class="fas fa-times-circle bg-light-orange"></i></h3>
+            <div class="text-right">
+                {% trans 'Intentos Fallidos' %}
+                <h2>{{ pending_certificates }}</h2>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- Gráficos principales -->
+<div class="row">
+    <!-- Gráfico de certificados por mes -->
+    <div class="col-lg-8 mb-4">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-gradient-primary text-white border-0">
+                <h5 class="mb-0">
+                    <i class="fas fa-chart-line me-2"></i>
+                    {% trans "Certificados Otorgados por Mes" %}
+                </h5>
+            </div>
+            <div class="card-body">
+                <canvas id="monthlyChart" height="100"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Gráfico de distribución por programa -->
+    <div class="col-lg-4 mb-4">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-gradient-success text-white border-0">
+                <h5 class="mb-0">
+                    <i class="fas fa-chart-pie me-2"></i>
+                    {% trans "Distribución por Programa" %}
+                </h5>
+            </div>
+            <div class="card-body">
+                <canvas id="programChart" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Tabla de top cursos -->
+<div class="row">
+    <div class="col-12">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-gradient-info text-white border-0">
+                <h5 class="mb-0">
+                    <i class="fas fa-trophy me-2"></i>
+                    {% trans "Top 10 Cursos con Más Certificados Otorgados" %}
+                </h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>#</th>
+                                <th>{% trans "Curso" %}</th>
+                                <th>{% trans "Programa" %}</th>
+                                <th>{% trans "Certificados Otorgados" %}</th>
+                                <th>{% trans "Promedio Nota (1-20)" %}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for course in top_courses %}
+                            <tr>
+                                <td>{{ forloop.counter }}</td>
+                                <td>
+                                    <strong>{{ course.course__title }}</strong>
+                                    <br><small class="text-muted">{{ course.course__code }}</small>
+                                </td>
+                                <td>{{ course.course__program__title }}</td>
+                                <td>
+                                    <span class="badge bg-primary">{{ course.count }}</span>
+                                </td>
+                                <td>
+                                    <span class="badge {% if course.avg_score >= 16 %}bg-success{% elif course.avg_score >= 11 %}bg-warning{% else %}bg-danger{% endif %}">
+                                        {{ course.avg_score|floatformat:1 }}
+                                    </span>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="5" class="text-center text-muted py-4">
+                                    <i class="fas fa-info-circle me-2"></i>
+                                    {% trans "No hay datos disponibles" %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Estadísticas adicionales -->
+<div class="row mt-4">
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-gradient-warning text-dark border-0">
+                <h5 class="mb-0">
+                    <i class="fas fa-users me-2"></i>
+                    {% trans "Top 10 Empresas con Más Certificados" %}
+                </h5>
+            </div>
+            <div class="card-body">
+                <canvas id="companyChart" height="150"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-gradient-secondary text-white border-0">
+                <h5 class="mb-0">
+                    <i class="fas fa-user-graduate me-2"></i>
+                    {% trans "Certificados por Género" %}
+                </h5>
+            </div>
+            <div class="card-body">
+                <canvas id="genderChart" height="150"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block js %}
+{{ block.super }}
+<script>
+// Gráfico de certificados por mes
+const monthlyCtx = document.getElementById('monthlyChart').getContext('2d');
+new Chart(monthlyCtx, {
+    type: 'line',
+    data: {
+        labels: {{ monthly_labels|safe }},
+        datasets: [{
+            label: '{% trans "Certificados Otorgados" %}',
+            data: {{ monthly_data|safe }},
+            borderColor: 'rgb(75, 192, 192)',
+            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+            tension: 0.4,
+            fill: true
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                display: false
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: {
+                    stepSize: 1
+                }
+            }
+        }
+    }
+});
+
+// Gráfico de distribución por programa
+const programCtx = document.getElementById('programChart').getContext('2d');
+new Chart(programCtx, {
+    type: 'doughnut',
+    data: {
+        labels: {{ program_labels|safe }},
+        datasets: [{
+            data: {{ program_data|safe }},
+            backgroundColor: [
+                '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0',
+                '#9966FF', '#FF9F40', '#FF6384', '#C9CBCF'
+            ]
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                position: 'bottom'
+            }
+        }
+    }
+});
+
+// Gráfico de certificados por empresa
+const companyCtx = document.getElementById('companyChart').getContext('2d');
+new Chart(companyCtx, {
+    type: 'bar',
+    data: {
+        labels: {{ company_labels|safe }},
+        datasets: [{
+            label: '{% trans "Certificados" %}',
+            data: {{ company_data|safe }},
+            backgroundColor: 'rgba(255, 193, 7, 0.8)',
+            borderColor: 'rgba(255, 193, 7, 1)',
+            borderWidth: 1
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                display: false
+            },
+            tooltip: {
+                callbacks: {
+                    title: function(context) {
+                        return context[0].label;
+                    },
+                    label: function(context) {
+                        return 'Certificados: ' + context.parsed.y;
+                    }
+                }
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: {
+                    stepSize: 1
+                }
+            },
+            x: {
+                ticks: {
+                    maxRotation: 45,
+                    minRotation: 45,
+                    autoSkip: false,
+                    maxTicksLimit: 10,
+                    callback: function(value, index, values) {
+                        const label = this.getLabelForValue(value);
+                        if (label.length > 15) {
+                            return label.substring(0, 15) + '...';
+                        }
+                        return label;
+                    }
+                }
+            }
+        }
+    }
+});
+
+// Gráfico de certificados por género
+const genderCtx = document.getElementById('genderChart').getContext('2d');
+new Chart(genderCtx, {
+    type: 'pie',
+    data: {
+        labels: {{ gender_labels|safe }},
+        datasets: [{
+            data: {{ gender_data|safe }},
+            backgroundColor: ['#36A2EB', '#FF6384', '#FFCE56'],
+            borderWidth: 2,
+            borderColor: '#fff'
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                position: 'bottom'
+            }
+        }
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,392 @@
+{% extends 'quiz/dashboards/base_dashboard.html' %}
+{% load i18n %}
+
+{% block dashboard_title %}{% trans "Rendimiento por Curso" %}{% endblock %}
+
+{% block dashboard_breadcrumb %}
+<li class="breadcrumb-item active">{% trans "Por Curso" %}</li>
+{% endblock %}
+
+{% block dashboard_actions %}
+<button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#courseFilterModal">
+    <i class="fas fa-filter me-1"></i>
+    {% trans "Filtrar Curso" %}
+</button>
+{% endblock %}
+
+{% block dashboard_content %}
+<!-- Filtros de curso -->
+<div class="card mb-4 border-0 shadow-sm">
+    <div class="card-header bg-gradient-primary text-white border-0">
+        <div class="d-flex align-items-center">
+            <i class="fas fa-filter me-2"></i>
+            <h5 class="mb-0">{% trans "Selección de Curso" %}</h5>
+        </div>
+    </div>
+    <div class="card-body p-4">
+        <form method="GET" action="{% url 'dashboards:course_dashboard' %}">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label for="course_filter" class="form-label fw-bold text-muted">
+                        <i class="fas fa-book me-1"></i>{% trans "Curso" %}
+                    </label>
+                    <select name="course" id="course_filter" class="form-select" required>
+                        <option value="">{% trans "Selecciona un curso..." %}</option>
+                        {% for course in available_courses %}
+                        <option value="{{ course.slug }}" {% if selected_course.slug == course.slug %}selected{% endif %}>
+                            {{ course.title }} ({{ course.code }})
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="date_from" class="form-label fw-bold text-muted">
+                        <i class="fas fa-calendar me-1"></i>{% trans "Desde" %}
+                    </label>
+                    <input type="date" name="date_from" id="date_from" class="form-control" 
+                           value="{{ filters.date_from|default:'' }}">
+                </div>
+                <div class="col-md-3">
+                    <label for="date_to" class="form-label fw-bold text-muted">
+                        <i class="fas fa-calendar me-1"></i>{% trans "Hasta" %}
+                    </label>
+                    <input type="date" name="date_to" id="date_to" class="form-control" 
+                           value="{{ filters.date_to|default:'' }}">
+                </div>
+            </div>
+            <div class="row mt-3">
+                <div class="col-12">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-search me-1"></i>
+                        {% trans "Aplicar Filtros" %}
+                    </button>
+                    <a href="{% url 'dashboards:course_dashboard' %}" class="btn btn-outline-secondary ms-2">
+                        <i class="fas fa-times me-1"></i>
+                        {% trans "Limpiar" %}
+                    </a>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% if selected_course %}
+<!-- Información del curso seleccionado -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <h4 class="mb-1">{{ selected_course.title }}</h4>
+                        <p class="text-muted mb-2">
+                            <strong>{% trans "Código:" %}</strong> {{ selected_course.code }} | 
+                            <strong>{% trans "Programa:" %}</strong> {{ selected_course.program.title }}
+                        </p>
+                        <p class="text-muted mb-0">{{ selected_course.summary }}</p>
+                    </div>
+                    <div class="col-md-4 text-end">
+                        <div class="d-flex flex-column align-items-end">
+                            <span class="badge bg-primary fs-6 mb-2">
+                                {% trans "Total Certificados:" %} {{ course_stats.total_certificates }}
+                            </span>
+                            <span class="badge bg-success fs-6">
+                                {% trans "Tasa Aprobación:" %} {{ course_stats.approval_rate|floatformat:1 }}%
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Métricas del curso -->
+<div class="row users-count px-3 mb-4">
+    <div class="col-6 col-md-4 mb-3 px-2">
+        <div class="card-count p-3">
+            <h3><i class="fas fa-users bg-light-aqua"></i></h3>
+            <div class="text-right">
+                {% trans 'Participantes' %}
+                <h2>{{ course_stats.total_participants }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-4 mb-3 px-2">
+        <div class="card-count p-3">
+            <h3><i class="fas fa-check-circle bg-light-green"></i></h3>
+            <div class="text-right">
+                {% trans 'Aprobados' %}
+                <h2>{{ course_stats.approved_participants }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-4 mb-3 px-2">
+        <div class="card-count p-3">
+            <h3><i class="fas fa-chart-line bg-light-orange"></i></h3>
+            <div class="text-right">
+                {% trans 'Nota Promedio' %}
+                <h2>{{ course_stats.average_score|floatformat:1 }}</h2>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- Gráficos del curso -->
+<div class="row">
+    <div class="col-md-6 mb-4">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-gradient-info text-white border-0">
+                <h5 class="mb-0">
+                    <i class="fas fa-chart-pie me-2"></i>
+                    {% trans "Distribución de Notas (1-20)" %}
+                </h5>
+            </div>
+            <div class="card-body">
+                <canvas id="scoreDistributionChart" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6 mb-4">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-gradient-warning text-dark border-0">
+                <h5 class="mb-0">
+                    <i class="fas fa-chart-bar me-2"></i>
+                    {% trans "Certificados por Mes" %}
+                </h5>
+            </div>
+            <div class="card-body">
+                <canvas id="monthlyCourseChart" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Tabla de participantes del curso -->
+<div class="row">
+    <div class="col-12">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-gradient-success text-white border-0">
+                <h5 class="mb-0">
+                    <i class="fas fa-list me-2"></i>
+                    {% trans "Participantes del Curso" %}
+                </h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>#</th>
+                                <th>{% trans "Participante" %}</th>
+                                <th>{% trans "Empresa" %}</th>
+                                <th>{% trans "Estado" %}</th>
+                                <th>{% trans "Nota (1-20)" %}</th>
+                                <th>{% trans "Fecha Aprobación" %}</th>
+                                <th>{% trans "Certificado" %}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for participant in course_participants %}
+                            <tr>
+                                <td>{{ page_obj.start_index|add:forloop.counter0 }}</td>
+                                <td>
+                                    <strong>{{ participant.user.get_full_name }}</strong>
+                                    <br><small class="text-muted">{{ participant.user.username }}</small>
+                                </td>
+                                <td>
+                                    {% if participant.user.student.empresa %}
+                                        {{ participant.user.student.empresa }}
+                                    {% else %}
+                                        <span class="text-muted">-</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if participant.check_if_passed %}
+                                        <span class="badge bg-success">{% trans "Aprobado" %}</span>
+                                    {% else %}
+                                        <span class="badge bg-danger">{% trans "Reprobado" %}</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="progress flex-grow-1 me-2" style="height: 6px;">
+                                            <div class="progress-bar {% if participant.get_percent_correct >= 80 %}bg-success{% elif participant.get_percent_correct >= 55 %}bg-warning{% else %}bg-danger{% endif %}" 
+                                                 style="width: {{ participant.get_percent_correct }}%"></div>
+                                        </div>
+                                        <span class="badge {% if participant.grade_1_to_20 >= 16 %}bg-success{% elif participant.grade_1_to_20 >= 11 %}bg-warning{% else %}bg-danger{% endif %}">
+                                            {{ participant.grade_1_to_20 }}
+                                        </span>
+                                    </div>
+                                </td>
+                                <td>
+                                    {% if participant.fecha_aprobacion %}
+                                        <small class="text-success">
+                                            {{ participant.fecha_aprobacion|date:"d/m/Y" }}
+                                        </small>
+                                    {% else %}
+                                        <span class="text-muted">-</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if participant.certificate_code %}
+                                        <code class="badge bg-info">{{ participant.certificate_code }}</code>
+                                    {% else %}
+                                        <span class="text-muted">-</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="7" class="text-center text-muted py-4">
+                                    <i class="fas fa-info-circle me-2"></i>
+                                    {% trans "No hay participantes registrados para este curso" %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- Paginación -->
+                {% if page_obj and page_obj.paginator.num_pages > 1 %}
+                <div class="card-footer bg-light border-0">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="text-muted">
+                            <small>
+                                {% trans "Mostrando" %} {{ page_obj.start_index }} - {{ page_obj.end_index }} 
+                                {% trans "de" %} {{ page_obj.paginator.count }} {% trans "participantes" %}
+                            </small>
+                        </div>
+                        <nav aria-label="Paginación de participantes">
+                            <ul class="pagination pagination-sm mb-0">
+                                {% if page_obj.has_previous %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?course={{ selected_course.slug }}{% if filters.date_from %}&date_from={{ filters.date_from }}{% endif %}{% if filters.date_to %}&date_to={{ filters.date_to }}{% endif %}&page=1">
+                                            <i class="fas fa-angle-double-left"></i>
+                                        </a>
+                                    </li>
+                                    <li class="page-item">
+                                        <a class="page-link" href="?course={{ selected_course.slug }}{% if filters.date_from %}&date_from={{ filters.date_from }}{% endif %}{% if filters.date_to %}&date_to={{ filters.date_to }}{% endif %}&page={{ page_obj.previous_page_number }}">
+                                            <i class="fas fa-angle-left"></i>
+                                        </a>
+                                    </li>
+                                {% endif %}
+                                
+                                {% for num in page_obj.paginator.page_range %}
+                                    {% if page_obj.number == num %}
+                                        <li class="page-item active">
+                                            <span class="page-link">{{ num }}</span>
+                                        </li>
+                                    {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?course={{ selected_course.slug }}{% if filters.date_from %}&date_from={{ filters.date_from }}{% endif %}{% if filters.date_to %}&date_to={{ filters.date_to }}{% endif %}&page={{ num }}">{{ num }}</a>
+                                        </li>
+                                    {% endif %}
+                                {% endfor %}
+                                
+                                {% if page_obj.has_next %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?course={{ selected_course.slug }}{% if filters.date_from %}&date_from={{ filters.date_from }}{% endif %}{% if filters.date_to %}&date_to={{ filters.date_to }}{% endif %}&page={{ page_obj.next_page_number }}">
+                                            <i class="fas fa-angle-right"></i>
+                                        </a>
+                                    </li>
+                                    <li class="page-item">
+                                        <a class="page-link" href="?course={{ selected_course.slug }}{% if filters.date_from %}&date_from={{ filters.date_from }}{% endif %}{% if filters.date_to %}&date_to={{ filters.date_to }}{% endif %}&page={{ page_obj.paginator.num_pages }}">
+                                            <i class="fas fa-angle-double-right"></i>
+                                        </a>
+                                    </li>
+                                {% endif %}
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% else %}
+<!-- Mensaje cuando no hay curso seleccionado -->
+<div class="row">
+    <div class="col-12">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body text-center py-5">
+                <i class="fas fa-book-open fa-3x text-muted mb-3"></i>
+                <h4 class="text-muted">{% trans "Selecciona un curso para ver su rendimiento" %}</h4>
+                <p class="text-muted">{% trans "Usa el filtro de arriba para elegir un curso específico y analizar sus métricas de certificación." %}</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block js %}
+{{ block.super }}
+{% if selected_course %}
+<script>
+// Gráfico de distribución de puntuaciones
+const scoreCtx = document.getElementById('scoreDistributionChart').getContext('2d');
+new Chart(scoreCtx, {
+    type: 'doughnut',
+    data: {
+        labels: ['18-20 (Excelente)', '15-17 (Muy Bueno)', '12-14 (Bueno)', '9-11 (Regular)', '<9 (Deficiente)'],
+        datasets: [{
+            data: {{ score_distribution|safe }},
+            backgroundColor: [
+                '#28a745', '#17a2b8', '#ffc107', '#fd7e14', '#dc3545'
+            ],
+            borderWidth: 2,
+            borderColor: '#fff'
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                position: 'bottom'
+            }
+        }
+    }
+});
+
+// Gráfico de certificados por mes para el curso
+const monthlyCourseCtx = document.getElementById('monthlyCourseChart').getContext('2d');
+new Chart(monthlyCourseCtx, {
+    type: 'bar',
+    data: {
+        labels: {{ monthly_course_labels|safe }},
+        datasets: [{
+            label: '{% trans "Certificados" %}',
+            data: {{ monthly_course_data|safe }},
+            backgroundColor: 'rgba(255, 193, 7, 0.8)',
+            borderColor: 'rgba(255, 193, 7, 1)',
+            borderWidth: 1
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                display: false
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: {
+                    stepSize: 1
+                }
+            }
+        }
+    }
+});
+</script>
+{% endif %}
+{% endblock %}

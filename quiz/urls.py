@@ -1,4 +1,4 @@
-from django.urls import path
+from django.urls import path, include
 from . import views
 
 urlpatterns = [
@@ -28,6 +28,9 @@ urlpatterns = [
     path('anexo_form/<int:sitting_id>/', views.anexo_form, name='anexo_form'),
     path('buscar-usuarios/', views.buscar_usuarios_ajax, name='buscar_usuarios_ajax'),
     path('buscar-cuestionarios/', views.buscar_cuestionarios_ajax, name='buscar_cuestionarios_ajax'),
+   
+    # Dashboards de certificados
+    path('dashboards/', include('quiz.dashboard_urls', namespace='dashboards')),
    
     # path('mc-question/add/<int:pk>/<quiz_pk>/', MCQuestionCreate.as_view(), name='mc_create'),
 ]

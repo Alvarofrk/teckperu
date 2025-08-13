@@ -152,6 +152,21 @@ DATABASES = {
 # https://docs.djangoproject.com/en/stable/ref/settings/#std:setting-DEFAULT_AUTO_FIELD
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
+# === CONFIGURACIÓN DE CACHE PARA OPTIMIZACIÓN DEL DASHBOARD ===
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'unique-snowflake',
+        'TIMEOUT': 300,  # 5 minutos
+        'OPTIONS': {
+            'MAX_ENTRIES': 1000,
+        }
+    }
+}
+
+# Configuración de cache para el dashboard
+DASHBOARD_CACHE_TIMEOUT = 300  # 5 minutos
+
 # Password validation
 # https://docs.djangoproject.com/en/2.2/ref/settings/#auth-password-validators
 
@@ -328,33 +343,37 @@ if not DEBUG:
     # Render maneja las redirecciones HTTPS automáticamente
     # SECURE_SSL_REDIRECT = True  # Comentado para evitar conflictos con Render
 
+    # TEMPORALMENTE COMENTADO PARA DEBUGGING
     # Solo permite cookies de sesión por HTTPS
-    SESSION_COOKIE_SECURE = True
+    # SESSION_COOKIE_SECURE = True
 
     # Solo permite cookies CSRF por HTTPS
-    CSRF_COOKIE_SECURE = True
+    # CSRF_COOKIE_SECURE = True
 
     # HSTS: Obliga a los navegadores a usar siempre HTTPS
-    SECURE_HSTS_SECONDS = 31536000  # 1 año
-    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-    SECURE_HSTS_PRELOAD = True
+    # SECURE_HSTS_SECONDS = 31536000  # 1 año
+    # SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    # SECURE_HSTS_PRELOAD = True
 
     # Evita que el navegador intente adivinar el tipo de contenido
-    SECURE_CONTENT_TYPE_NOSNIFF = True
+    # SECURE_CONTENT_TYPE_NOSNIFF = True
 
     # Evita que tu sitio sea embebido en iframes (protege contra clickjacking)
-    X_FRAME_OPTIONS = 'DENY'
+    # X_FRAME_OPTIONS = 'DENY'
 
     # Marca las cookies como HttpOnly (no accesibles por JS)
-    SESSION_COOKIE_HTTPONLY = True
-    CSRF_COOKIE_HTTPONLY = True
+    # SESSION_COOKIE_HTTPONLY = True
+    # CSRF_COOKIE_HTTPONLY = True
 
     # Configuración para proxies (como Render.com)
-    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    # SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
     # Configuración adicional de seguridad
-    SECURE_BROWSER_XSS_FILTER = True
-    SECURE_REFERRER_POLICY = 'strict-origin-when-cross-origin'
+    # SECURE_BROWSER_XSS_FILTER = True
+    # SECURE_REFERRER_POLICY = 'strict-origin-when-cross-origin'
+    
+    # Agregar pass para evitar error de sintaxis
+    pass
 else:
     # En desarrollo local, desactivar redirecciones HTTPS
     SECURE_SSL_REDIRECT = False

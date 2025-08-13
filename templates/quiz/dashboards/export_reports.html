@@ -1,0 +1,402 @@
+{% extends 'quiz/dashboards/base_dashboard.html' %}
+{% load i18n %}
+
+{% block dashboard_title %}{% trans "Exportación de Reportes" %}{% endblock %}
+
+{% block dashboard_breadcrumb %}
+<li class="breadcrumb-item active">{% trans "Exportación" %}</li>
+{% endblock %}
+
+{% block dashboard_actions %}
+<button type="button" class="btn btn-success" onclick="exportAllReports()">
+    <i class="fas fa-download me-1"></i>
+    {% trans "Exportar Todo" %}
+</button>
+{% endblock %}
+
+{% block dashboard_content %}
+<!-- Filtros de exportación -->
+<div class="card mb-4 border-0 shadow-sm">
+    <div class="card-header bg-gradient-primary text-white border-0">
+        <div class="d-flex align-items-center">
+            <i class="fas fa-filter me-2"></i>
+            <h5 class="mb-0">{% trans "Configuración de Exportación" %}</h5>
+        </div>
+    </div>
+    <div class="card-body p-4">
+        <form method="GET" action="{% url 'dashboards:export_dashboard' %}" id="exportForm">
+            <div class="row g-3">
+                <div class="col-md-3">
+                    <label for="report_type" class="form-label fw-bold text-muted">
+                        <i class="fas fa-file-alt me-1"></i>{% trans "Tipo de Reporte" %}
+                    </label>
+                    <select name="report_type" id="report_type" class="form-select" required>
+                        <option value="">{% trans "Selecciona tipo..." %}</option>
+                        <option value="general" {% if filters.report_type == 'general' %}selected{% endif %}>{% trans "Reporte General" %}</option>
+                        <option value="course" {% if filters.report_type == 'course' %}selected{% endif %}>{% trans "Por Curso" %}</option>
+                        <option value="program" {% if filters.report_type == 'program' %}selected{% endif %}>{% trans "Por Programa" %}</option>
+                        <option value="instructor" {% if filters.report_type == 'instructor' %}selected{% endif %}>{% trans "Por Instructor" %}</option>
+                        <option value="temporal" {% if filters.report_type == 'temporal' %}selected{% endif %}>{% trans "Análisis Temporal" %}</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="date_from" class="form-label fw-bold text-muted">
+                        <i class="fas fa-calendar me-1"></i>{% trans "Desde" %}
+                    </label>
+                    <input type="date" name="date_from" id="date_from" class="form-control" 
+                           value="{{ filters.date_from|default:'' }}">
+                </div>
+                <div class="col-md-3">
+                    <label for="date_to" class="form-label fw-bold text-muted">
+                        <i class="fas fa-calendar me-1"></i>{% trans "Hasta" %}
+                    </label>
+                    <input type="date" name="date_to" id="date_to" class="form-control" 
+                           value="{{ filters.date_to|default:'' }}">
+                </div>
+                <div class="col-md-3">
+                    <label for="format" class="form-label fw-bold text-muted">
+                        <i class="fas fa-file-export me-1"></i>{% trans "Formato" %}
+                    </label>
+                    <select name="format" id="format" class="form-select" required>
+                        <option value="pdf" {% if filters.format == 'pdf' %}selected{% endif %}>PDF</option>
+                        <option value="excel" {% if filters.format == 'excel' %}selected{% endif %}>Excel</option>
+                        <option value="csv" {% if filters.format == 'csv' %}selected{% endif %}>CSV</option>
+                    </select>
+                </div>
+            </div>
+            
+            <!-- Filtros adicionales según tipo de reporte -->
+            <div class="row g-3 mt-2" id="additionalFilters" style="display: none;">
+                <div class="col-md-4" id="courseFilter" style="display: none;">
+                    <label for="course_select" class="form-label fw-bold text-muted">
+                        <i class="fas fa-book me-1"></i>{% trans "Curso" %}
+                    </label>
+                    <select name="course" id="course_select" class="form-select">
+                        <option value="">{% trans "Todos los cursos" %}</option>
+                        {% for course in available_courses %}
+                        <option value="{{ course.slug }}" {% if filters.course == course.slug %}selected{% endif %}>
+                            {{ course.title }} ({{ course.code }})
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-4" id="programFilter" style="display: none;">
+                    <label for="program_select" class="form-label fw-bold text-muted">
+                        <i class="fas fa-graduation-cap me-1"></i>{% trans "Programa" %}
+                    </label>
+                    <select name="program" id="program_select" class="form-select">
+                        <option value="">{% trans "Todos los programas" %}</option>
+                        {% for program in available_programs %}
+                        <option value="{{ program.id }}" {% if filters.program == program.id|stringformat:"s" %}selected{% endif %}>
+                            {{ program.title }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-4" id="instructorFilter" style="display: none;">
+                    <label for="instructor_select" class="form-label fw-bold text-muted">
+                        <i class="fas fa-chalkboard-teacher me-1"></i>{% trans "Instructor" %}
+                    </label>
+                    <select name="instructor" id="instructor_select" class="form-select">
+                        <option value="">{% trans "Todos los instructores" %}</option>
+                        {% for instructor in available_instructors %}
+                        <option value="{{ instructor.id }}" {% if filters.instructor == instructor.id|stringformat:"s" %}selected{% endif %}>
+                            {{ instructor.get_full_name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            
+            <div class="row mt-3">
+                <div class="col-12">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-search me-1"></i>
+                        {% trans "Generar Vista Previa" %}
+                    </button>
+                    <a href="{% url 'dashboards:export_dashboard' %}" class="btn btn-outline-secondary ms-2">
+                        <i class="fas fa-times me-1"></i>
+                        {% trans "Limpiar" %}
+                    </a>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% if report_data %}
+<!-- Vista previa del reporte -->
+<div class="row">
+    <div class="col-12">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-gradient-success text-white border-0">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-eye me-2"></i>
+                        {% trans "Vista Previa del Reporte" %}
+                    </h5>
+                    <div>
+                        <button type="button" class="btn btn-light btn-sm" onclick="exportReport()">
+                            <i class="fas fa-download me-1"></i>
+                            {% trans "Descargar" %}
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <!-- Resumen del reporte -->
+                <div class="row mb-4">
+                    <div class="col-md-3">
+                        <div class="text-center">
+                            <h4 class="text-primary">{{ report_summary.total_records }}</h4>
+                            <p class="text-muted mb-0">{% trans "Total Registros" %}</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="text-center">
+                            <h4 class="text-success">{{ report_summary.approved_count }}</h4>
+                            <p class="text-muted mb-0">{% trans "Aprobados" %}</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="text-center">
+                            <h4 class="text-warning">{{ report_summary.pending_count }}</h4>
+                            <p class="text-muted mb-0">{% trans "Pendientes" %}</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="text-center">
+                            <h4 class="text-info">{{ report_summary.avg_score|floatformat:1 }}%</h4>
+                            <p class="text-muted mb-0">{% trans "Promedio" %}</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Tabla de vista previa -->
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                {% for header in report_headers %}
+                                <th>{{ header }}</th>
+                                {% endfor %}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for row in report_data %}
+                            <tr>
+                                {% for cell in row %}
+                                <td>{{ cell }}</td>
+                                {% endfor %}
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- Paginación si es necesario -->
+                {% if report_pagination %}
+                <nav aria-label="Navegación del reporte" class="mt-3">
+                    <ul class="pagination justify-content-center">
+                        {% if report_pagination.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ report_pagination.previous_page_number }}&{{ request.GET.urlencode }}">
+                                {% trans "Anterior" %}
+                            </a>
+                        </li>
+                        {% endif %}
+                        
+                        {% for num in report_pagination.paginator.page_range %}
+                        {% if report_pagination.number == num %}
+                        <li class="page-item active">
+                            <span class="page-link">{{ num }}</span>
+                        </li>
+                        {% elif num > report_pagination.number|add:'-3' and num < report_pagination.number|add:'3' %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ num }}&{{ request.GET.urlencode }}">{{ num }}</a>
+                        </li>
+                        {% endif %}
+                        {% endfor %}
+                        
+                        {% if report_pagination.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ report_pagination.next_page_number }}&{{ request.GET.urlencode }}">
+                                {% trans "Siguiente" %}
+                            </a>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% else %}
+<!-- Mensaje cuando no hay reporte generado -->
+<div class="row">
+    <div class="col-12">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body text-center py-5">
+                <i class="fas fa-file-export fa-3x text-muted mb-3"></i>
+                <h4 class="text-muted">{% trans "Configura y genera un reporte" %}</h4>
+                <p class="text-muted">{% trans "Usa los filtros de arriba para configurar el tipo de reporte que deseas exportar." %}</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Reportes predefinidos -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-gradient-info text-white border-0">
+                <h5 class="mb-0">
+                    <i class="fas fa-list me-2"></i>
+                    {% trans "Reportes Predefinidos" %}
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <div class="card border h-100">
+                            <div class="card-body text-center">
+                                <i class="fas fa-certificate fa-2x text-primary mb-3"></i>
+                                <h6>{% trans "Reporte Mensual" %}</h6>
+                                <p class="text-muted small">{% trans "Resumen de certificados del mes actual" %}</p>
+                                <button class="btn btn-outline-primary btn-sm" onclick="generatePredefinedReport('monthly')">
+                                    {% trans "Generar" %}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <div class="card border h-100">
+                            <div class="card-body text-center">
+                                <i class="fas fa-chart-line fa-2x text-success mb-3"></i>
+                                <h6>{% trans "Reporte Trimestral" %}</h6>
+                                <p class="text-muted small">{% trans "Análisis del trimestre en curso" %}</p>
+                                <button class="btn btn-outline-success btn-sm" onclick="generatePredefinedReport('quarterly')">
+                                    {% trans "Generar" %}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <div class="card border h-100">
+                            <div class="card-body text-center">
+                                <i class="fas fa-calendar-alt fa-2x text-warning mb-3"></i>
+                                <h6>{% trans "Reporte Anual" %}</h6>
+                                <p class="text-muted small">{% trans "Resumen completo del año" %}</p>
+                                <button class="btn btn-outline-warning btn-sm" onclick="generatePredefinedReport('yearly')">
+                                    {% trans "Generar" %}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block js %}
+{{ block.super }}
+<script>
+// Mostrar/ocultar filtros adicionales según tipo de reporte
+document.getElementById('report_type').addEventListener('change', function() {
+    const reportType = this.value;
+    const additionalFilters = document.getElementById('additionalFilters');
+    const courseFilter = document.getElementById('courseFilter');
+    const programFilter = document.getElementById('programFilter');
+    const instructorFilter = document.getElementById('instructorFilter');
+    
+    // Ocultar todos los filtros
+    courseFilter.style.display = 'none';
+    programFilter.style.display = 'none';
+    instructorFilter.style.display = 'none';
+    
+    // Mostrar filtros según tipo
+    if (reportType === 'course') {
+        courseFilter.style.display = 'block';
+        additionalFilters.style.display = 'block';
+    } else if (reportType === 'program') {
+        programFilter.style.display = 'block';
+        additionalFilters.style.display = 'block';
+    } else if (reportType === 'instructor') {
+        instructorFilter.style.display = 'block';
+        additionalFilters.style.display = 'block';
+    } else {
+        additionalFilters.style.display = 'none';
+    }
+});
+
+// Función para generar reportes predefinidos
+function generatePredefinedReport(type) {
+    const today = new Date();
+    let dateFrom, dateTo;
+    
+    switch(type) {
+        case 'monthly':
+            dateFrom = new Date(today.getFullYear(), today.getMonth(), 1);
+            dateTo = today;
+            break;
+        case 'quarterly':
+            const quarter = Math.floor(today.getMonth() / 3);
+            dateFrom = new Date(today.getFullYear(), quarter * 3, 1);
+            dateTo = today;
+            break;
+        case 'yearly':
+            dateFrom = new Date(today.getFullYear(), 0, 1);
+            dateTo = today;
+            break;
+    }
+    
+    // Formatear fechas para el formulario
+    const formatDate = (date) => date.toISOString().split('T')[0];
+    
+    document.getElementById('date_from').value = formatDate(dateFrom);
+    document.getElementById('date_to').value = formatDate(dateTo);
+    document.getElementById('report_type').value = 'temporal';
+    document.getElementById('format').value = 'pdf';
+    
+    // Mostrar filtros adicionales
+    document.getElementById('additionalFilters').style.display = 'block';
+    
+    // Enviar formulario
+    document.getElementById('exportForm').submit();
+}
+
+// Función para exportar reporte
+function exportReport() {
+    const form = document.getElementById('exportForm');
+    const formData = new FormData(form);
+    formData.append('export', 'true');
+    
+    // Crear URL con parámetros
+    const params = new URLSearchParams(formData);
+            const exportUrl = `{% url 'dashboards:export_dashboard' %}?${params.toString()}`;
+    
+    // Descargar archivo
+    window.open(exportUrl, '_blank');
+}
+
+// Función para exportar todos los reportes
+function exportAllReports() {
+    if (confirm('{% trans "¿Estás seguro de que quieres exportar todos los reportes? Esto puede tomar varios minutos." %}')) {
+        // Aquí implementarías la lógica para exportar todos los reportes
+        alert('{% trans "Función de exportación masiva en desarrollo" %}');
+    }
+}
+
+// Inicializar filtros al cargar la página
+document.addEventListener('DOMContentLoaded', function() {
+    const reportType = document.getElementById('report_type').value;
+    if (reportType) {
+        document.getElementById('report_type').dispatchEvent(new Event('change'));
+    }
+});
+</script>
+{% endblock %}

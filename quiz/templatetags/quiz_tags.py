@@ -22,3 +22,13 @@ def correct_answer_for_all(context, question):
 @register.filter
 def answer_choice_to_string(question, answer):
     return question.answer_choice_to_string(answer)
+
+
+@register.filter
+def percent_to_grade_20(percent):
+    """Convertir porcentaje a nota en escala del 1 al 20"""
+    try:
+        grade = (float(percent) / 100) * 20
+        return round(grade, 1)
+    except (ValueError, TypeError):
+        return 0.0
