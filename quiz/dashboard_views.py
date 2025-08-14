@@ -33,7 +33,7 @@ def admin_or_lecturer_required(view_func):
     def wrapper(request, *args, **kwargs):
         if request.user.is_authenticated and (
             request.user.is_staff or 
-            hasattr(request.user, 'lecturer') or 
+            request.user.is_lecturer or  # ✅ CORREGIDO: usar is_lecturer directamente
             request.user.groups.filter(name='Instructores').exists()
         ):
             return view_func(request, *args, **kwargs)
