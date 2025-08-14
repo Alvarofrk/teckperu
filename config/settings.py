@@ -152,21 +152,6 @@ DATABASES = {
 # https://docs.djangoproject.com/en/stable/ref/settings/#std:setting-DEFAULT_AUTO_FIELD
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-# === CONFIGURACIÓN DE CACHE PARA OPTIMIZACIÓN DEL DASHBOARD ===
-CACHES = {
-    'default': {
-        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
-        'LOCATION': 'unique-snowflake',
-        'TIMEOUT': 300,  # 5 minutos
-        'OPTIONS': {
-            'MAX_ENTRIES': 1000,
-        }
-    }
-}
-
-# Configuración de cache para el dashboard
-DASHBOARD_CACHE_TIMEOUT = 300  # 5 minutos
-
 # Password validation
 # https://docs.djangoproject.com/en/2.2/ref/settings/#auth-password-validators
 
@@ -372,8 +357,7 @@ if not DEBUG:
     # SECURE_BROWSER_XSS_FILTER = True
     # SECURE_REFERRER_POLICY = 'strict-origin-when-cross-origin'
     
-    # Agregar pass para evitar error de sintaxis
-    pass
+    pass  # Agregar pass para evitar error de indentación
 else:
     # En desarrollo local, desactivar redirecciones HTTPS
     SECURE_SSL_REDIRECT = False

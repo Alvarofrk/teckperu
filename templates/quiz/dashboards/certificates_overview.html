@@ -129,15 +129,24 @@
     </div>
 </div>
 
-<!-- Tabla de top cursos -->
+<!-- Tabla de cursos -->
 <div class="row">
     <div class="col-12">
         <div class="card border-0 shadow-sm">
             <div class="card-header bg-gradient-info text-white border-0">
                 <h5 class="mb-0">
                     <i class="fas fa-trophy me-2"></i>
-                    {% trans "Top 10 Cursos con Más Certificados Otorgados" %}
+                    {% trans "Cursos con Certificados Otorgados" %}
                 </h5>
+                <small class="text-white-50">
+                    {% if filters.date_from and filters.date_to %}
+                        <i class="fas fa-calendar-alt me-1"></i>
+                        Período: {{ filters.date_from|date:"d/m/Y" }} - {{ filters.date_to|date:"d/m/Y" }}
+                    {% else %}
+                        <i class="fas fa-calendar-alt me-1"></i>
+                        Año actual
+                    {% endif %}
+                </small>
             </div>
             <div class="card-body p-0">
                 <div class="table-responsive">
@@ -152,7 +161,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            {% for course in top_courses %}
+                            {% for course in courses_data %}
                             <tr>
                                 <td>{{ forloop.counter }}</td>
                                 <td>

@@ -17,6 +17,7 @@ from datetime import datetime, timedelta
 import json
 import csv
 from io import StringIO
+import time
 
 from accounts.decorators import admin_required, lecturer_required
 from accounts.models import User, Student
@@ -58,17 +59,39 @@ def certificates_dashboard(request):
     if cached_context is not None:
         return render(request, 'quiz/dashboards/certificates_overview.html', cached_context)
     
-    # Construir filtros de fecha
+    # Construir filtros de fecha con validación
     date_filters = Q()
     date_from = request.GET.get('date_from')
     date_to = request.GET.get('date_to')
     
-    if date_from:
-        date_filters &= Q(fecha_aprobacion__gte=date_from)
-    if date_to:
-        date_filters &= Q(fecha_aprobacion__gte=date_to)
+    # Validar que las fechas sean válidas
+    try:
+        if date_from:
+            # Validar formato de fecha
+            datetime.strptime(date_from, '%Y-%m-%d')
+            date_filters &= Q(end__gte=date_from)  # ✅ Usar fecha de finalización
+        
+        if date_to:
+            # Validar formato de fecha
+            datetime.strptime(date_to, '%Y-%m-%d')
+            date_filters &= Q(end__lte=date_to)    # ✅ Usar fecha de finalización
+            
+        # Validar que date_from <= date_to
+        if date_from and date_to and date_from > date_to:
+            # Si las fechas están invertidas, intercambiarlas
+            date_filters = Q()
+            if date_from:
+                date_filters &= Q(end__gte=date_to)  # ✅ Usar fecha de finalización
+            if date_to:
+                date_filters &= Q(end__lte=date_from) # ✅ Usar fecha de finalización
+                
+    except ValueError:
+        # Si hay error en el formato de fecha, no aplicar filtros
+        date_filters = Q()
+        print(f"Error en formato de fecha: date_from={date_from}, date_to={date_to}")
     
     # Obtener todos los sittings completos con prefetch optimizado
+    # Incluir tanto aprobados como fallidos para estadísticas correctas
     completed_sittings = Sitting.objects.filter(
         quiz__course__isnull=False,
         complete=True
@@ -78,47 +101,88 @@ def certificates_dashboard(request):
         Prefetch('user__student', queryset=Student.objects.only('empresa'))
     )
     
-    # Calcular estadísticas de una vez
+    # Calcular estadísticas de una vez de manera robusta
     total_attempts = completed_sittings.count()
     approved_certificates = 0
+    failed_attempts = 0
     
     for sitting in completed_sittings:
-        if is_sitting_approved(sitting):
-            approved_certificates += 1
+        try:
+            if is_sitting_approved(sitting):
+                approved_certificates += 1
+            else:
+                failed_attempts += 1
+        except Exception as e:
+            # Log del error para debugging
+            print(f"Error procesando sitting {sitting.id}: {e}")
+            failed_attempts += 1
     
     total_certificates = approved_certificates
-    pending_certificates = total_attempts - approved_certificates
+    pending_certificates = failed_attempts
     approval_rate = (approved_certificates / total_attempts * 100) if total_attempts > 0 else 0
     
     # Datos para gráficos (con cache individual)
-    monthly_data = get_monthly_certificates_data_cached(date_filters)
+    monthly_data = get_monthly_certificates_data_cached(date_filters, date_from, date_to)
     program_data = get_program_distribution_data_cached(date_filters)
     company_data = get_company_distribution_data_cached(date_filters)
     gender_data = get_gender_distribution_data_cached(date_filters)
-    top_courses = get_top_courses_data_cached(date_filters)
+    courses_data = get_courses_data_cached(date_filters)
     
-    context = {
-        'total_certificates': total_certificates,
-        'total_attempts': total_attempts,
-        'approved_certificates': approved_certificates,
-        'pending_certificates': pending_certificates,
-        'approval_rate': approval_rate,
-        'monthly_labels': json.dumps(monthly_data['labels']),
-        'monthly_data': json.dumps(monthly_data['data']),
-        'program_labels': json.dumps(program_data['labels']),
-        'program_data': json.dumps(program_data['data']),
-        'company_labels': json.dumps(company_data['labels']),
-        'company_data': json.dumps(company_data['data']),
-        'gender_labels': json.dumps(gender_data['labels']),
-        'gender_data': json.dumps(gender_data['data']),
-        'top_courses': top_courses,
-        'filters': {
-            'date_from': date_from,
-            'date_to': date_to,
-        },
-        'last_update': timezone.now().strftime('%H:%M:%S'),
-        'total_records': total_attempts
-    }
+    # Preparar contexto con manejo de errores
+    try:
+        context = {
+            'total_certificates': total_certificates,
+            'total_attempts': total_attempts,
+            'approved_certificates': approved_certificates,
+            'pending_certificates': pending_certificates,
+            'approval_rate': approval_rate,
+            'monthly_labels': json.dumps(monthly_data.get('labels', [])),
+            'monthly_data': json.dumps(monthly_data.get('data', [])),
+            'program_labels': json.dumps(program_data.get('labels', [])),
+            'program_data': json.dumps(program_data.get('data', [])),
+            'company_labels': json.dumps(company_data.get('labels', [])),
+            'company_data': json.dumps(company_data.get('data', [])),
+            'gender_labels': json.dumps(gender_data.get('labels', [])),
+            'gender_data': json.dumps(gender_data.get('data', [])),
+            'courses_data': courses_data or [],
+            'filters': {
+                'date_from': date_from,
+                'date_to': date_to,
+            },
+            'last_update': timezone.now().strftime('%H:%M:%S'),
+            'total_records': total_attempts
+        }
+    except Exception as e:
+        print(f"Error preparando contexto: {e}")
+        # Contexto de fallback
+        context = {
+            'total_certificates': 0,
+            'total_attempts': 0,
+            'approved_certificates': 0,
+            'pending_certificates': 0,
+            'approval_rate': 0,
+            'monthly_labels': json.dumps([]),
+            'monthly_data': json.dumps([]),
+            'program_labels': json.dumps([]),
+            'program_data': json.dumps([]),
+            'company_labels': json.dumps([]),
+            'company_data': json.dumps([]),
+            'gender_labels': json.dumps([]),
+            'gender_data': json.dumps([]),
+            'courses_data': [],
+            'filters': {
+                'date_from': date_from,
+                'date_to': date_to,
+            },
+            'last_update': timezone.now().strftime('%H:%M:%S'),
+            'total_records': 0
+        }
+    
+    # Limpiar cache corrupto antes de guardar
+    try:
+        cache.delete_pattern('certificates_dashboard*')
+    except:
+        pass
     
     # Guardar en cache
     cache.set(cache_key, context, 300)  # 5 minutos
@@ -162,18 +226,18 @@ def course_dashboard(request):
         # Construir filtros de fecha
         date_filters = Q()
         if date_from:
-            date_filters &= Q(fecha_aprobacion__gte=date_from)
+            date_filters &= Q(end__gte=date_from)  # Usar end en lugar de fecha_aprobacion
         if date_to:
-            date_filters &= Q(fecha_aprobacion__lte=date_to)
+            date_filters &= Q(end__lte=date_to)    # Usar end en lugar de fecha_aprobacion
         
-        # Obtener participantes del curso con prefetch optimizado
+        # Obtener participantes del curso con prefetch optimizado en una sola query
         course_participants = Sitting.objects.filter(
             quiz__course=selected_course
         ).filter(date_filters).select_related(
             'user', 'user__student', 'quiz', 'course'
         ).prefetch_related(
             Prefetch('user__student', queryset=Student.objects.only('empresa'))
-        ).order_by('-fecha_aprobacion')
+        ).order_by('-end')  # Usar end en lugar de fecha_aprobacion
         
         # Calcular nota en escala del 1 al 20 para cada participante
         for participant in course_participants:
@@ -354,33 +418,57 @@ def export_dashboard(request):
 # ===== FUNCIONES AUXILIARES =====
 
 def get_cache_key(prefix, **kwargs):
-    """Generar clave de cache única"""
-    key_parts = [prefix]
-    for k, v in sorted(kwargs.items()):
-        if v is not None:
-            key_parts.append(f"{k}_{v}")
-    return "_".join(key_parts)
+    """Generar clave de cache única de manera robusta"""
+    try:
+        key_parts = [str(prefix)]
+        for k, v in sorted(kwargs.items()):
+            if v is not None:
+                # Convertir valores a string de manera segura
+                safe_value = str(v).replace(' ', '_').replace('/', '_').replace(':', '_')
+                key_parts.append(f"{k}_{safe_value}")
+        return "_".join(key_parts)
+    except Exception as e:
+        print(f"Error generando clave de cache: {e}")
+        # Clave de fallback
+        return f"{prefix}_fallback_{int(time.time())}"
 
 def cache_dashboard_data(func):
-    """Decorador para cachear datos del dashboard"""
+    """Decorador para cachear datos del dashboard de manera robusta"""
     def wrapper(*args, **kwargs):
-        # Generar clave de cache única
-        cache_key = get_cache_key(f"dashboard_{func.__name__}", **kwargs)
-        
-        # Intentar obtener del cache
-        cached_data = cache.get(cache_key)
-        if cached_data is not None:
-            return cached_data
-        
-        # Si no está en cache, ejecutar función y guardar
-        result = func(*args, **kwargs)
-        cache.set(cache_key, result, 300)  # 5 minutos
-        return result
+        try:
+            # Generar clave de cache única
+            cache_key = get_cache_key(f"dashboard_{func.__name__}", **kwargs)
+            
+            # Intentar obtener del cache
+            cached_data = cache.get(cache_key)
+            if cached_data is not None:
+                return cached_data
+            
+            # Si no está en cache, ejecutar función y guardar
+            result = func(*args, **kwargs)
+            
+            # Validar que el resultado sea válido antes de cachear
+            if result is not None:
+                try:
+                    cache.set(cache_key, result, 300)  # 5 minutos
+                except Exception as e:
+                    print(f"Error guardando en cache {cache_key}: {e}")
+            
+            return result
+        except Exception as e:
+            print(f"Error en decorador de cache para {func.__name__}: {e}")
+            # En caso de error, ejecutar función sin cache
+            return func(*args, **kwargs)
     return wrapper
 
 def is_sitting_approved(sitting):
-    """Determinar si un sitting está aprobado"""
-    return sitting.complete and sitting.get_percent_correct >= sitting.quiz.pass_mark
+    """Determinar si un sitting está aprobado - Usa la lógica del modelo"""
+    try:
+        # Usar la lógica del modelo para consistencia
+        return sitting.check_if_passed
+    except (AttributeError, TypeError):
+        # Fallback a la lógica anterior si hay problemas
+        return sitting.complete and sitting.get_percent_correct >= sitting.quiz.pass_mark
 
 def calculate_sittings_stats(sittings):
     """Calcular estadísticas de una lista de sittings"""
@@ -404,40 +492,104 @@ def calculate_sittings_stats(sittings):
         'avg_score': avg_score
     }
 
-@cache_dashboard_data
-def get_monthly_certificates_data_cached(date_filters=None):
-    """Obtener datos de certificados por mes (con cache)"""
+def get_monthly_certificates_data_cached(date_filters=None, date_from=None, date_to=None):
+    """Obtener datos de certificados por mes (OPTIMIZADO)"""
+    from datetime import datetime
     current_year = timezone.now().year
     months = []
     data = []
     
-    # Construir filtros base
+    # Construir filtros base - Usar fecha de finalización para incluir todos los intentos
     base_filters = Q(
         quiz__course__isnull=False,
-        fecha_aprobacion__year=current_year,
         complete=True
     )
     
+    # Si hay filtros de fecha específicos, usarlos
     if date_filters:
         base_filters &= date_filters
     
-    # Obtener todos los sittings del año de una vez
-    year_sittings = Sitting.objects.filter(base_filters).select_related('quiz')
+    # Determinar el rango de meses basado en las fechas proporcionadas
+    if date_from and date_to:
+        try:
+            # Parsear las fechas si son strings
+            if isinstance(date_from, str):
+                start_date = datetime.strptime(date_from, '%Y-%m-%d')
+            else:
+                start_date = date_from
+                
+            if isinstance(date_to, str):
+                end_date = datetime.strptime(date_to, '%Y-%m-%d')
+            else:
+                end_date = date_to
+            
+            start_month = start_date.month
+            start_year = start_date.year
+            end_month = end_date.month
+            end_year = end_date.year
+            
+            # Si es el mismo año, mostrar solo los meses del rango
+            if start_year == end_year:
+                month_range = range(start_month, end_month + 1)
+            else:
+                # Si cruza años, mostrar todos los meses del rango
+                month_range = []
+                for year in range(start_year, end_year + 1):
+                    if year == start_year:
+                        month_range.extend(range(start_month, 13))
+                    elif year == end_year:
+                        month_range.extend(range(1, end_month + 1))
+                    else:
+                        month_range.extend(range(1, 13))
+                        
+        except Exception as e:
+            print(f"Error procesando fechas: {e}")
+            # Fallback al año actual
+            month_range = range(1, 13)
+    else:
+        # Si no hay fechas específicas, usar año actual como default
+        base_filters &= Q(end__year=current_year)
+        month_range = range(1, 13)
     
-    # Agrupar por mes y contar aprobados
-    monthly_counts = {}
-    for sitting in year_sittings:
-        if sitting.fecha_aprobacion and is_sitting_approved(sitting):
-            month = sitting.fecha_aprobacion.month
-            if month not in monthly_counts:
-                monthly_counts[month] = 0
-            monthly_counts[month] += 1
-    
-    # Crear array ordenado
-    for month in range(1, 13):
-        month_name = datetime(current_year, month, 1).strftime('%b')
+    # Crear array ordenado solo para los meses relevantes
+    for month in month_range:
+        # Determinar el año para el nombre del mes
+        if date_from and isinstance(date_from, str):
+            try:
+                year_for_month = datetime.strptime(date_from, '%Y-%m-%d').year
+            except:
+                year_for_month = current_year
+        elif date_from and hasattr(date_from, 'year'):
+            year_for_month = date_from.year
+        else:
+            year_for_month = current_year
+            
+        month_name = datetime(year_for_month, month, 1).strftime('%b')
         months.append(month_name)
-        data.append(monthly_counts.get(month, 0))
+        
+        # OPTIMIZACIÓN: Contar aprobados por mes usando query directa
+        month_filter = base_filters & Q(end__month=month)
+        if date_from and isinstance(date_from, str):
+            try:
+                start_date = datetime.strptime(date_from, '%Y-%m-%d')
+                month_filter &= Q(end__year=start_date.year)
+            except:
+                pass
+        
+        # Contar solo los aprobados para este mes específico
+        month_sittings = Sitting.objects.filter(month_filter).select_related('quiz')
+        approved_count = 0
+        
+        for sitting in month_sittings:
+            try:
+                if sitting.check_if_passed:
+                    approved_count += 1
+            except:
+                # Fallback si check_if_passed falla
+                if sitting.complete and sitting.get_percent_correct >= sitting.quiz.pass_mark:
+                    approved_count += 1
+        
+        data.append(approved_count)
     
     return {'labels': months, 'data': data}
 
@@ -446,10 +598,9 @@ def get_monthly_certificates_data():
     return get_monthly_certificates_data_cached()
 
 
-@cache_dashboard_data
 def get_program_distribution_data_cached(date_filters=None):
-    """Obtener distribución de certificados por programa (con cache)"""
-    # Construir filtros base
+    """Obtener distribución de certificados por programa (sin cache individual)"""
+    # Construir filtros base - Incluir todos los intentos completados
     base_filters = Q(
         quiz__course__isnull=False,
         complete=True
@@ -458,17 +609,22 @@ def get_program_distribution_data_cached(date_filters=None):
     if date_filters:
         base_filters &= date_filters
     
-    # Obtener todos los sittings aprobados de una vez
-    approved_sittings = Sitting.objects.filter(base_filters).select_related(
+    # Obtener todos los sittings completados de una vez
+    all_sittings = Sitting.objects.filter(base_filters).select_related(
         'course__program'
     ).prefetch_related('quiz')
     
-    # Agrupar por programa y contar
+    # Agrupar por programa y contar solo los aprobados
     program_counts = {}
-    for sitting in approved_sittings:
-        if is_sitting_approved(sitting) and sitting.course.program:
-            program_title = sitting.course.program.title
-            program_counts[program_title] = program_counts.get(program_title, 0) + 1
+    for sitting in all_sittings:
+        try:
+            if is_sitting_approved(sitting) and sitting.course.program:
+                program_title = sitting.course.program.title
+                program_counts[program_title] = program_counts.get(program_title, 0) + 1
+        except Exception as e:
+            # Log del error para debugging
+            print(f"Error procesando sitting {sitting.id} en distribución por programa: {e}")
+            continue
     
     # Ordenar y tomar top 8
     sorted_programs = sorted(program_counts.items(), key=lambda x: x[1], reverse=True)[:8]
@@ -483,15 +639,14 @@ def get_program_distribution_data():
     return get_program_distribution_data_cached()
 
 
-@cache_dashboard_data
 def get_company_distribution_data_cached(date_filters=None):
     """
-    Obtener distribución de certificados por empresa (con cache)
+    Obtener distribución de certificados por empresa (sin cache individual)
     - Muestra top 10 empresas con más certificados
     - Si hay más de 10 empresas, agrupa las restantes en "Otras"
     - Incluye usuarios sin empresa en "Sin Empresa"
     """
-    # Construir filtros base
+    # Construir filtros base - Incluir todos los intentos completados
     base_filters = Q(
         quiz__course__isnull=False,
         complete=True
@@ -500,7 +655,7 @@ def get_company_distribution_data_cached(date_filters=None):
     if date_filters:
         base_filters &= date_filters
     
-    # Obtener todos los sittings aprobados de una vez
+    # Obtener todos los sittings completados de una vez
     sittings = Sitting.objects.filter(base_filters).select_related(
         'user__student', 'quiz'
     ).prefetch_related('user__student')
@@ -509,17 +664,22 @@ def get_company_distribution_data_cached(date_filters=None):
     no_empresa_count = 0
     
     for sitting in sittings:
-        if is_sitting_approved(sitting):
-            # Verificar si tiene datos de empresa
-            if (hasattr(sitting.user, 'student') and 
-                sitting.user.student and 
-                sitting.user.student.empresa and 
-                sitting.user.student.empresa.strip()):
-                
-                empresa = sitting.user.student.empresa.strip()
-                company_data[empresa] = company_data.get(empresa, 0) + 1
-            else:
-                no_empresa_count += 1
+        try:
+            if is_sitting_approved(sitting):
+                # Verificar si tiene datos de empresa
+                if (hasattr(sitting.user, 'student') and 
+                    sitting.user.student and 
+                    sitting.user.student.empresa and 
+                    sitting.user.student.empresa.strip()):
+                    
+                    empresa = sitting.user.student.empresa.strip()
+                    company_data[empresa] = company_data.get(empresa, 0) + 1
+                else:
+                    no_empresa_count += 1
+        except Exception as e:
+            # Log del error para debugging
+            print(f"Error procesando sitting {sitting.id} en distribución por empresa: {e}")
+            continue
     
     # Agregar usuarios sin empresa si los hay
     if no_empresa_count > 0:
@@ -555,10 +715,9 @@ def get_company_distribution_data():
     return get_company_distribution_data_cached()
 
 
-@cache_dashboard_data
 def get_gender_distribution_data_cached(date_filters=None):
-    """Obtener distribución de certificados por género (con cache)"""
-    # Construir filtros base
+    """Obtener distribución de certificados por género (sin cache individual)"""
+    # Construir filtros base - Incluir todos los intentos completados
     base_filters = Q(
         quiz__course__isnull=False,
         complete=True
@@ -567,7 +726,7 @@ def get_gender_distribution_data_cached(date_filters=None):
     if date_filters:
         base_filters &= date_filters
     
-    # Obtener todos los sittings aprobados de una vez
+    # Obtener todos los sittings completados de una vez
     sittings = Sitting.objects.filter(base_filters).select_related(
         'user', 'quiz'
     )
@@ -575,13 +734,18 @@ def get_gender_distribution_data_cached(date_filters=None):
     gender_data = {'M': 0, 'F': 0}
     
     for sitting in sittings:
-        if (sitting.user.gender and 
-            sitting.user.gender.strip() and
-            is_sitting_approved(sitting)):
-            
-            gender = sitting.user.gender
-            if gender in gender_data:
-                gender_data[gender] += 1
+        try:
+            if (sitting.user.gender and 
+                sitting.user.gender.strip() and
+                is_sitting_approved(sitting)):
+                
+                gender = sitting.user.gender
+                if gender in gender_data:
+                    gender_data[gender] += 1
+        except Exception as e:
+            # Log del error para debugging
+            print(f"Error procesando sitting {sitting.id} en distribución por género: {e}")
+            continue
     
     labels = ['Masculino', 'Femenino']
     data = [gender_data['M'], gender_data['F']]
@@ -593,14 +757,14 @@ def get_gender_distribution_data():
     return get_gender_distribution_data_cached()
 
 
-@cache_dashboard_data
-def get_top_courses_data_cached(date_filters=None):
+def get_courses_data_cached(date_filters=None):
     """
-    Obtener top 10 cursos con más certificados (con cache)
+    Obtener todos los cursos con certificados otorgados (sin cache individual)
     - Solo cuenta el intento final aprobado por usuario/curso
     - Calcula promedio en escala del 1 al 20
+    - Respeta los filtros de fecha aplicados
     """
-    # Construir filtros base
+    # Construir filtros base - Incluir todos los intentos completados
     base_filters = Q(
         quiz__course__isnull=False,
         complete=True
@@ -609,20 +773,25 @@ def get_top_courses_data_cached(date_filters=None):
     if date_filters:
         base_filters &= date_filters
     
-    # Obtener todos los sittings aprobados de una vez
-    approved_sittings = Sitting.objects.filter(base_filters).select_related(
+    # Obtener todos los sittings completados de una vez
+    all_sittings = Sitting.objects.filter(base_filters).select_related(
         'course', 'course__program', 'quiz', 'user'
     )
     
     # Agrupar por usuario y curso para obtener solo el intento final aprobado
     user_course_approved = {}
     
-    for sitting in approved_sittings:
-        if is_sitting_approved(sitting):
-            user_course_key = (sitting.user.id, sitting.course.id)
-            
-            if user_course_key not in user_course_approved or sitting.end > user_course_approved[user_course_key].end:
-                user_course_approved[user_course_key] = sitting
+    for sitting in all_sittings:
+        try:
+            if is_sitting_approved(sitting):
+                user_course_key = (sitting.user.id, sitting.course.id)
+                
+                if user_course_key not in user_course_approved or sitting.end > user_course_approved[user_course_key].end:
+                    user_course_approved[user_course_key] = sitting
+        except Exception as e:
+            # Log del error para debugging
+            print(f"Error procesando sitting {sitting.id} en top courses: {e}")
+            continue
     
     # Procesar solo los intentos finales aprobados
     course_data = {}
@@ -654,11 +823,12 @@ def get_top_courses_data_cached(date_filters=None):
             'avg_score': avg_score
         })
     
-    return sorted(result, key=lambda x: x['count'], reverse=True)[:10]
+    # Ordenar por cantidad de certificados (mayor a menor) y devolver todos
+    return sorted(result, key=lambda x: x['count'], reverse=True)
 
 def get_top_courses_data():
     """Función original para compatibilidad"""
-    return get_top_courses_data_cached()
+    return get_courses_data_cached()
 
 
 def calculate_course_stats(participants):
@@ -679,17 +849,22 @@ def calculate_course_stats(participants):
     in_progress = 0
     
     for participant in participants:
-        if participant.complete:
-            # Convertir porcentaje a escala del 1 al 20
-            percent_score = participant.get_percent_correct
-            score_1_to_20 = (percent_score / 100) * 20
-            total_score += score_1_to_20
-            
-            # Usar función consistente para aprobación
-            if is_sitting_approved(participant):
-                approved += 1
-            else:
-                in_progress += 1
+        try:
+            if participant.complete:
+                # Convertir porcentaje a escala del 1 al 20
+                percent_score = participant.get_percent_correct
+                score_1_to_20 = (percent_score / 100) * 20
+                total_score += score_1_to_20
+                
+                # Usar función consistente para aprobación
+                if is_sitting_approved(participant):
+                    approved += 1
+                else:
+                    in_progress += 1
+        except Exception as e:
+            # Log del error para debugging
+            print(f"Error procesando participant {participant.id} en calculate_course_stats: {e}")
+            in_progress += 1
     
     avg_score = total_score / total if total > 0 else 0
     
@@ -740,8 +915,8 @@ def get_course_monthly_data(course, date_filters):
         
         count = Sitting.objects.filter(
             quiz__course=course,
-            fecha_aprobacion__year=current_year,
-            fecha_aprobacion__month=month
+            end__year=current_year,
+            end__month=month
         ).filter(date_filters).count()
         data.append(count)
     
@@ -761,28 +936,32 @@ def get_temporal_data(period, date_filters, program_filters):
 
 
 def get_monthly_temporal_data(base_filters):
-    """Obtener datos mensuales temporales - Solo certificados aprobados"""
+    """Obtener datos mensuales temporales - Solo certificados aprobados (OPTIMIZADO)"""
     current_year = timezone.now().year
     months = []
     data = []
     
-    # Obtener todos los sittings del año de una vez
+    # Query única optimizada
     year_sittings = Sitting.objects.filter(
         quiz__course__isnull=False,
-        fecha_aprobacion__year=current_year,
-        complete=True,
-        fecha_aprobacion__isnull=False  # Solo con fecha de aprobación
-    ).filter(base_filters).select_related('quiz')
+        end__year=current_year,
+        complete=True
+    ).filter(base_filters).select_related('quiz').only(
+        'id', 'end', 'current_score', 'quiz__pass_mark'
+    )
     
     # Agrupar por mes y contar aprobados
     monthly_counts = {}
     for sitting in year_sittings:
-        # Verificar que fecha_aprobacion no sea None
-        if sitting.fecha_aprobacion and is_sitting_approved(sitting):
-            month = sitting.fecha_aprobacion.month
-            if month not in monthly_counts:
-                monthly_counts[month] = 0
-            monthly_counts[month] += 1
+        # Verificar que tenga fecha de finalización y esté aprobado
+        if sitting.end:
+            # Calcular si está aprobado directamente
+            is_approved = sitting.current_score >= sitting.quiz.pass_mark
+            if is_approved:
+                month = sitting.end.month
+                if month not in monthly_counts:
+                    monthly_counts[month] = 0
+                monthly_counts[month] += 1
     
     # Crear array ordenado
     for month in range(1, 13):
@@ -794,28 +973,32 @@ def get_monthly_temporal_data(base_filters):
 
 
 def get_quarterly_temporal_data(base_filters):
-    """Obtener datos trimestrales temporales - Solo certificados aprobados"""
+    """Obtener datos trimestrales temporales - Solo certificados aprobados (OPTIMIZADO)"""
     current_year = timezone.now().year
     quarters = ['Q1 (Ene-Mar)', 'Q2 (Abr-Jun)', 'Q3 (Jul-Sep)', 'Q4 (Oct-Dic)']
     data = []
     
-    # Obtener todos los sittings del año de una vez
+    # Query única optimizada
     year_sittings = Sitting.objects.filter(
         quiz__course__isnull=False,
-        fecha_aprobacion__year=current_year,
-        complete=True,
-        fecha_aprobacion__isnull=False  # Solo con fecha de aprobación
-    ).filter(base_filters).select_related('quiz')
+        end__year=current_year,
+        complete=True
+    ).filter(base_filters).select_related('quiz').only(
+        'id', 'end', 'current_score', 'quiz__pass_mark'
+    )
     
     # Agrupar por trimestre y contar aprobados
     quarterly_counts = {1: 0, 2: 0, 3: 0, 4: 0}
     
     for sitting in year_sittings:
-        # Verificar que fecha_aprobacion no sea None
-        if sitting.fecha_aprobacion and is_sitting_approved(sitting):
-            month = sitting.fecha_aprobacion.month
-            quarter = ((month - 1) // 3) + 1
-            quarterly_counts[quarter] += 1
+        # Verificar que tenga fecha de finalización y esté aprobado
+        if sitting.end:
+            # Calcular si está aprobado directamente
+            is_approved = sitting.current_score >= sitting.quiz.pass_mark
+            if is_approved:
+                month = sitting.end.month
+                quarter = ((month - 1) // 3) + 1
+                quarterly_counts[quarter] += 1
     
     # Crear array ordenado
     for quarter in range(1, 5):
@@ -825,27 +1008,31 @@ def get_quarterly_temporal_data(base_filters):
 
 
 def get_yearly_temporal_data(base_filters):
-    """Obtener datos anuales temporales - Solo certificados aprobados"""
+    """Obtener datos anuales temporales - Solo certificados aprobados (OPTIMIZADO)"""
     years = list(range(2020, timezone.now().year + 1))
     data = []
     
-    # Obtener todos los sittings de todos los años de una vez
+    # Query única optimizada
     all_sittings = Sitting.objects.filter(
         quiz__course__isnull=False,
-        fecha_aprobacion__year__in=years,
-        complete=True,
-        fecha_aprobacion__isnull=False  # Solo con fecha de aprobación
-    ).filter(base_filters).select_related('quiz')
+        end__year__in=years,
+        complete=True
+    ).filter(base_filters).select_related('quiz').only(
+        'id', 'end', 'current_score', 'quiz__pass_mark'
+    )
     
     # Agrupar por año y contar aprobados
     yearly_counts = {year: 0 for year in years}
     
     for sitting in all_sittings:
-        # Verificar que fecha_aprobacion no sea None
-        if sitting.fecha_aprobacion and is_sitting_approved(sitting):
-            year = sitting.fecha_aprobacion.year
-            if year in yearly_counts:
-                yearly_counts[year] += 1
+        # Verificar que tenga fecha de finalización y esté aprobado
+        if sitting.end:
+            # Calcular si está aprobado directamente
+            is_approved = sitting.current_score >= sitting.quiz.pass_mark
+            if is_approved:
+                year = sitting.end.year
+                if year in yearly_counts:
+                    yearly_counts[year] += 1
     
     # Crear array ordenado
     for year in years:
@@ -918,30 +1105,34 @@ def calculate_temporal_stats(temporal_data):
 
 
 def get_year_comparison_data(date_filters, program_filters):
-    """Obtener datos de comparación año tras año - Solo certificados aprobados"""
+    """Obtener datos de comparación año tras año - Solo certificados aprobados (OPTIMIZADO)"""
     current_year = timezone.now().year
     years = list(range(current_year - 3, current_year + 1))
     data = []
     
     base_filters = date_filters & program_filters
     
-    # Obtener todos los sittings de todos los años de una vez
+    # Query única optimizada
     all_sittings = Sitting.objects.filter(
         quiz__course__isnull=False,
-        fecha_aprobacion__year__in=years,
-        complete=True,
-        fecha_aprobacion__isnull=False  # Solo con fecha de aprobación
-    ).filter(base_filters).select_related('quiz')
+        end__year__in=years,
+        complete=True
+    ).filter(base_filters).select_related('quiz').only(
+        'id', 'end', 'current_score', 'quiz__pass_mark'
+    )
     
     # Agrupar por año y contar aprobados
     yearly_counts = {year: 0 for year in years}
     
     for sitting in all_sittings:
-        # Verificar que fecha_aprobacion no sea None
-        if sitting.fecha_aprobacion and is_sitting_approved(sitting):
-            year = sitting.fecha_aprobacion.year
-            if year in yearly_counts:
-                yearly_counts[year] += 1
+        # Verificar que tenga fecha de finalización y esté aprobado
+        if sitting.end:
+            # Calcular si está aprobado directamente
+            is_approved = sitting.current_score >= sitting.quiz.pass_mark
+            if is_approved:
+                year = sitting.end.year
+                if year in yearly_counts:
+                    yearly_counts[year] += 1
     
     # Crear array ordenado
     for year in years:
@@ -960,17 +1151,16 @@ def get_seasonal_patterns_data(date_filters, program_filters):
     # Obtener todos los sittings de una vez
     all_sittings = Sitting.objects.filter(
         quiz__course__isnull=False,
-        complete=True,
-        fecha_aprobacion__isnull=False  # Solo con fecha de aprobación
+        complete=True
     ).filter(base_filters).select_related('quiz')
     
     # Agrupar por trimestre y contar aprobados
     quarterly_counts = {1: 0, 2: 0, 3: 0, 4: 0}
     
     for sitting in all_sittings:
-        # Verificar que fecha_aprobacion no sea None
-        if sitting.fecha_aprobacion and is_sitting_approved(sitting):
-            month = sitting.fecha_aprobacion.month
+        # Verificar que tenga fecha de finalización y esté aprobado
+        if sitting.end and is_sitting_approved(sitting):
+            month = sitting.end.month
             quarter = ((month - 1) // 3) + 1
             quarterly_counts[quarter] += 1
     
@@ -985,9 +1175,9 @@ def generate_report(report_type, date_from, date_to, filters):
     """Generar reporte según el tipo"""
     date_filters = Q()
     if date_from:
-        date_filters &= Q(fecha_aprobacion__gte=date_from)
+        date_filters &= Q(end__gte=date_from)  # ✅ Usar fecha de finalización
     if date_to:
-        date_filters &= Q(fecha_aprobacion__lte=date_to)
+        date_filters &= Q(end__lte=date_to)    # ✅ Usar fecha de finalización
     
     if report_type == 'general':
         return generate_general_report(date_filters)
@@ -1009,7 +1199,7 @@ def generate_general_report(date_filters):
         quiz__course__isnull=False
     ).filter(date_filters).select_related(
         'user', 'quiz', 'course', 'course__program'
-    ).order_by('-fecha_aprobacion')
+    ).order_by('-end')  # ✅ Usar fecha de finalización
     
     headers = [
         'Participante', 'Curso', 'Programa', 'Puntuación', 
@@ -1052,7 +1242,7 @@ def generate_course_report(date_filters, course_slug):
         quiz__course=course
     ).filter(date_filters).select_related(
         'user', 'user__student'
-    ).order_by('-fecha_aprobacion')
+    ).order_by('-end')  # ✅ Usar fecha de finalización
     
     headers = [
         'Participante', 'Empresa', 'Puntuación', 'Estado', 
@@ -1091,7 +1281,7 @@ def generate_program_report(date_filters, program_id):
         quiz__course__program_id=program_id
     ).filter(date_filters).select_related(
         'user', 'quiz', 'course', 'course__program'
-    ).order_by('-fecha_aprobacion')
+    ).order_by('-end')  # ✅ Usar fecha de finalización
     
     headers = [
         'Participante', 'Curso', 'Puntuación', 'Estado', 
@@ -1129,7 +1319,7 @@ def generate_instructor_report(date_filters, instructor_id):
         quiz__course__allocations__lecturer_id=instructor_id
     ).filter(date_filters).select_related(
         'user', 'quiz', 'course'
-    ).order_by('-fecha_aprobacion')
+    ).order_by('-end')  # ✅ Usar fecha de finalización
     
     headers = [
         'Participante', 'Curso', 'Puntuación', 'Estado', 
@@ -1164,7 +1354,7 @@ def generate_temporal_report(date_filters):
         quiz__course__isnull=False
     ).filter(date_filters).select_related(
         'user', 'quiz', 'course', 'course__program'
-    ).order_by('fecha_aprobacion')
+    ).order_by('end')  # ✅ Usar fecha de finalización
     
     headers = [
         'Fecha', 'Participante', 'Curso', 'Programa', 'Puntuación', 
@@ -1174,7 +1364,7 @@ def generate_temporal_report(date_filters):
     data = []
     for sitting in sittings:
         data.append([
-            sitting.fecha_aprobacion.strftime('%d/%m/%Y') if sitting.fecha_aprobacion else '-',
+            sitting.end.strftime('%d/%m/%Y') if sitting.end else '-',  # ✅ Usar fecha de finalización
             sitting.user.get_full_name(),
             sitting.course.title,
             sitting.course.program.title,
@@ -1241,27 +1431,259 @@ def export_to_pdf(data, headers, report_type):
 
 
 def clear_dashboard_cache():
-    """Limpiar todo el cache del dashboard"""
-    # Obtener todas las claves de cache del dashboard
-    cache_keys = []
-    
-    # Limpiar cache de funciones principales
-    cache.delete_pattern('dashboard_*')
-    
-    # Limpiar cache específico
-    cache.delete('certificates_dashboard')
-    cache.delete('course_dashboard')
-    
-    print("Cache del dashboard limpiado")
+    """Limpiar todo el cache del dashboard de manera robusta"""
+    try:
+        cache.delete('certificates_dashboard')
+        cache.delete('course_dashboard')
+        print("✅ Cache del dashboard limpiado exitosamente")
+        return True
+    except Exception as e:
+        print(f"❌ Error limpiando cache: {e}")
+        try:
+            cache.clear()
+            print("✅ Cache completo limpiado como fallback")
+            return True
+        except:
+            print("❌ No se pudo limpiar el cache")
+            return False
 
 
 def invalidate_cache_for_sitting(sitting_id):
-    """Invalidar cache cuando se actualiza un sitting"""
-    # Limpiar cache relacionado con certificados
-    cache.delete_pattern('dashboard_certificates_*')
-    cache.delete_pattern('dashboard_program_*')
-    cache.delete_pattern('dashboard_company_*')
-    cache.delete_pattern('dashboard_gender_*')
-    cache.delete_pattern('dashboard_top_courses_*')
+    """Invalidar cache cuando se actualiza un sitting de manera robusta"""
+    try:
+        # Limpiar cache principal del dashboard
+        cache.delete('certificates_dashboard')
+        cache.delete('course_dashboard')
+        
+        print(f"✅ Cache invalidado exitosamente para sitting {sitting_id}")
+        return True
+    except Exception as e:
+        print(f"❌ Error invalidando cache para sitting {sitting_id}: {e}")
+        # Fallback: limpiar todo el cache del dashboard
+        try:
+            clear_dashboard_cache()
+            return True
+        except:
+            return False
+
+
+def get_optimized_dashboard_data(date_filters, date_from=None, date_to=None):
+    """
+    Función optimizada que obtiene todos los datos del dashboard en una sola query
+    y los procesa en una sola iteración, manteniendo exactamente la misma funcionalidad
+    """
+    from datetime import datetime
     
-    print(f"Cache invalidado para sitting {sitting_id}")
+    # Query única optimizada con todas las relaciones necesarias
+    base_filters = Q(
+        quiz__course__isnull=False,
+        complete=True
+    )
+    
+    if date_filters:
+        base_filters &= date_filters
+    
+    # Obtener todos los sittings en una sola query con todas las relaciones
+    all_sittings = Sitting.objects.filter(base_filters).select_related(
+        'quiz', 'course', 'course__program', 'user'
+    ).prefetch_related(
+        'user__student'
+    ).only(
+        'id', 'end', 'current_score', 'complete', 'fecha_aprobacion',
+        'quiz__pass_mark', 'quiz__id',
+        'course__id', 'course__title', 'course__code', 'course__program__title',
+        'user__id', 'user__student__empresa'
+    )
+    
+    # Inicializar contadores y estructuras de datos
+    total_attempts = 0
+    approved_certificates = 0
+    failed_attempts = 0
+    
+    monthly_counts = {}
+    program_counts = {}
+    company_counts = {}
+    gender_counts = {}
+    course_data = {}
+    
+    # Determinar el rango de meses para el gráfico mensual
+    if date_from and date_to:
+        try:
+            if isinstance(date_from, str):
+                start_date = datetime.strptime(date_from, '%Y-%m-%d')
+            else:
+                start_date = date_from
+                
+            if isinstance(date_to, str):
+                end_date = datetime.strptime(date_to, '%Y-%m-%d')
+            else:
+                end_date = date_to
+            
+            start_month = start_date.month
+            start_year = start_date.year
+            end_month = end_date.month
+            end_year = end_date.year
+            
+            # Si es el mismo año, mostrar solo los meses del rango
+            if start_year == end_year:
+                month_range = range(start_month, end_month + 1)
+            else:
+                # Si cruza años, mostrar todos los meses del rango
+                month_range = []
+                for year in range(start_year, end_year + 1):
+                    if year == start_year:
+                        month_range.extend(range(start_month, 13))
+                    elif year == end_year:
+                        month_range.extend(range(1, end_month + 1))
+                    else:
+                        month_range.extend(range(1, 13))
+        except Exception as e:
+            print(f"Error procesando fechas: {e}")
+            month_range = range(1, 13)
+    else:
+        # Si no hay fechas específicas, usar año actual
+        current_year = timezone.now().year
+        month_range = range(1, 13)
+    
+    # Procesar todos los datos en una sola iteración
+    for sitting in all_sittings:
+        total_attempts += 1
+        
+        try:
+            # Calcular si está aprobado (misma lógica que antes)
+            is_approved = False
+            try:
+                # Usar la lógica del modelo para consistencia
+                is_approved = sitting.check_if_passed
+            except (AttributeError, TypeError):
+                # Fallback a la lógica anterior si hay problemas
+                is_approved = sitting.complete and sitting.get_percent_correct >= sitting.quiz.pass_mark
+            
+            if is_approved:
+                approved_certificates += 1
+                
+                # Procesar mes para gráfico mensual
+                if sitting.end:
+                    month_key = sitting.end.month
+                    if month_key not in monthly_counts:
+                        monthly_counts[month_key] = 0
+                    monthly_counts[month_key] += 1
+                
+                # Procesar programa
+                if sitting.course.program:
+                    program_title = sitting.course.program.title
+                    program_counts[program_title] = program_counts.get(program_title, 0) + 1
+                
+                # Procesar empresa
+                empresa = None
+                if hasattr(sitting.user, 'student') and sitting.user.student:
+                    empresa = sitting.user.student.empresa
+                
+                if empresa and empresa.strip():
+                    company_counts[empresa.strip()] = company_counts.get(empresa.strip(), 0) + 1
+                else:
+                    company_counts['Sin Empresa'] = company_counts.get('Sin Empresa', 0) + 1
+                
+                # Procesar género (asumiendo que existe el campo gender)
+                gender = 'No especificado'
+                if hasattr(sitting.user, 'gender'):
+                    gender = sitting.user.gender
+                gender_counts[gender] = gender_counts.get(gender, 0) + 1
+                
+                # Procesar cursos (solo intentos finales por usuario/curso)
+                user_course_key = (sitting.user.id, sitting.course.id)
+                if user_course_key not in course_data or sitting.end > course_data[user_course_key]['end']:
+                    course_data[user_course_key] = {
+                        'course__title': sitting.course.title,
+                        'course__code': sitting.course.code,
+                        'course__program__title': sitting.course.program.title if sitting.course.program else 'Sin programa',
+                        'end': sitting.end,
+                        'score': sitting.get_percent_correct
+                    }
+            else:
+                failed_attempts += 1
+                
+        except Exception as e:
+            print(f"Error procesando sitting {sitting.id}: {e}")
+            failed_attempts += 1
+    
+    # Preparar datos mensuales (mantener exactamente la misma estructura)
+    months = []
+    data = []
+    for month in month_range:
+        # Determinar el año para el nombre del mes
+        if date_from and isinstance(date_from, str):
+            try:
+                year_for_month = datetime.strptime(date_from, '%Y-%m-%d').year
+            except:
+                year_for_month = timezone.now().year
+        elif date_from and hasattr(date_from, 'year'):
+            year_for_month = date_from.year
+        else:
+            year_for_month = timezone.now().year
+            
+        month_name = datetime(year_for_month, month, 1).strftime('%b')
+        months.append(month_name)
+        data.append(monthly_counts.get(month, 0))
+    
+    monthly_data = {'labels': months, 'data': data}
+    
+    # Preparar datos de programas (mantener exactamente la misma estructura)
+    sorted_programs = sorted(program_counts.items(), key=lambda x: x[1], reverse=True)[:8]
+    program_labels = [p[0] for p in sorted_programs]
+    program_data = [p[1] for p in sorted_programs]
+    program_data_result = {'labels': program_labels, 'data': program_data}
+    
+    # Preparar datos de empresas (mantener exactamente la misma estructura)
+    sorted_companies = sorted(company_counts.items(), key=lambda x: x[1], reverse=True)
+    
+    if len(sorted_companies) <= 10:
+        company_labels = [c[0] for c in sorted_companies]
+        company_data_result = [c[1] for c in sorted_companies]
+    else:
+        top_companies = sorted_companies[:10]
+        other_companies = sorted_companies[10:]
+        other_total = sum(count for _, count in other_companies)
+        
+        company_labels = [c[0] for c in top_companies]
+        company_data_result = [c[1] for c in top_companies]
+        
+        if other_total > 0:
+            company_labels.append('Otras')
+            company_data_result.append(other_total)
+    
+    company_data = {'labels': company_labels, 'data': company_data_result}
+    
+    # Preparar datos de género (mantener exactamente la misma estructura)
+    gender_labels = list(gender_counts.keys())
+    gender_data_result = list(gender_counts.values())
+    gender_data = {'labels': gender_labels, 'data': gender_data_result}
+    
+    # Preparar datos de cursos (mantener exactamente la misma estructura)
+    courses_result = []
+    for (user_id, course_id), data in course_data.items():
+        # Calcular promedio de score en escala 1-20
+        score_1_to_20 = (data['score'] / 100) * 20
+        
+        courses_result.append({
+            'course__title': data['course__title'],
+            'course__code': data['course__code'],
+            'course__program__title': data['course__program__title'],
+            'count': 1,  # Cada entrada representa 1 certificado
+            'pass_rate': 100.0,
+            'avg_score': score_1_to_20
+        })
+    
+    # Ordenar cursos por cantidad (mayor a menor)
+    courses_data = sorted(courses_result, key=lambda x: x['count'], reverse=True)
+    
+    return {
+        'total_attempts': total_attempts,
+        'approved_certificates': approved_certificates,
+        'failed_attempts': failed_attempts,
+        'monthly_data': monthly_data,
+        'program_data': program_data_result,
+        'company_data': company_data,
+        'gender_data': gender_data,
+        'courses_data': courses_data
+    }

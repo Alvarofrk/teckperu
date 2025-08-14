@@ -44,3 +44,4 @@ class Command(BaseCommand):
                 self.stdout.write(
                     self.style.SUCCESS('✅ Cache completo limpiado como fallback')
                 )
+
