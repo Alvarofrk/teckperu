@@ -90,43 +90,24 @@ def certificates_dashboard(request):
         date_filters = Q()
         print(f"Error en formato de fecha: date_from={date_from}, date_to={date_to}")
     
-    # Obtener todos los sittings completos con prefetch optimizado
-    # Incluir tanto aprobados como fallidos para estadísticas correctas
-    completed_sittings = Sitting.objects.filter(
-        quiz__course__isnull=False,
-        complete=True
-    ).filter(date_filters).select_related(
-        'quiz', 'course', 'course__program'
-    ).prefetch_related(
-        Prefetch('user__student', queryset=Student.objects.only('empresa'))
-    )
+    # Obtener todos los datos del dashboard de manera optimizada en una sola query
+    optimized_data = get_optimized_dashboard_data(date_filters, date_from, date_to)
     
-    # Calcular estadísticas de una vez de manera robusta
-    total_attempts = completed_sittings.count()
-    approved_certificates = 0
-    failed_attempts = 0
-    
-    for sitting in completed_sittings:
-        try:
-            if is_sitting_approved(sitting):
-                approved_certificates += 1
-            else:
-                failed_attempts += 1
-        except Exception as e:
-            # Log del error para debugging
-            print(f"Error procesando sitting {sitting.id}: {e}")
-            failed_attempts += 1
+    # Extraer los datos de la función optimizada
+    total_attempts = optimized_data['total_attempts']
+    approved_certificates = optimized_data['approved_certificates']
+    failed_attempts = optimized_data['failed_attempts']
     
     total_certificates = approved_certificates
     pending_certificates = failed_attempts
     approval_rate = (approved_certificates / total_attempts * 100) if total_attempts > 0 else 0
     
-    # Datos para gráficos (con cache individual)
-    monthly_data = get_monthly_certificates_data_cached(date_filters, date_from, date_to)
-    program_data = get_program_distribution_data_cached(date_filters)
-    company_data = get_company_distribution_data_cached(date_filters)
-    gender_data = get_gender_distribution_data_cached(date_filters)
-    courses_data = get_courses_data_cached(date_filters)
+    # Datos para gráficos (ya procesados por la función optimizada)
+    monthly_data = optimized_data['monthly_data']
+    program_data = optimized_data['program_data']
+    company_data = optimized_data['company_data']
+    gender_data = optimized_data['gender_data']
+    courses_data = optimized_data['courses_data']
     
     # Preparar contexto con manejo de errores
     try:
@@ -1467,46 +1448,90 @@ def invalidate_cache_for_sitting(sitting_id):
             return False
 
 
-def get_optimized_dashboard_data(date_filters, date_from=None, date_to=None):
+def get_optimized_dashboard_data(date_filters, date_from, date_to):
     """
     Función optimizada que obtiene todos los datos del dashboard en una sola query
-    y los procesa en una sola iteración, manteniendo exactamente la misma funcionalidad
+    manteniendo EXACTAMENTE la misma funcionalidad y lógica de las funciones actuales
     """
     from datetime import datetime
+    current_year = timezone.now().year
     
-    # Query única optimizada con todas las relaciones necesarias
-    base_filters = Q(
+    # 1. UNA SOLA QUERY para obtener todos los datos base
+    base_sittings = Sitting.objects.filter(
         quiz__course__isnull=False,
         complete=True
-    )
-    
-    if date_filters:
-        base_filters &= date_filters
-    
-    # Obtener todos los sittings en una sola query con todas las relaciones
-    all_sittings = Sitting.objects.filter(base_filters).select_related(
+    ).filter(date_filters).select_related(
         'quiz', 'course', 'course__program', 'user'
     ).prefetch_related(
-        'user__student'
-    ).only(
-        'id', 'end', 'current_score', 'complete', 'fecha_aprobacion',
-        'quiz__pass_mark', 'quiz__id',
-        'course__id', 'course__title', 'course__code', 'course__program__title',
-        'user__id', 'user__student__empresa'
+        Prefetch('user__student', queryset=Student.objects.only('empresa'))
     )
     
-    # Inicializar contadores y estructuras de datos
-    total_attempts = 0
-    approved_certificates = 0
-    failed_attempts = 0
-    
+    # 2. Procesar TODOS los datos en una sola iteración
     monthly_counts = {}
     program_counts = {}
     company_counts = {}
     gender_counts = {}
-    course_data = {}
+    user_course_approved = {}  # Para lógica de cursos
     
-    # Determinar el rango de meses para el gráfico mensual
+    # Contadores principales
+    total_attempts = 0
+    approved_certificates = 0
+    failed_attempts = 0
+    
+    for sitting in base_sittings:
+        total_attempts += 1
+        
+        try:
+            # Usar EXACTAMENTE la misma función actual
+            if is_sitting_approved(sitting):
+                approved_certificates += 1
+                
+                # Procesar para mensual (misma lógica que get_monthly_certificates_data_cached)
+                if sitting.end:
+                    month = sitting.end.month
+                    if month not in monthly_counts:
+                        monthly_counts[month] = 0
+                    monthly_counts[month] += 1
+                
+                # Procesar para programa (misma lógica que get_program_distribution_data_cached)
+                if sitting.course.program:
+                    program_title = sitting.course.program.title
+                    program_counts[program_title] = program_counts.get(program_title, 0) + 1
+                
+                # Procesar para empresa (misma lógica que get_company_distribution_data_cached)
+                if (hasattr(sitting.user, 'student') and 
+                    sitting.user.student and 
+                    sitting.user.student.empresa and 
+                    sitting.user.student.empresa.strip()):
+                    
+                    empresa = sitting.user.student.empresa.strip()
+                    company_counts[empresa] = company_counts.get(empresa, 0) + 1
+                
+                # Procesar para género (misma lógica que get_gender_distribution_data_cached)
+                if (sitting.user.gender and 
+                    sitting.user.gender.strip() and
+                    sitting.user.gender in ['M', 'F']):
+                    
+                    gender = sitting.user.gender
+                    gender_counts[gender] = gender_counts.get(gender, 0) + 1
+                
+                # Procesar para cursos (misma lógica que get_courses_data_cached)
+                user_course_key = (sitting.user.id, sitting.course.id)
+                if user_course_key not in user_course_approved or sitting.end > user_course_approved[user_course_key].end:
+                    user_course_approved[user_course_key] = sitting
+                    
+            else:
+                failed_attempts += 1
+                
+        except Exception as e:
+            print(f"Error procesando sitting {sitting.id}: {e}")
+            failed_attempts += 1
+    
+    # 3. Procesar datos mensuales (misma lógica que get_monthly_certificates_data_cached)
+    months = []
+    data = []
+    
+    # Determinar el rango de meses basado en las fechas proporcionadas
     if date_from and date_to:
         try:
             if isinstance(date_from, str):
@@ -1524,11 +1549,9 @@ def get_optimized_dashboard_data(date_filters, date_from=None, date_to=None):
             end_month = end_date.month
             end_year = end_date.year
             
-            # Si es el mismo año, mostrar solo los meses del rango
             if start_year == end_year:
                 month_range = range(start_month, end_month + 1)
             else:
-                # Si cruza años, mostrar todos los meses del rango
                 month_range = []
                 for year in range(start_year, end_year + 1):
                     if year == start_year:
@@ -1537,90 +1560,24 @@ def get_optimized_dashboard_data(date_filters, date_from=None, date_to=None):
                         month_range.extend(range(1, end_month + 1))
                     else:
                         month_range.extend(range(1, 13))
+                        
         except Exception as e:
             print(f"Error procesando fechas: {e}")
             month_range = range(1, 13)
     else:
-        # Si no hay fechas específicas, usar año actual
-        current_year = timezone.now().year
         month_range = range(1, 13)
     
-    # Procesar todos los datos en una sola iteración
-    for sitting in all_sittings:
-        total_attempts += 1
-        
-        try:
-            # Calcular si está aprobado (misma lógica que antes)
-            is_approved = False
-            try:
-                # Usar la lógica del modelo para consistencia
-                is_approved = sitting.check_if_passed
-            except (AttributeError, TypeError):
-                # Fallback a la lógica anterior si hay problemas
-                is_approved = sitting.complete and sitting.get_percent_correct >= sitting.quiz.pass_mark
-            
-            if is_approved:
-                approved_certificates += 1
-                
-                # Procesar mes para gráfico mensual
-                if sitting.end:
-                    month_key = sitting.end.month
-                    if month_key not in monthly_counts:
-                        monthly_counts[month_key] = 0
-                    monthly_counts[month_key] += 1
-                
-                # Procesar programa
-                if sitting.course.program:
-                    program_title = sitting.course.program.title
-                    program_counts[program_title] = program_counts.get(program_title, 0) + 1
-                
-                # Procesar empresa
-                empresa = None
-                if hasattr(sitting.user, 'student') and sitting.user.student:
-                    empresa = sitting.user.student.empresa
-                
-                if empresa and empresa.strip():
-                    company_counts[empresa.strip()] = company_counts.get(empresa.strip(), 0) + 1
-                else:
-                    company_counts['Sin Empresa'] = company_counts.get('Sin Empresa', 0) + 1
-                
-                # Procesar género (asumiendo que existe el campo gender)
-                gender = 'No especificado'
-                if hasattr(sitting.user, 'gender'):
-                    gender = sitting.user.gender
-                gender_counts[gender] = gender_counts.get(gender, 0) + 1
-                
-                # Procesar cursos (solo intentos finales por usuario/curso)
-                user_course_key = (sitting.user.id, sitting.course.id)
-                if user_course_key not in course_data or sitting.end > course_data[user_course_key]['end']:
-                    course_data[user_course_key] = {
-                        'course__title': sitting.course.title,
-                        'course__code': sitting.course.code,
-                        'course__program__title': sitting.course.program.title if sitting.course.program else 'Sin programa',
-                        'end': sitting.end,
-                        'score': sitting.get_percent_correct
-                    }
-            else:
-                failed_attempts += 1
-                
-        except Exception as e:
-            print(f"Error procesando sitting {sitting.id}: {e}")
-            failed_attempts += 1
-    
-    # Preparar datos mensuales (mantener exactamente la misma estructura)
-    months = []
-    data = []
+    # Crear array ordenado solo para los meses relevantes
     for month in month_range:
-        # Determinar el año para el nombre del mes
         if date_from and isinstance(date_from, str):
             try:
                 year_for_month = datetime.strptime(date_from, '%Y-%m-%d').year
             except:
-                year_for_month = timezone.now().year
+                year_for_month = current_year
         elif date_from and hasattr(date_from, 'year'):
             year_for_month = date_from.year
         else:
-            year_for_month = timezone.now().year
+            year_for_month = current_year
             
         month_name = datetime(year_for_month, month, 1).strftime('%b')
         months.append(month_name)
@@ -1628,61 +1585,84 @@ def get_optimized_dashboard_data(date_filters, date_from=None, date_to=None):
     
     monthly_data = {'labels': months, 'data': data}
     
-    # Preparar datos de programas (mantener exactamente la misma estructura)
+    # 4. Procesar datos de programa (misma lógica que get_program_distribution_data_cached)
     sorted_programs = sorted(program_counts.items(), key=lambda x: x[1], reverse=True)[:8]
-    program_labels = [p[0] for p in sorted_programs]
-    program_data = [p[1] for p in sorted_programs]
-    program_data_result = {'labels': program_labels, 'data': program_data}
+    program_data = {
+        'labels': [p[0] for p in sorted_programs],
+        'data': [p[1] for p in sorted_programs]
+    }
     
-    # Preparar datos de empresas (mantener exactamente la misma estructura)
+    # 5. Procesar datos de empresa (misma lógica que get_company_distribution_data_cached)
+    no_empresa_count = approved_certificates - sum(company_counts.values())
+    if no_empresa_count > 0:
+        company_counts['Sin Empresa'] = no_empresa_count
+    
     sorted_companies = sorted(company_counts.items(), key=lambda x: x[1], reverse=True)
     
     if len(sorted_companies) <= 10:
-        company_labels = [c[0] for c in sorted_companies]
-        company_data_result = [c[1] for c in sorted_companies]
+        company_data = {
+            'labels': [c[0] for c in sorted_companies],
+            'data': [c[1] for c in sorted_companies]
+        }
     else:
         top_companies = sorted_companies[:10]
         other_companies = sorted_companies[10:]
         other_total = sum(count for _, count in other_companies)
         
-        company_labels = [c[0] for c in top_companies]
-        company_data_result = [c[1] for c in top_companies]
+        labels = [c[0] for c in top_companies]
+        data = [c[1] for c in top_companies]
         
         if other_total > 0:
-            company_labels.append('Otras')
-            company_data_result.append(other_total)
+            labels.append('Otras')
+            data.append(other_total)
+        
+        company_data = {'labels': labels, 'data': data}
     
-    company_data = {'labels': company_labels, 'data': company_data_result}
+    # 6. Procesar datos de género (misma lógica que get_gender_distribution_data_cached)
+    gender_data = {
+        'labels': ['Masculino', 'Femenino'],
+        'data': [gender_counts.get('M', 0), gender_counts.get('F', 0)]
+    }
     
-    # Preparar datos de género (mantener exactamente la misma estructura)
-    gender_labels = list(gender_counts.keys())
-    gender_data_result = list(gender_counts.values())
-    gender_data = {'labels': gender_labels, 'data': gender_data_result}
+    # 7. Procesar datos de cursos (misma lógica que get_courses_data_cached)
+    course_data = {}
+    for sitting in user_course_approved.values():
+        course_key = (sitting.course.title, sitting.course.code, 
+                     sitting.course.program.title if sitting.course.program else 'Sin programa')
+        
+        if course_key not in course_data:
+            course_data[course_key] = {
+                'total_certificates': 0,
+                'total_score': 0
+            }
+        
+        course_data[course_key]['total_certificates'] += 1
+        score_1_to_20 = (sitting.get_percent_correct / 100) * 20
+        course_data[course_key]['total_score'] += score_1_to_20
     
-    # Preparar datos de cursos (mantener exactamente la misma estructura)
+    # Calcular estadísticas y ordenar (misma lógica)
     courses_result = []
-    for (user_id, course_id), data in course_data.items():
-        # Calcular promedio de score en escala 1-20
-        score_1_to_20 = (data['score'] / 100) * 20
+    for (title, code, program), data in course_data.items():
+        avg_score = data['total_score'] / data['total_certificates'] if data['total_certificates'] > 0 else 0
         
         courses_result.append({
-            'course__title': data['course__title'],
-            'course__code': data['course__code'],
-            'course__program__title': data['course__program__title'],
-            'count': 1,  # Cada entrada representa 1 certificado
+            'course__title': title,
+            'course__code': code,
+            'course__program__title': program,
+            'count': data['total_certificates'],
             'pass_rate': 100.0,
-            'avg_score': score_1_to_20
+            'avg_score': avg_score
         })
     
-    # Ordenar cursos por cantidad (mayor a menor)
     courses_data = sorted(courses_result, key=lambda x: x['count'], reverse=True)
     
+    # 8. Retornar datos en el formato EXACTO que esperan las funciones actuales
     return {
         'total_attempts': total_attempts,
         'approved_certificates': approved_certificates,
         'failed_attempts': failed_attempts,
         'monthly_data': monthly_data,
-        'program_data': program_data_result,
+        'program_data': program_data,
         'company_data': company_data,
         'gender_data': gender_data,
         'courses_data': courses_data

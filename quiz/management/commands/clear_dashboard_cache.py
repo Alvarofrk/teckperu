@@ -45,3 +45,6 @@ class Command(BaseCommand):
                     self.style.SUCCESS('✅ Cache completo limpiado como fallback')
                 )
 
+
+
+

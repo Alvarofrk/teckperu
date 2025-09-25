@@ -21,3 +21,6 @@ urlpatterns = [
     path('exportar/', dashboard_views.export_dashboard, name='export_dashboard'),
 ]
 
+
+
+
