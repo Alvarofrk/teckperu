@@ -387,17 +387,17 @@ body {
     html {
         color-scheme: light !important;
     }
-    
+
     /* Mantener la imagen de fondo en la página de login */
     body {
         background: url("../img/fondo.jpg") center/cover no-repeat fixed !important;
         background-color: transparent !important;
     }
-    
+
     .login-container {
         background-color: transparent !important;
     }
-    
+
     .login-card {
         background: rgba(255, 255, 255, 0.95) !important;
         border: 1px solid rgba(0, 0, 0, 0.1) !important;
@@ -417,7 +417,7 @@ body {
     .form-label {
         color: #000000 !important;
     }
-    
+
     .login-title,
     .login-subtitle {
         color: #000000 !important;

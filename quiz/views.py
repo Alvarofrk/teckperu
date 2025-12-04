@@ -245,7 +245,78 @@ def generar_certificado(request, sitting_id):
         pos_fecha = (565, 206)
         pos_nombre_usuario = (525, 263)
         pos_codigo_certificado = (679, 466)
-    
+    elif sitting.quiz.course.code == "0010":
+        plantilla_path = os.path.join(settings.BASE_DIR, 'static', 'pdfs', 'certificado_0010.pdf')
+        # Personalización de posiciones para este curso
+        pos_nombre_estudiante = 285
+        pos_puntaje = (472, 164)
+        pos_fecha = (450, 195.5)
+        pos_nombre_usuario = (525, 252)
+        pos_codigo_certificado = (680, 454.5)
+    elif sitting.quiz.course.code == "0011":
+        plantilla_path = os.path.join(settings.BASE_DIR, 'static', 'pdfs', 'certificado_0011.pdf')
+        # Personalización de posiciones para este curso
+        pos_nombre_estudiante = 285
+        pos_puntaje = (106.5, 152.5)
+        pos_fecha = (100, 172.5)
+        pos_nombre_usuario = (525, 252)
+        pos_codigo_certificado = (680, 454.5)
+    elif sitting.quiz.course.code == "0012":
+        plantilla_path = os.path.join(settings.BASE_DIR, 'static', 'pdfs', 'certificado_0012.pdf')
+        # Personalización de posiciones para este curso
+        pos_nombre_estudiante = 285
+        pos_puntaje = (471.5, 164)
+        pos_fecha = (505, 194)
+        pos_nombre_usuario = (525, 252)
+        pos_codigo_certificado = (680, 454.5)
+    elif sitting.quiz.course.code == "0013":
+        plantilla_path = os.path.join(settings.BASE_DIR, 'static', 'pdfs', 'certificado_0013.pdf')
+        # Personalización de posiciones para este curso
+        pos_nombre_estudiante = 285
+        pos_puntaje = (471.5, 172.5)
+        pos_fecha = (606, 193.5)
+        pos_nombre_usuario = (525, 252)
+        pos_codigo_certificado = (680, 454.5)
+    elif sitting.quiz.course.code == "0014":
+        plantilla_path = os.path.join(settings.BASE_DIR, 'static', 'pdfs', 'certificado_0014.pdf')
+        # Personalización de posiciones para este curso
+        pos_nombre_estudiante = 285
+        pos_puntaje = (700.5, 164)
+        pos_fecha = (95, 164)
+        pos_nombre_usuario = (525, 252)
+        pos_codigo_certificado = (680, 454.5)
+    elif sitting.quiz.course.code == "0015":
+        plantilla_path = os.path.join(settings.BASE_DIR, 'static', 'pdfs', 'certificado_0015.pdf')
+        # Personalización de posiciones para este curso
+        pos_nombre_estudiante = 285
+        pos_puntaje = (108.5, 164)
+        pos_fecha = (185, 186)
+        pos_nombre_usuario = (525, 252)
+        pos_codigo_certificado = (680, 454.5)
+    elif sitting.quiz.course.code == "0016":
+        plantilla_path = os.path.join(settings.BASE_DIR, 'static', 'pdfs', 'certificado_0016.pdf')
+        # Personalización de posiciones para este curso
+        pos_nombre_estudiante = 285
+        pos_puntaje = (473, 185.5)
+        pos_fecha = (577, 207)
+        pos_nombre_usuario = (525, 252)
+        pos_codigo_certificado = (680, 454.5)
+    elif sitting.quiz.course.code == "0017":
+        plantilla_path = os.path.join(settings.BASE_DIR, 'static', 'pdfs', 'certificado_0017.pdf')
+        # Personalización de posiciones para este curso
+        pos_nombre_estudiante = 285
+        pos_puntaje = (338.5, 186)
+        pos_fecha = (385, 206.5)
+        pos_nombre_usuario = (525, 252)
+        pos_codigo_certificado = (680, 454.5)
+    elif sitting.quiz.course.code == "0018":
+        plantilla_path = os.path.join(settings.BASE_DIR, 'static', 'pdfs', 'certificado_0018.pdf')
+        # Personalización de posiciones para este curso
+        pos_nombre_estudiante = 285
+        pos_puntaje = (412, 185.5)
+        pos_fecha = (495, 207)
+        pos_nombre_usuario = (525, 252)
+        pos_codigo_certificado = (680, 454.5)
     else:
         plantilla_path = os.path.join(settings.BASE_DIR, 'static', 'pdfs', 'certificado_default.pdf')
         pos_nombre_estudiante = 430
