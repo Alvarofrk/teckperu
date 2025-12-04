@@ -388,9 +388,14 @@ body {
         color-scheme: light !important;
     }
     
-    body,
+    /* Mantener la imagen de fondo en la página de login */
+    body {
+        background: url("../img/fondo.jpg") center/cover no-repeat fixed !important;
+        background-color: transparent !important;
+    }
+    
     .login-container {
-        background-color: #ffffff !important;
+        background-color: transparent !important;
     }
     
     .login-card {

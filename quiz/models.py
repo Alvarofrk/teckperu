@@ -20,15 +20,15 @@ from course.models import Course
 from core.utils import unique_slug_generator
 
 CHOICE_ORDER_OPTIONS = (
-    ("content", _("Content")),
-    ("random", _("Random")),
-    ("none", _("None")),
+    ("content", _("Contenido")),
+    ("random", _("Aleatorio")),
+    ("none", _("Ninguno")),
 )
 
 CATEGORY_OPTIONS = (
-    ("assignment", _("Assignment")),
-    ("exam", _("Exam")),
-    ("practice", _("Practice Quiz")),
+    ("assignment", _("Tarea")),
+    ("exam", _("Examen")),
+    ("practice", _("Práctica")),
 )
 
 
@@ -48,49 +48,55 @@ class QuizManager(models.Manager):
 
 class Quiz(models.Model):
     course = models.ForeignKey(Course, on_delete=models.CASCADE)
-    title = models.CharField(verbose_name=_("Title"), max_length=60)
+    title = models.CharField(verbose_name=_("Título"), max_length=60)
     slug = models.SlugField(unique=True, blank=True)
     description = models.TextField(
-        verbose_name=_("Description"),
+        verbose_name=_("Descripción"),
         blank=True,
-        help_text=_("A detailed description of the quiz"),
+        help_text=_("Una descripción detallada del cuestionario"),
     )
-    category = models.CharField(max_length=20, choices=CATEGORY_OPTIONS, blank=True)
+    category = models.CharField(
+        max_length=20,
+        choices=CATEGORY_OPTIONS,
+        blank=True,
+        verbose_name=_("Categoría"),
+        help_text=_("Selecciona la categoría del cuestionario")
+    )
     random_order = models.BooleanField(
         default=False,
-        verbose_name=_("Random Order"),
-        help_text=_("Display the questions in a random order or as they are set?"),
+        verbose_name=_("Orden aleatorio"),
+        help_text=_("¿Mostrar las preguntas en orden aleatorio o como están configuradas?"),
     )
     answers_at_end = models.BooleanField(
         default=False,
-        verbose_name=_("Answers at end"),
+        verbose_name=_("Respuestas al final"),
         help_text=_(
-            "Correct answer is NOT shown after question. Answers displayed at the end."
+            "La respuesta correcta NO se muestra después de cada pregunta. Las respuestas se muestran al final."
         ),
     )
     exam_paper = models.BooleanField(
         default=False,
-        verbose_name=_("Exam Paper"),
+        verbose_name=_("Examen evaluado"),
         help_text=_(
-            "If yes, the result of each attempt by a user will be stored. Necessary for marking."
+            "Si se marca, el resultado de cada intento por un usuario será almacenado. Necesario para calificación."
         ),
     )
     single_attempt = models.BooleanField(
         default=False,
-        verbose_name=_("Single Attempt"),
-        help_text=_("If yes, only one attempt by a user will be permitted."),
+        verbose_name=_("Un solo intento"),
+        help_text=_("Si se marca, solo se permitirá un intento por usuario."),
     )
     pass_mark = models.SmallIntegerField(
         default=50,
-        verbose_name=_("Pass Mark"),
+        verbose_name=_("Nota de aprobación"),
         validators=[MaxValueValidator(100)],
         help_text=_("Porcentaje necesario para aprobar el examen."),
     )
     draft = models.BooleanField(
         default=False,
-        verbose_name=_("Draft"),
+        verbose_name=_("Borrador"),
         help_text=_(
-            "If yes, the quiz is not displayed in the quiz list and can only be taken by users who can edit quizzes."
+            "Si se marca, el cuestionario no se mostrará en la lista y solo puede ser tomado por usuarios que pueden editar cuestionarios."
         ),
     )
     timestamp = models.DateTimeField(auto_now=True)
@@ -98,8 +104,8 @@ class Quiz(models.Model):
     objects = QuizManager()
 
     class Meta:
-        verbose_name = _("Quiz")
-        verbose_name_plural = _("Quizzes")
+        verbose_name = _("Cuestionario")
+        verbose_name_plural = _("Cuestionarios")
 
     def __str__(self):
         return self.title

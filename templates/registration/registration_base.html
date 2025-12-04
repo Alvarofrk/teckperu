@@ -1,6 +1,26 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block sidebar %}{% endblock %}
+
+{% block header %}
+<!-- Sobrescribir estilos de forzar modo claro para mantener imagen de fondo en login -->
+<style>
+    body {
+        background: url("{% static 'img/fondo.jpg' %}") center/cover no-repeat fixed !important;
+        background-color: transparent !important;
+        background-image: url("{% static 'img/fondo.jpg' %}") !important;
+    }
+    
+    @media (prefers-color-scheme: dark) {
+        body {
+            background: url("{% static 'img/fondo.jpg' %}") center/cover no-repeat fixed !important;
+            background-color: transparent !important;
+            background-image: url("{% static 'img/fondo.jpg' %}") !important;
+        }
+    }
+</style>
+{% endblock %}
 
 {% block maincontent %}
   {% block content %}{% endblock content %}

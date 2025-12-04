@@ -1,6 +1,13 @@
 /* ===== FORZAR MODO CLARO SIEMPRE - MÁXIMA PRIORIDAD ===== */
 /* Este archivo DEBE cargarse al final para sobrescribir TODO */
 
+/* EXCEPCIÓN: No aplicar estilos de fondo en páginas de login/registro */
+body:has(.login-container),
+body:has(.login-card) {
+    background: url("../img/fondo.jpg") center/cover no-repeat fixed !important;
+    background-color: transparent !important;
+}
+
 /* Forzar color scheme light en el HTML */
 html {
     color-scheme: light !important;
@@ -21,6 +28,14 @@ html {
         background: #ffffff !important;
         color: #000000 !important;
         color-scheme: light !important;
+    }
+    
+    /* EXCEPCIÓN: No sobrescribir fondo en login - DEBE IR DESPUÉS para tener prioridad */
+    body:has(.login-container),
+    body:has(.login-card) {
+        background: url("../img/fondo.jpg") center/cover no-repeat fixed !important;
+        background-color: transparent !important;
+        background-image: url("../img/fondo.jpg") !important;
     }
     
     /* FORZAR #main y #main-content - MÁXIMA ESPECIFICIDAD POSIBLE */
@@ -125,7 +140,15 @@ html {
     }
     
     .login-container {
-        background-color: #ffffff !important;
+        background-color: transparent !important;
+    }
+    
+    /* EXCEPCIÓN: Mantener imagen de fondo en login */
+    body:has(.login-container),
+    body:has(.login-card) {
+        background: url("../img/fondo.jpg") center/cover no-repeat fixed !important;
+        background-color: transparent !important;
+        background-image: url("../img/fondo.jpg") !important;
     }
     
     /* Forzar sidebar */

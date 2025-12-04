@@ -105,8 +105,10 @@
                 const main = document.getElementById('main');
                 const mainContent = document.getElementById('main-content');
                 const body = document.body;
+                const loginContainer = document.querySelector('.login-container');
                 
-                if (body) {
+                // EXCEPCIÓN: No forzar fondo blanco en página de login
+                if (body && !loginContainer) {
                     body.style.setProperty('background-color', '#ffffff', 'important');
                     body.style.setProperty('color', '#000000', 'important');
                 }
@@ -175,24 +177,33 @@
                 window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', forceLightMode);
             }
             
-            // Forzar periódicamente (cada 300ms para ser más agresivo)
-            setInterval(forceLightMode, 300);
-            
-            // Forzar después de cargar
-            if (document.readyState === 'loading') {
-                document.addEventListener('DOMContentLoaded', forceLightMode);
-            } else {
-                forceLightMode();
+            // NO forzar periódicamente si estamos en la página de login
+            const loginContainer = document.querySelector('.login-container');
+            if (!loginContainer) {
+                // Forzar periódicamente (cada 300ms para ser más agresivo)
+                setInterval(forceLightMode, 300);
             }
             
-            window.addEventListener('load', forceLightMode);
+            // NO forzar fondo si estamos en página de login
+            const loginContainer = document.querySelector('.login-container');
             
-            // Forzar después de delays para asegurar que todo se cargó
-            setTimeout(forceLightMode, 50);
-            setTimeout(forceLightMode, 100);
-            setTimeout(forceLightMode, 300);
-            setTimeout(forceLightMode, 500);
-            setTimeout(forceLightMode, 1000);
+            if (!loginContainer) {
+                // Forzar después de cargar
+                if (document.readyState === 'loading') {
+                    document.addEventListener('DOMContentLoaded', forceLightMode);
+                } else {
+                    forceLightMode();
+                }
+                
+                window.addEventListener('load', forceLightMode);
+                
+                // Forzar después de delays para asegurar que todo se cargó
+                setTimeout(forceLightMode, 50);
+                setTimeout(forceLightMode, 100);
+                setTimeout(forceLightMode, 300);
+                setTimeout(forceLightMode, 500);
+                setTimeout(forceLightMode, 1000);
+            }
         })();
     </script>
 </body>

@@ -45,11 +45,21 @@
                             <span class="danger">{{ form.questions.errors }}</span>
                             <small class="d-block text-muted">{% trans 'Mantén presionado' %} "Control", {% trans 'o' %} "Command" {% trans 'en un Mac, para seleccionar más de uno.' %}</small>
                         </div>
-                        {{ form.random_order|as_crispy_field }}                    
-                        {{ form.answers_at_end|as_crispy_field }}                    
-                        {{ form.exam_paper|as_crispy_field }}                    
-                        {{ form.single_attempt|as_crispy_field }}                    
-                        {{ form.draft|as_crispy_field }}             
+                        <div class="form-group mb-3">
+                            {{ form.random_order|as_crispy_field }}
+                        </div>
+                        <div class="form-group mb-3">
+                            {{ form.answers_at_end|as_crispy_field }}
+                        </div>
+                        <div class="form-group mb-3">
+                            {{ form.exam_paper|as_crispy_field }}
+                        </div>
+                        <div class="form-group mb-3">
+                            {{ form.single_attempt|as_crispy_field }}
+                        </div>
+                        <div class="form-group mb-3">
+                            {{ form.draft|as_crispy_field }}
+                        </div>             
                     </div>
                 </div>
             </div>
@@ -60,11 +70,59 @@
 
 {% endblock %}
 
+{% block extra_css %}
+<style>
+    /* Asegurar que los checkboxes sean visibles y funcionen correctamente */
+    .form-check-input {
+        width: 1.25rem !important;
+        height: 1.25rem !important;
+        margin-top: 0.125rem !important;
+        margin-right: 0.5rem !important;
+        display: inline-block !important;
+        opacity: 1 !important;
+        cursor: pointer !important;
+        position: relative !important;
+    }
+    
+    .form-check-label {
+        cursor: pointer !important;
+        margin-left: 0 !important;
+    }
+    
+    .form-check {
+        padding-left: 0 !important;
+        margin-bottom: 0.5rem !important;
+    }
+    
+    /* Asegurar que los checkboxes de crispy forms funcionen */
+    .form-group .form-check-input {
+        display: inline-block !important;
+        visibility: visible !important;
+    }
+</style>
+{% endblock %}
+
 {% block js %}
 <script>
     const transitionButton = document.getElementById('btn-transition');
-    transitionButton.addEventListener('click', () => {
-        document.getElementById('card-transition').style.animation = 'card-transition 5s ease-in-out forwards';
-    })
+    if (transitionButton) {
+        transitionButton.addEventListener('click', () => {
+            const cardTransition = document.getElementById('card-transition');
+            if (cardTransition) {
+                cardTransition.style.animation = 'card-transition 5s ease-in-out forwards';
+            }
+        });
+    }
+    
+    // Asegurar que los checkboxes funcionen correctamente
+    document.addEventListener('DOMContentLoaded', function() {
+        const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+        checkboxes.forEach(function(checkbox) {
+            checkbox.style.display = 'inline-block';
+            checkbox.style.visibility = 'visible';
+            checkbox.style.opacity = '1';
+            checkbox.style.position = 'relative';
+        });
+    });
 </script>
 {% endblock js %}
