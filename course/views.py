@@ -216,7 +216,13 @@ def course_add(request, pk):
     if request.method == "POST":
         form = CourseAddForm(request.POST)
         if form.is_valid():
-            course = form.save()
+            course = form.save(commit=False)
+            # Establecer valores automáticos por defecto
+            course.credit = 1
+            course.level = settings.BACHELOR_DEGREE
+            course.year = 1
+            course.semester = settings.FIRST
+            course.save()
             messages.success(
                 request, f"{course.title} ({course.code}) has been created."
             )
@@ -705,7 +711,7 @@ def user_course_list(request):
         completed_courses = 0
         
         # Paginación
-        paginator = Paginator(courses, 9)  # 9 cursos por página
+        paginator = Paginator(courses, 10)  # 10 cursos por página
         page_number = request.GET.get('page')
         page_obj = paginator.get_page(page_number)
         
@@ -750,7 +756,7 @@ def user_course_list(request):
             course.image_path = get_course_image_path(course.code)
         
         # Paginación
-        paginator = Paginator(courses, 9)  # 9 cursos por página (3x3 grid)
+        paginator = Paginator(courses, 10)  # 10 cursos por página
         page_number = request.GET.get('page')
         page_obj = paginator.get_page(page_number)
         

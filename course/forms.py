@@ -17,18 +17,28 @@ class ProgramForm(forms.ModelForm):
 class CourseAddForm(forms.ModelForm):
     class Meta:
         model = Course
-        fields = "__all__"
+        # Excluir campos que se establecerán automáticamente
+        exclude = ["credit", "level", "year", "semester", "slug", "is_elective", "is_active", "last_cert_code"]
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields["title"].widget.attrs.update({"class": "form-control"})
         self.fields["code"].widget.attrs.update({"class": "form-control"})
-        self.fields["credit"].widget.attrs.update({"class": "form-control"})
-        self.fields["summary"].widget.attrs.update({"class": "form-control"})
+        self.fields["summary"].widget.attrs.update({"class": "form-control", "rows": "4"})
         self.fields["program"].widget.attrs.update({"class": "form-control"})
-        self.fields["level"].widget.attrs.update({"class": "form-control"})
-        self.fields["year"].widget.attrs.update({"class": "form-control"})
-        self.fields["semester"].widget.attrs.update({"class": "form-control"})
+    
+    def save(self, commit=True):
+        """Sobrescribir save para establecer valores por defecto automáticamente"""
+        from django.conf import settings
+        course = super().save(commit=False)
+        # Establecer valores por defecto
+        course.credit = 1
+        course.level = settings.BACHELOR_DEGREE
+        course.year = 1
+        course.semester = settings.FIRST
+        if commit:
+            course.save()
+        return course
 
 
 class CourseEditForm(forms.ModelForm):

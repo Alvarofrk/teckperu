@@ -1,12 +1,33 @@
 {% load static %}
 {% load i18n %}
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-bs-theme="light">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    
+    <!-- FORZAR MODO CLARO - Prevenir que el navegador use modo oscuro -->
+    <meta name="color-scheme" content="light">
+    <meta name="theme-color" content="#ffffff">
+
+    <!-- Script INLINE para forzar modo claro ANTES de cualquier CSS -->
+    <script>
+        (function() {
+            'use strict';
+            // Ejecutar INMEDIATAMENTE, antes de que cualquier CSS se cargue
+            document.documentElement.setAttribute('data-bs-theme', 'light');
+            document.documentElement.setAttribute('data-theme', 'light');
+            document.documentElement.style.colorScheme = 'light';
+            
+            // Limpiar localStorage
+            try {
+                localStorage.removeItem('theme');
+                localStorage.setItem('theme', 'light');
+            } catch(e) {}
+        })();
+    </script>
 
     <title>{% block title %}SEGURIDADTECKPERU{% endblock title %}</title>
 
@@ -31,6 +52,9 @@
     
     <!-- CSS para Dashboards de Certificados -->
     <link rel="stylesheet" type="text/css" href="{% static 'css/dashboards.css' %}">
+    
+    <!-- Forzar modo claro siempre - DEBE IR AL FINAL PARA MÁXIMA PRIORIDAD -->
+    <link rel="stylesheet" type="text/css" href="{% static 'css/force-light-mode.css' %}">
 
     <!-- <script src="https://js.stripe.com/v3/"></script> -->
     {% block header %}{% endblock %}
@@ -65,6 +89,112 @@
 
     {% block js %}
     {% endblock js %}
+    
+    <!-- Script para forzar modo claro - DEBE IR AL FINAL -->
+    <script>
+        (function() {
+            'use strict';
+            
+            function forceLightMode() {
+                // Forzar atributos
+                document.documentElement.setAttribute('data-bs-theme', 'light');
+                document.documentElement.setAttribute('data-theme', 'light');
+                document.documentElement.style.colorScheme = 'light';
+                
+                // Forzar estilos inline en elementos críticos - MÁXIMA PRIORIDAD
+                const main = document.getElementById('main');
+                const mainContent = document.getElementById('main-content');
+                const body = document.body;
+                
+                if (body) {
+                    body.style.setProperty('background-color', '#ffffff', 'important');
+                    body.style.setProperty('color', '#000000', 'important');
+                }
+                
+                if (main) {
+                    main.style.setProperty('background', '#ffffff', 'important');
+                    main.style.setProperty('background-color', '#ffffff', 'important');
+                    main.style.setProperty('color', '#000000', 'important');
+                }
+                
+                if (mainContent) {
+                    mainContent.style.setProperty('background', '#ffffff', 'important');
+                    mainContent.style.setProperty('background-color', '#ffffff', 'important');
+                    mainContent.style.setProperty('color', '#000000', 'important');
+                }
+                
+                // Limpiar localStorage
+                try {
+                    localStorage.removeItem('theme');
+                    localStorage.setItem('theme', 'light');
+                } catch(e) {}
+            }
+            
+            // Ejecutar inmediatamente
+            forceLightMode();
+            
+            // Observador para prevenir cambios
+            const observer = new MutationObserver(function(mutations) {
+                mutations.forEach(function(mutation) {
+                    if (mutation.type === 'attributes') {
+                        const attr = mutation.attributeName;
+                        if (attr === 'data-bs-theme' || attr === 'data-theme') {
+                            const currentTheme = document.documentElement.getAttribute(attr);
+                            if (currentTheme === 'dark' || currentTheme === 'auto') {
+                                forceLightMode();
+                            }
+                        }
+                    }
+                });
+            });
+            
+            observer.observe(document.documentElement, {
+                attributes: true,
+                attributeFilter: ['data-bs-theme', 'data-theme']
+            });
+            
+            // Observar #main y #main-content para cambios de estilo
+            const main = document.getElementById('main');
+            const mainContent = document.getElementById('main-content');
+            
+            if (main) {
+                observer.observe(main, {
+                    attributes: true,
+                    attributeFilter: ['style']
+                });
+            }
+            if (mainContent) {
+                observer.observe(mainContent, {
+                    attributes: true,
+                    attributeFilter: ['style']
+                });
+            }
+            
+            // Escuchar cambios en preferencias del sistema
+            if (window.matchMedia) {
+                window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', forceLightMode);
+            }
+            
+            // Forzar periódicamente (cada 300ms para ser más agresivo)
+            setInterval(forceLightMode, 300);
+            
+            // Forzar después de cargar
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', forceLightMode);
+            } else {
+                forceLightMode();
+            }
+            
+            window.addEventListener('load', forceLightMode);
+            
+            // Forzar después de delays para asegurar que todo se cargó
+            setTimeout(forceLightMode, 50);
+            setTimeout(forceLightMode, 100);
+            setTimeout(forceLightMode, 300);
+            setTimeout(forceLightMode, 500);
+            setTimeout(forceLightMode, 1000);
+        })();
+    </script>
 </body>
 
 </html>

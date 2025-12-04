@@ -171,7 +171,9 @@ video {
     padding-top: 65px !important;
     padding-bottom: 3rem !important;
     padding-left: 280px !important;
-    width: calc(100vw - 280px) !important;
+    width: auto !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
 }
 
 @media(max-width: 800px) {
@@ -275,40 +277,185 @@ video {
 
 /* Mejoras en la responsividad */
 @media (max-width: 768px) {
-    #top-navbar {
-        left: 0;
-        /* El navbar ocupa todo el ancho en pantallas pequeñas */
+    #main {
+        padding-left: 0 !important;
+        padding-top: 70px !important;
+        width: 100vw !important;
+        margin-top: 0 !important;
     }
 
-    #top-navbar .nav-wrapper {
-        flex-direction: column;
-        align-items: stretch;
+    #main.toggle-active {
+        padding-left: 0 !important;
+        width: 100vw !important;
     }
 
-    #top-navbar .nav-wrapper .form-header {
-        margin-bottom: 10px;
+    #main-content {
+        padding: 16px !important;
+        margin-top: 0;
+        margin-left: 0 !important;
+        width: 100% !important;
     }
 
-    #top-navbar .nav-wrapper .toggle-btn {
-        padding: 0.5rem;
+    /* Mejorar espaciado en móviles */
+    .container-fluid {
+        padding-left: 16px !important;
+        padding-right: 16px !important;
+        max-width: 100% !important;
+        width: 100% !important;
     }
+
+    /* Ajustar cards y elementos */
+    .card {
+        margin-bottom: 16px;
+        border-radius: 12px !important;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+        width: 100% !important;
+    }
+
+    .row {
+        margin-left: -8px !important;
+        margin-right: -8px !important;
+        width: 100% !important;
+    }
+
+    .col-md-4,
+    .col-md-6,
+    .col-md-8,
+    .col-md-12 {
+        padding-left: 8px !important;
+        padding-right: 8px !important;
+    }
+
+    /* Mejorar breadcrumb */
+    .breadcrumb {
+        margin-bottom: 20px !important;
+        padding: 12px 16px !important;
+        background: white !important;
+        border-radius: 8px !important;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1) !important;
+        width: 100% !important;
+    }
+
+    /* manage-wrap ahora es botón flotante - estilos en sección principal */
 }
 
 
+/* ===== BOTÓN FLOTANTE MODERNO - SIN FRANJA ===== */
 .manage-wrap {
     position: fixed;
-    bottom: 0;
-    right: 0;
-    left: 300px;
-    padding: .5rem;
-    z-index: 10;
-    background-color: rgba(255, 255, 255, .8);
-    border-top: 1px solid #6c757d;
-    transition: .3s
+    bottom: 24px;
+    right: 24px;
+    z-index: 999;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    left: auto !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    background-color: transparent !important;
+    border: none !important;
+    border-top: none !important;
+    width: auto !important;
 }
 
 .manage-wrap.toggle-active {
-    left: 0
+    right: 24px;
+    left: auto !important;
+}
+
+.manage-wrap .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 14px 28px;
+    font-size: 15px;
+    font-weight: 600;
+    border-radius: 50px;
+    box-shadow: 0 4px 16px rgba(186, 96, 34, 0.35),
+                0 2px 8px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border: none;
+    background: linear-gradient(135deg, #BA6022 0%, #A0521E 100%);
+    color: #ffffff;
+    text-decoration: none;
+    white-space: nowrap;
+    min-width: auto;
+    width: auto;
+}
+
+.manage-wrap .btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 24px rgba(186, 96, 34, 0.45),
+                0 4px 12px rgba(0, 0, 0, 0.15);
+    background: linear-gradient(135deg, #d4732a 0%, #BA6022 100%);
+    color: #ffffff;
+}
+
+.manage-wrap .btn:active {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(186, 96, 34, 0.35);
+}
+
+.manage-wrap .btn:focus {
+    box-shadow: 0 4px 16px rgba(186, 96, 34, 0.35),
+                0 0 0 3px rgba(186, 96, 34, 0.2);
+    outline: none;
+}
+
+.manage-wrap .btn i {
+    font-size: 16px;
+    margin: 0;
+    line-height: 1;
+}
+
+.manage-wrap .btn span {
+    line-height: 1;
+}
+
+/* Responsive para tablets */
+@media (max-width: 1024px) {
+    .manage-wrap {
+        bottom: 20px;
+        right: 20px;
+    }
+    
+    .manage-wrap .btn {
+        padding: 12px 24px;
+        font-size: 14px;
+    }
+}
+
+/* Responsive para móviles */
+@media (max-width: 768px) {
+    .manage-wrap {
+        bottom: 16px;
+        right: 16px;
+        left: auto !important;
+        width: auto !important;
+    }
+    
+    .manage-wrap .btn {
+        padding: 12px 20px;
+        font-size: 14px;
+        gap: 8px;
+        width: auto !important;
+    }
+    
+    .manage-wrap .btn i {
+        font-size: 14px;
+    }
+}
+
+/* Responsive para móviles pequeños */
+@media (max-width: 576px) {
+    .manage-wrap {
+        bottom: 12px;
+        right: 12px;
+    }
+    
+    .manage-wrap .btn {
+        padding: 10px 18px;
+        font-size: 13px;
+    }
 }
 
 .au-input {
@@ -1351,11 +1498,14 @@ video {
     padding-top: 65px !important;
     padding-bottom: 3rem !important;
     padding-left: 280px !important;
-    width: calc(100vw - 280px) !important;
+    width: auto !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
 }
 
 #main-content {
     padding: 20px;
+    padding-bottom: 100px; /* Espacio para el botón flotante */
     min-height: calc(100vh - 80px);
     transition: margin 0.3s ease;
     margin-left: 0 !important;
@@ -1367,7 +1517,7 @@ video {
 @media (max-width: 1024px) {
     #main {
         padding-left: 260px !important;
-        width: calc(100vw - 260px) !important;
+        width: auto !important;
     }
 
     #main.toggle-active {
@@ -1377,6 +1527,7 @@ video {
 
     #main-content {
         padding: 16px;
+        padding-bottom: 90px; /* Espacio para el botón flotante en móviles */
         margin-top: 0;
         width: 100% !important;
     }
@@ -1385,8 +1536,9 @@ video {
 @media (max-width: 768px) {
     #main {
         padding-left: 0 !important;
-        padding-top: 60px !important;
+        padding-top: 70px !important;
         width: 100vw !important;
+        margin-top: 0 !important;
     }
 
     #main.toggle-active {
@@ -1441,22 +1593,12 @@ video {
         width: 100% !important;
     }
 
-    /* Mejorar manage-wrap */
-    .manage-wrap {
-        margin-bottom: 20px !important;
-        width: 100% !important;
-    }
-
-    .manage-wrap .btn {
-        width: 100% !important;
-        padding: 12px 16px !important;
-        font-size: 16px !important;
-    }
+    /* manage-wrap ahora es botón flotante - estilos en sección principal */
 }
 
 @media (max-width: 576px) {
     #main {
-        padding-top: 60px !important;
+        padding-top: 66px !important;
         width: 100vw !important;
     }
 
@@ -1508,6 +1650,74 @@ video {
         width: 100% !important;
     }
 
+    /* Mejorar scroll horizontal de tablas en móviles */
+    .table-responsive {
+        overflow-x: auto !important;
+        overflow-y: hidden !important;
+        -webkit-overflow-scrolling: touch !important;
+        scrollbar-width: thin !important;
+        scrollbar-color: rgba(186, 96, 34, 0.3) transparent !important;
+    }
+
+    .table-responsive::-webkit-scrollbar {
+        height: 6px !important;
+    }
+
+    .table-responsive::-webkit-scrollbar-track {
+        background: rgba(0, 0, 0, 0.05) !important;
+        border-radius: 3px !important;
+    }
+
+    .table-responsive::-webkit-scrollbar-thumb {
+        background: linear-gradient(90deg, rgba(186, 96, 34, 0.6) 0%, rgba(186, 96, 34, 0.3) 100%) !important;
+        border-radius: 3px !important;
+        transition: background 0.3s ease !important;
+    }
+
+    .table-responsive::-webkit-scrollbar-thumb:hover {
+        background: linear-gradient(90deg, rgba(186, 96, 34, 0.8) 0%, rgba(186, 96, 34, 0.5) 100%) !important;
+    }
+
+    /* Asegurar que las tablas tengan ancho mínimo para scroll */
+    .table-responsive .table {
+        min-width: 600px !important;
+        white-space: nowrap !important;
+    }
+
+    /* Mejorar legibilidad de las tablas en scroll */
+    .table-responsive .table th,
+    .table-responsive .table td {
+        padding: 12px 8px !important;
+        font-size: 13px !important;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.1) !important;
+    }
+
+    .table-responsive .table th {
+        background: rgba(186, 96, 34, 0.05) !important;
+        font-weight: 600 !important;
+        position: sticky !important;
+        top: 0 !important;
+        z-index: 10 !important;
+    }
+
+    /* Indicador visual de scroll */
+    .table-responsive::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        width: 20px;
+        background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.8) 100%);
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .table-responsive.has-scroll::after {
+        opacity: 1;
+    }
+
     /* Mejorar formularios en móviles */
     .form-control {
         font-size: 16px;
@@ -1549,6 +1759,7 @@ video {
 @media (max-width: 480px) {
     #main {
         width: 100vw !important;
+        padding-top: 62px !important;
     }
 
     #main.toggle-active {
@@ -1579,20 +1790,72 @@ video {
 
     .title-2 {
         font-size: 1.25rem;
-    }
-
-    /* Mejorar espaciado general */
-    .mb-4 {
         margin-bottom: 16px !important;
     }
 
-    .mt-5 {
-        margin-top: 32px !important;
+    /* Mejorar botones en móviles muy pequeños */
+    .btn {
+        min-height: 40px;
+        font-size: 14px;
+        padding: 10px 14px !important;
     }
 
-    .py-5 {
-        padding-top: 32px !important;
-        padding-bottom: 32px !important;
+    /* Mejorar formularios en móviles muy pequeños */
+    .form-control {
+        font-size: 14px;
+        padding: 10px 14px !important;
+    }
+}
+
+/* Móviles extremadamente pequeños */
+@media (max-width: 360px) {
+    #main {
+        width: 100vw !important;
+        padding-top: 58px !important;
+    }
+
+    #main.toggle-active {
+        width: 100vw !important;
+    }
+
+    #main-content {
+        padding: 6px !important;
+        width: 100% !important;
+    }
+
+    .container-fluid {
+        padding-left: 6px !important;
+        padding-right: 6px !important;
+        width: 100% !important;
+    }
+
+    /* Ocultar elementos no esenciales en móviles extremadamente pequeños */
+    .d-none-mobile {
+        display: none !important;
+    }
+
+    /* Ajustar tamaños de texto */
+    .title-1 {
+        font-size: 1.25rem;
+        margin-bottom: 16px !important;
+    }
+
+    .title-2 {
+        font-size: 1.1rem;
+        margin-bottom: 12px !important;
+    }
+
+    /* Mejorar botones en móviles extremadamente pequeños */
+    .btn {
+        min-height: 36px;
+        font-size: 12px;
+        padding: 8px 12px !important;
+    }
+
+    /* Mejorar formularios en móviles extremadamente pequeños */
+    .form-control {
+        font-size: 12px;
+        padding: 8px 12px !important;
     }
 }
 
@@ -1662,4 +1925,84 @@ video {
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
     }
+}
+
+/* Mejorar formularios en móviles muy pequeños */
+.form-control {
+    font-size: 14px;
+    padding: 10px 14px !important;
+}
+
+/* Mejorar scroll horizontal de tablas en móviles pequeños */
+.table-responsive {
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    -webkit-overflow-scrolling: touch !important;
+    scrollbar-width: thin !important;
+    scrollbar-color: rgba(186, 96, 34, 0.3) transparent !important;
+}
+
+.table-responsive::-webkit-scrollbar {
+    height: 4px !important;
+}
+
+.table-responsive::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.05) !important;
+    border-radius: 2px !important;
+}
+
+.table-responsive::-webkit-scrollbar-thumb {
+    background: linear-gradient(90deg, rgba(186, 96, 34, 0.6) 0%, rgba(186, 96, 34, 0.3) 100%) !important;
+    border-radius: 2px !important;
+}
+
+.table-responsive .table {
+    min-width: 500px !important;
+    white-space: nowrap !important;
+}
+
+.table-responsive .table th,
+.table-responsive .table td {
+    padding: 10px 6px !important;
+    font-size: 12px !important;
+}
+
+/* Mejorar formularios en móviles extremadamente pequeños */
+.form-control {
+    font-size: 12px;
+    padding: 8px 12px !important;
+}
+
+/* Mejorar scroll horizontal de tablas en móviles extremadamente pequeños */
+.table-responsive {
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    -webkit-overflow-scrolling: touch !important;
+    scrollbar-width: thin !important;
+    scrollbar-color: rgba(186, 96, 34, 0.3) transparent !important;
+}
+
+.table-responsive::-webkit-scrollbar {
+    height: 3px !important;
+}
+
+.table-responsive::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.05) !important;
+    border-radius: 1.5px !important;
+}
+
+.table-responsive::-webkit-scrollbar-thumb {
+    background: linear-gradient(90deg, rgba(186, 96, 34, 0.6) 0%, rgba(186, 96, 34, 0.3) 100%) !important;
+    border-radius: 1.5px !important;
+}
+
+.table-responsive .table {
+    min-width: 400px !important;
+    white-space: nowrap !important;
+}
+
+.table-responsive .table th,
+.table-responsive .table td {
+    padding: 8px 4px !important;
+    font-size: 11px !important;
 }

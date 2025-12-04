@@ -336,34 +336,126 @@ video {
         width: 100% !important;
     }
 
-    /* Mejorar manage-wrap */
-    .manage-wrap {
-        margin-bottom: 20px !important;
-        width: 100% !important;
-    }
-
-    .manage-wrap .btn {
-        width: 100% !important;
-        padding: 12px 16px !important;
-        font-size: 16px !important;
-    }
+    /* manage-wrap ahora es botón flotante - estilos en sección principal */
 }
 
 
+/* ===== BOTÓN FLOTANTE MODERNO - SIN FRANJA ===== */
 .manage-wrap {
     position: fixed;
-    bottom: 0;
-    right: 0;
-    left: 300px;
-    padding: .5rem;
-    z-index: 10;
-    background-color: rgba(255, 255, 255, .8);
-    border-top: 1px solid #6c757d;
-    transition: .3s
+    bottom: 24px;
+    right: 24px;
+    z-index: 999;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    left: auto !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    background-color: transparent !important;
+    border: none !important;
+    border-top: none !important;
+    width: auto !important;
 }
 
 .manage-wrap.toggle-active {
-    left: 0
+    right: 24px;
+    left: auto !important;
+}
+
+.manage-wrap .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 14px 28px;
+    font-size: 15px;
+    font-weight: 600;
+    border-radius: 50px;
+    box-shadow: 0 4px 16px rgba(186, 96, 34, 0.35),
+                0 2px 8px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border: none;
+    background: linear-gradient(135deg, #BA6022 0%, #A0521E 100%);
+    color: #ffffff;
+    text-decoration: none;
+    white-space: nowrap;
+    min-width: auto;
+    width: auto;
+}
+
+.manage-wrap .btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 24px rgba(186, 96, 34, 0.45),
+                0 4px 12px rgba(0, 0, 0, 0.15);
+    background: linear-gradient(135deg, #d4732a 0%, #BA6022 100%);
+    color: #ffffff;
+}
+
+.manage-wrap .btn:active {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(186, 96, 34, 0.35);
+}
+
+.manage-wrap .btn:focus {
+    box-shadow: 0 4px 16px rgba(186, 96, 34, 0.35),
+                0 0 0 3px rgba(186, 96, 34, 0.2);
+    outline: none;
+}
+
+.manage-wrap .btn i {
+    font-size: 16px;
+    margin: 0;
+    line-height: 1;
+}
+
+.manage-wrap .btn span {
+    line-height: 1;
+}
+
+/* Responsive para tablets */
+@media (max-width: 1024px) {
+    .manage-wrap {
+        bottom: 20px;
+        right: 20px;
+    }
+    
+    .manage-wrap .btn {
+        padding: 12px 24px;
+        font-size: 14px;
+    }
+}
+
+/* Responsive para móviles */
+@media (max-width: 768px) {
+    .manage-wrap {
+        bottom: 16px;
+        right: 16px;
+        left: auto !important;
+        width: auto !important;
+    }
+    
+    .manage-wrap .btn {
+        padding: 12px 20px;
+        font-size: 14px;
+        gap: 8px;
+        width: auto !important;
+    }
+    
+    .manage-wrap .btn i {
+        font-size: 14px;
+    }
+}
+
+/* Responsive para móviles pequeños */
+@media (max-width: 576px) {
+    .manage-wrap {
+        bottom: 12px;
+        right: 12px;
+    }
+    
+    .manage-wrap .btn {
+        padding: 10px 18px;
+        font-size: 13px;
+    }
 }
 
 .au-input {
@@ -1413,6 +1505,7 @@ video {
 
 #main-content {
     padding: 20px;
+    padding-bottom: 100px; /* Espacio para el botón flotante */
     min-height: calc(100vh - 80px);
     transition: margin 0.3s ease;
     margin-left: 0 !important;
@@ -1434,6 +1527,7 @@ video {
 
     #main-content {
         padding: 16px;
+        padding-bottom: 90px; /* Espacio para el botón flotante en móviles */
         margin-top: 0;
         width: 100% !important;
     }
@@ -1499,17 +1593,7 @@ video {
         width: 100% !important;
     }
 
-    /* Mejorar manage-wrap */
-    .manage-wrap {
-        margin-bottom: 20px !important;
-        width: 100% !important;
-    }
-
-    .manage-wrap .btn {
-        width: 100% !important;
-        padding: 12px 16px !important;
-        font-size: 16px !important;
-    }
+    /* manage-wrap ahora es botón flotante - estilos en sección principal */
 }
 
 @media (max-width: 576px) {
@@ -1821,14 +1905,50 @@ video {
 }
 
 /* Soporte para modo oscuro del sistema */
+/* FORZAR MODO CLARO SIEMPRE - Anular modo oscuro del sistema */
 @media (prefers-color-scheme: dark) {
+    html {
+        color-scheme: light !important;
+    }
+    
+    body {
+        background-color: #ffffff !important;
+        color: #000000 !important;
+    }
+    
     #main {
-        background: #1a1a1a;
-        color: #ffffff;
+        background: #ffffff !important;
+        background-color: #ffffff !important;
+        color: #000000 !important;
     }
 
     #main-content {
-        background: #1a1a1a;
+        background: #ffffff !important;
+        background-color: #ffffff !important;
+        color: #000000 !important;
+    }
+    
+    .container-fluid {
+        background-color: #ffffff !important;
+        color: #000000 !important;
+    }
+    
+    /* Botón flotante mantiene su color naranja */
+    .manage-wrap {
+        background-color: transparent !important;
+    }
+    
+    .manage-wrap .btn {
+        background: linear-gradient(135deg, #BA6022 0%, #A0521E 100%);
+        box-shadow: 0 4px 16px rgba(186, 96, 34, 0.5),
+                    0 2px 8px rgba(0, 0, 0, 0.3);
+        color: #ffffff;
+    }
+    
+    .manage-wrap .btn:hover {
+        background: linear-gradient(135deg, #d4732a 0%, #BA6022 100%);
+        box-shadow: 0 8px 24px rgba(186, 96, 34, 0.6),
+                    0 4px 12px rgba(0, 0, 0, 0.4);
     }
 }
 

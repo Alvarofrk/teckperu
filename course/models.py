@@ -63,13 +63,13 @@ class CourseManager(models.Manager):
 
 
 class Course(models.Model):
-    slug = models.SlugField(unique=True, blank=True)
-    title = models.CharField(max_length=200)
-    code = models.CharField(max_length=200, unique=True)
+    slug = models.SlugField(unique=True, blank=True, max_length=500)
+    title = models.CharField(max_length=500)
+    code = models.CharField(max_length=500, unique=True)
     credit = models.IntegerField(default=0)
-    summary = models.TextField(max_length=200, blank=True)
+    summary = models.TextField(blank=True)  # TextField sin límite de longitud
     program = models.ForeignKey(Program, on_delete=models.CASCADE)
-    level = models.CharField(max_length=25, choices=settings.LEVEL_CHOICES)
+    level = models.CharField(max_length=200, choices=settings.LEVEL_CHOICES)
     year = models.IntegerField(choices=settings.YEARS, default=1)
     semester = models.CharField(choices=settings.SEMESTER_CHOICES, max_length=200)
     is_elective = models.BooleanField(default=False)

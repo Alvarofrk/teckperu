@@ -196,6 +196,118 @@
         color: #6c757d;
         margin-bottom: 2rem;
     }
+
+    /* ===== ESTILOS DE PAGINACIÓN MODERNA ===== */
+    .pagination-wrapper {
+        padding: 20px 0;
+    }
+
+    .pagination-modern {
+        gap: 8px;
+    }
+
+    .pagination-modern .page-item {
+        margin: 0 2px;
+    }
+
+    .pagination-modern .page-link {
+        min-width: 44px;
+        height: 44px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 10px 16px;
+        border: 2px solid #e9ecef;
+        border-radius: 8px;
+        color: #495057;
+        font-weight: 500;
+        font-size: 14px;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        background-color: #ffffff;
+        text-decoration: none;
+    }
+
+    .pagination-modern .page-link:hover:not(.disabled):not(.active) {
+        background-color: #BA6022;
+        border-color: #BA6022;
+        color: #ffffff;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(186, 96, 34, 0.3);
+    }
+
+    .pagination-modern .page-link:focus {
+        box-shadow: 0 0 0 3px rgba(186, 96, 34, 0.25);
+        outline: none;
+    }
+
+    .pagination-modern .page-item.active .page-link {
+        background: linear-gradient(135deg, #BA6022 0%, #A0521E 100%);
+        border-color: #BA6022;
+        color: #ffffff;
+        font-weight: 600;
+        box-shadow: 0 4px 12px rgba(186, 96, 34, 0.4);
+    }
+
+    .pagination-modern .page-item.disabled .page-link {
+        background-color: #f8f9fa;
+        border-color: #e9ecef;
+        color: #adb5bd;
+        cursor: not-allowed;
+        opacity: 0.6;
+    }
+
+    .pagination-modern .page-link-first,
+    .pagination-modern .page-link-last {
+        font-weight: 600;
+        padding: 10px 14px;
+    }
+
+    .pagination-modern .page-link-prev,
+    .pagination-modern .page-link-next {
+        font-weight: 600;
+        padding: 10px 16px;
+    }
+
+    .pagination-modern .page-link-number {
+        min-width: 44px;
+        font-weight: 500;
+    }
+
+    .pagination-modern .page-link-ellipsis {
+        border: none;
+        background: transparent;
+        color: #6c757d;
+        cursor: default;
+        min-width: auto;
+        padding: 10px 8px;
+    }
+
+    .pagination-info {
+        font-size: 14px;
+        color: #6c757d;
+    }
+
+    .pagination-info .text-muted {
+        color: #6c757d !important;
+    }
+
+    /* Responsive para paginación */
+    @media (max-width: 576px) {
+        .pagination-modern .page-link {
+            min-width: 40px;
+            height: 40px;
+            padding: 8px 12px;
+            font-size: 13px;
+        }
+        
+        .pagination-modern .page-link-number {
+            min-width: 40px;
+        }
+        
+        .pagination-info {
+            font-size: 12px;
+        }
+    }
 </style>
 {% endblock header %}
 
@@ -215,7 +327,10 @@
 
 {% if request.user.is_superuser %}
 <div class="manage-wrap">
-    <a class="btn btn-sm btn-primary" href="{% url 'course_add' pk=program.pk %}"><i class="fas fa-plus"></i>{% trans 'Agregar Curso' %}</a>
+    <a class="btn btn-primary" href="{% url 'course_add' pk=program.pk %}">
+        <i class="fas fa-plus"></i>
+        <span>{% trans 'Agregar Curso' %}</span>
+    </a>
 </div>
 {% endif %}
 
@@ -286,17 +401,64 @@
 </div>
 
 {% if courses.paginator.page_range|length > 1 %}
-<div class="content-center mt-4">
-    <div class="pagination">
-        <a href="?page=1">&laquo;</a>
-        {% for i in courses.paginator.page_range %}
-        {% if i == courses.number %}
-        <a class="pagination-active" href="?page={{ i }}"><b>{{ i }}</b></a>
-        {% else %}
-        <a href="?page={{ i }}">{{ i }}</a>
-        {% endif %}
-        {% endfor %}
-        <a href="?page={{ courses.paginator.num_pages }}">&raquo;</a>
+<div class="row mt-5">
+    <div class="col-12">
+        <div class="pagination-wrapper">
+            <nav aria-label="Navegación de páginas">
+                <ul class="pagination pagination-modern justify-content-center mb-0">
+                    <li class="page-item {% if not courses.has_previous %}disabled{% endif %}">
+                        <a class="page-link page-link-first" href="?page=1" aria-label="Primera">
+                            <i class="fas fa-angle-double-left me-1"></i>
+                            <span class="d-none d-sm-inline">{% trans 'Primera' %}</span>
+                        </a>
+                    </li>
+                    <li class="page-item {% if not courses.has_previous %}disabled{% endif %}">
+                        <a class="page-link page-link-prev" href="{% if courses.has_previous %}?page={{ courses.previous_page_number }}{% else %}#{% endif %}" aria-label="Anterior">
+                            <i class="fas fa-angle-left me-1"></i>
+                            <span class="d-none d-sm-inline">{% trans 'Anterior' %}</span>
+                        </a>
+                    </li>
+                    
+                    {% for i in courses.paginator.page_range %}
+                        {% if i == courses.number %}
+                            <li class="page-item active">
+                                <span class="page-link page-link-number">{{ i }}</span>
+                            </li>
+                        {% elif i > courses.number|add:'-3' and i < courses.number|add:'3' %}
+                            <li class="page-item">
+                                <a class="page-link page-link-number" href="?page={{ i }}">{{ i }}</a>
+                            </li>
+                        {% elif i == 1 or i == courses.paginator.num_pages %}
+                            <li class="page-item">
+                                <a class="page-link page-link-number" href="?page={{ i }}">{{ i }}</a>
+                            </li>
+                        {% elif i == courses.number|add:'-4' or i == courses.number|add:'4' %}
+                            <li class="page-item disabled">
+                                <span class="page-link page-link-ellipsis">...</span>
+                            </li>
+                        {% endif %}
+                    {% endfor %}
+                    
+                    <li class="page-item {% if not courses.has_next %}disabled{% endif %}">
+                        <a class="page-link page-link-next" href="{% if courses.has_next %}?page={{ courses.next_page_number }}{% else %}#{% endif %}" aria-label="Siguiente">
+                            <span class="d-none d-sm-inline">{% trans 'Siguiente' %}</span>
+                            <i class="fas fa-angle-right ms-1"></i>
+                        </a>
+                    </li>
+                    <li class="page-item {% if not courses.has_next %}disabled{% endif %}">
+                        <a class="page-link page-link-last" href="?page={{ courses.paginator.num_pages }}" aria-label="Última">
+                            <span class="d-none d-sm-inline">{% trans 'Última' %}</span>
+                            <i class="fas fa-angle-double-right ms-1"></i>
+                        </a>
+                    </li>
+                </ul>
+                <div class="pagination-info text-center mt-3">
+                    <span class="text-muted">
+                        {% trans 'Mostrando' %} {{ courses.start_index }} - {{ courses.end_index }} {% trans 'de' %} {{ courses.paginator.count }} {% trans 'cursos' %}
+                    </span>
+                </div>
+            </nav>
+        </div>
     </div>
 </div>
 {% endif %}

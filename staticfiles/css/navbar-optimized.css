@@ -200,42 +200,138 @@
     filter: brightness(1.1) !important;
 }
 
-/* SOLUCIÓN PRINCIPAL: Dropdown con z-index muy alto */
+/* ===== PROTECCIÓN ESPECIAL PARA PÁGINAS DE EXAMEN ===== */
+
+/* Prevenir bloqueos en páginas que contienen formularios de examen */
+body:has(#quiz-form),
+body[data-exam-page="true"] {
+
+    /* Anular completamente la clase dim en páginas de examen */
+    #top-navbar.dim,
+    #top-navbar.dim *,
+    .dim {
+        opacity: 1 !important;
+        pointer-events: auto !important;
+        box-shadow: 0 4px 20px var(--navbar-shadow) !important;
+        background: linear-gradient(135deg, var(--navbar-bg) 0%, var(--navbar-bg-hover) 100%) !important;
+    }
+
+    /* Mantener navbar completamente funcional */
+    #top-navbar {
+        opacity: 1 !important;
+        pointer-events: auto !important;
+        z-index: 1001 !important;
+    }
+
+    /* Mantener sidebar funcional */
+    #side-nav {
+        pointer-events: auto !important;
+        z-index: 1000 !important;
+    }
+
+    /* Mantener contenido principal funcional */
+    #main-content {
+        pointer-events: auto !important;
+        z-index: 1 !important;
+    }
+
+    /* Asegurar que el formulario de examen tenga máxima prioridad */
+    #quiz-form {
+        pointer-events: auto !important;
+        z-index: 1060 !important;
+        position: relative !important;
+    }
+
+    #quiz-form * {
+        pointer-events: auto !important;
+    }
+
+    /* Botón de envío con máxima prioridad */
+    #submit-btn {
+        pointer-events: auto !important;
+        cursor: pointer !important;
+        z-index: 1070 !important;
+        position: relative !important;
+    }
+
+    /* Modal de instrucciones con configuración segura */
+    #instractionModal {
+        z-index: 1050 !important;
+    }
+
+    /* Campo de búsqueda sin efectos problemáticos */
+    #primary-search {
+        pointer-events: auto !important;
+    }
+
+    /* Prevenir cualquier elemento que bloquee la interactividad */
+    *[style*="pointer-events: none"] {
+        pointer-events: auto !important;
+    }
+
+    *[style*="z-index: -1"] {
+        z-index: auto !important;
+    }
+
+    /* Prevenir overlays problemáticos */
+    *[style*="box-shadow: 0 0 0 10000px"] {
+        box-shadow: none !important;
+    }
+
+    *[style*="box-shadow: 0 0 0 100vmax"] {
+        box-shadow: none !important;
+    }
+}
+
+/* Protección específica para páginas de examen marcadas */
+body[data-page="quiz"] #top-navbar.dim,
+body[data-page="exam"] #top-navbar.dim {
+    opacity: 1 !important;
+    pointer-events: auto !important;
+    box-shadow: 0 4px 20px var(--navbar-shadow) !important;
+    background: linear-gradient(135deg, var(--navbar-bg) 0%, var(--navbar-bg-hover) 100%) !important;
+}
+
+/* Protección cuando hay modales abiertos */
+.modal.show+body #top-navbar.dim,
+body:has(.modal.show) #top-navbar.dim {
+    opacity: 1 !important;
+    pointer-events: auto !important;
+    box-shadow: 0 4px 20px var(--navbar-shadow) !important;
+    background: linear-gradient(135deg, var(--navbar-bg) 0%, var(--navbar-bg-hover) 100%) !important;
+}
+
+/* Dropdown menu del usuario */
 #top-navbar .nav-wrapper .dropdown .dropdown-menu {
     position: absolute !important;
     top: 100% !important;
     right: 0 !important;
-    margin-top: 8px !important;
     min-width: 280px !important;
     background: var(--dropdown-bg) !important;
     border: none !important;
     border-radius: 12px !important;
     box-shadow: 0 8px 32px var(--dropdown-shadow) !important;
-    padding: 16px !important;
-    z-index: 99999 !important;
-    /* Z-INDEX EXTREMADAMENTE ALTO */
+    padding: 1rem 0 !important;
     backdrop-filter: blur(10px) !important;
-    animation: dropdownFadeIn 0.3s ease !important;
+    z-index: 1002 !important;
+    opacity: 0 !important;
+    visibility: hidden !important;
+    transform: translateY(-10px) !important;
+    transition: all 0.3s ease !important;
+    margin-top: 8px !important;
 }
 
-/* Forzar visibilidad del dropdown */
 #top-navbar .nav-wrapper .dropdown.show .dropdown-menu,
 #top-navbar .nav-wrapper .dropdown .dropdown-menu.show {
-    display: block !important;
-    visibility: visible !important;
     opacity: 1 !important;
-    z-index: 99999 !important;
-    pointer-events: auto !important;
+    visibility: visible !important;
+    transform: translateY(0) !important;
+    animation: dropdownFadeIn 0.3s ease-out !important;
 }
 
-/* Ocultar #progress-card cuando dropdown está abierto */
-#top-navbar .nav-wrapper .dropdown.show~#progress-card,
-#top-navbar .nav-wrapper .dropdown.show+#progress-card,
-body:has(.dropdown.show) #progress-card {
+/* Manejar conflicto con #progress-card */
+#top-navbar .nav-wrapper .dropdown.show~#progress-card {
     display: none !important;
-    visibility: hidden !important;
-    opacity: 0 !important;
-    z-index: -1 !important;
 }
 
 @keyframes dropdownFadeIn {
@@ -250,78 +346,100 @@ body:has(.dropdown.show) #progress-card {
     }
 }
 
-/* Header del dropdown */
+/* Contenido del dropdown */
 #top-navbar .nav-wrapper .dropdown .dropdown-menu .d-flex {
-    padding: 12px !important;
-    border-radius: 8px !important;
-    background: rgba(186, 96, 34, 0.05) !important;
-    margin-bottom: 12px !important;
+    padding: 0.75rem 1.5rem !important;
+    border-bottom: 1px solid #f0f0f0 !important;
 }
 
-/* Avatar en el dropdown */
 #top-navbar .nav-wrapper .dropdown .dropdown-menu .avatar-md {
-    width: 60px !important;
-    height: 60px !important;
-    border: 3px solid var(--navbar-bg) !important;
-    box-shadow: 0 4px 12px rgba(186, 96, 34, 0.2) !important;
+    width: 48px !important;
+    height: 48px !important;
+    border-radius: 50% !important;
+    border: 2px solid #e0e0e0 !important;
 }
 
-/* Información del usuario */
 #top-navbar .nav-wrapper .dropdown .dropdown-menu .small {
-    font-size: 12px !important;
     color: #666 !important;
-    margin-top: 8px !important;
-    text-align: center !important;
+    font-size: 0.875rem !important;
+    margin-top: 0.25rem !important;
 }
 
-/* Separadores */
 #top-navbar .nav-wrapper .dropdown .dropdown-menu hr {
-    margin: 12px 0 !important;
-    border-color: rgba(0, 0, 0, 0.1) !important;
+    margin: 0.5rem 0 !important;
+    border-color: #f0f0f0 !important;
 }
 
-/* Items del dropdown */
 #top-navbar .nav-wrapper .dropdown .dropdown-menu .dropdown-item {
-    padding: 10px 12px !important;
-    border-radius: 6px !important;
+    padding: 0.75rem 1.5rem !important;
     color: #333 !important;
-    font-weight: 500 !important;
-    transition: all 0.2s ease !important;
     text-decoration: none !important;
+    transition: all 0.2s ease !important;
+    border: none !important;
+    background: transparent !important;
     display: flex !important;
     align-items: center !important;
+    gap: 0.75rem !important;
 }
 
 #top-navbar .nav-wrapper .dropdown .dropdown-menu .dropdown-item:hover {
-    background: rgba(186, 96, 34, 0.1) !important;
+    background: #f8f9fa !important;
     color: var(--navbar-bg) !important;
     transform: translateX(4px) !important;
 }
 
 #top-navbar .nav-wrapper .dropdown .dropdown-menu .dropdown-item i {
-    margin-right: 8px !important;
     width: 16px !important;
     text-align: center !important;
+    color: #666 !important;
+    transition: color 0.2s ease !important;
+}
+
+#top-navbar .nav-wrapper .dropdown .dropdown-menu .dropdown-item:hover i {
     color: var(--navbar-bg) !important;
 }
 
 #top-navbar .nav-wrapper .dropdown .dropdown-menu .btn-secondary {
-    background: var(--navbar-bg) !important;
+    margin: 0.5rem 1.5rem !important;
+    width: calc(100% - 3rem) !important;
+    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%) !important;
     border: none !important;
-    color: var(--navbar-text) !important;
-    padding: 8px 16px !important;
-    border-radius: 6px !important;
+    border-radius: 8px !important;
+    color: white !important;
+    padding: 0.75rem 1rem !important;
     font-weight: 500 !important;
     transition: all 0.3s ease !important;
+    box-shadow: 0 2px 8px rgba(220, 53, 69, 0.2) !important;
 }
 
 #top-navbar .nav-wrapper .dropdown .dropdown-menu .btn-secondary:hover {
-    background: var(--navbar-bg-hover) !important;
     transform: translateY(-2px) !important;
-    box-shadow: 0 4px 12px rgba(186, 96, 34, 0.3) !important;
+    box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3) !important;
+    background: linear-gradient(135deg, #c82333 0%, #bd2130 100%) !important;
 }
 
-/* Placeholder para avatar */
+#top-navbar .nav-wrapper .dropdown .dropdown-menu .btn-secondary:active {
+    transform: translateY(0) !important;
+}
+
+#top-navbar .nav-wrapper .dropdown .dropdown-menu form {
+    margin: 0 !important;
+}
+
+#top-navbar .nav-wrapper .dropdown .dropdown-menu form button {
+    width: 100% !important;
+    text-align: center !important;
+    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%) !important;
+    border: none !important;
+    border-radius: 8px !important;
+    color: white !important;
+    padding: 0.75rem 1rem !important;
+    font-weight: 500 !important;
+    transition: all 0.3s ease !important;
+    box-shadow: 0 2px 8px rgba(220, 53, 69, 0.2) !important;
+}
+
+/* Avatar placeholder */
 #top-navbar .nav-wrapper .dropdown .avatar-placeholder,
 #top-navbar .nav-wrapper .dropdown .dropdown-menu .avatar-placeholder {
     width: 100% !important;
@@ -332,22 +450,14 @@ body:has(.dropdown.show) #progress-card {
     background: rgba(255, 255, 255, 0.2) !important;
     color: var(--navbar-text) !important;
     font-size: 18px !important;
+    border-radius: 50% !important;
 }
 
-#top-navbar .nav-wrapper .dropdown .dropdown-menu .avatar-placeholder {
-    font-size: 24px !important;
-}
-
-/* ===== RESPONSIVE BREAKPOINTS ===== */
-
-/* Tablets y pantallas medianas */
+/* Responsive design */
 @media (max-width: 1024px) {
     #top-navbar {
         left: 260px !important;
-        /* Sidebar más pequeño */
         width: calc(100vw - 260px) !important;
-        /* Ancho calculado para sidebar de 260px */
-        padding: 10px 20px !important;
     }
 
     #top-navbar.toggle-active {
@@ -357,25 +467,19 @@ body:has(.dropdown.show) #progress-card {
 
     #top-navbar .nav-wrapper .form-header input[type="text"] {
         padding: 10px 14px !important;
-        font-size: 13px !important;
     }
 
     #top-navbar .nav-wrapper .form-header button {
         padding: 10px 14px !important;
-        font-size: 13px !important;
     }
 }
 
-/* Móviles y tablets pequeñas */
 @media (max-width: 768px) {
     #top-navbar {
         left: 0 !important;
-        /* Sin sidebar en móviles */
-        right: 0 !important;
         width: 100vw !important;
-        /* Ancho completo en móviles */
         padding: 8px 16px !important;
-        border-radius: 0 0 8px 8px !important;
+        border-radius: 0 !important;
     }
 
     #top-navbar.toggle-active {
@@ -388,30 +492,27 @@ body:has(.dropdown.show) #progress-card {
     }
 
     #top-navbar .nav-wrapper .form-header {
-        flex: 0 1 auto !important;
-        min-width: 120px !important;
+        flex: 0.7 !important;
     }
 
     #top-navbar .nav-wrapper .toggle-btn {
         padding: 8px 10px !important;
         min-width: 40px !important;
         height: 40px !important;
-        font-size: 14px !important;
     }
 
     #top-navbar .nav-wrapper .dropdown {
-        margin-left: auto !important;
+        flex-shrink: 0 !important;
     }
 
     #top-navbar .nav-wrapper .form-header input[type="text"] {
         padding: 8px 12px !important;
-        font-size: 12px !important;
-        min-width: 100px !important;
+        font-size: 13px !important;
     }
 
     #top-navbar .nav-wrapper .form-header button {
         padding: 8px 12px !important;
-        font-size: 12px !important;
+        font-size: 13px !important;
     }
 
     #top-navbar .nav-wrapper .dropdown .avatar {
@@ -420,21 +521,22 @@ body:has(.dropdown.show) #progress-card {
     }
 
     #top-navbar .nav-wrapper .dropdown .dropdown-menu {
-        right: 0 !important;
-        left: auto !important;
-        min-width: 200px !important;
-        margin-top: 8px !important;
+        position: fixed !important;
+        top: 60px !important;
+        right: 10px !important;
+        left: 10px !important;
+        width: auto !important;
+        min-width: auto !important;
     }
 }
 
-/* Móviles pequeños */
 @media (max-width: 576px) {
     #top-navbar {
-        width: 100vw !important;
         padding: 6px 12px !important;
     }
 
     #top-navbar.toggle-active {
+        left: 0 !important;
         width: 100vw !important;
     }
 
@@ -444,20 +546,19 @@ body:has(.dropdown.show) #progress-card {
 
     #top-navbar .nav-wrapper .form-header input[type="text"] {
         padding: 6px 10px !important;
-        font-size: 11px !important;
-        min-width: 80px !important;
+        font-size: 12px !important;
     }
 
     #top-navbar .nav-wrapper .form-header button {
         padding: 6px 10px !important;
-        font-size: 11px !important;
+        font-size: 12px !important;
     }
 
     #top-navbar .nav-wrapper .toggle-btn {
         padding: 6px 8px !important;
         min-width: 36px !important;
         height: 36px !important;
-        font-size: 12px !important;
+        font-size: 14px !important;
     }
 
     #top-navbar .nav-wrapper .dropdown .avatar {
@@ -466,23 +567,23 @@ body:has(.dropdown.show) #progress-card {
     }
 
     #top-navbar .nav-wrapper .dropdown .dropdown-menu {
-        min-width: 180px !important;
+        right: 5px !important;
+        left: 5px !important;
     }
 
     #top-navbar .nav-wrapper .dropdown .dropdown-menu .avatar-md {
-        width: 32px !important;
-        height: 32px !important;
+        width: 40px !important;
+        height: 40px !important;
     }
 }
 
-/* Móviles muy pequeños */
 @media (max-width: 480px) {
     #top-navbar {
-        width: 100vw !important;
         padding: 4px 8px !important;
     }
 
     #top-navbar.toggle-active {
+        left: 0 !important;
         width: 100vw !important;
     }
 
@@ -492,20 +593,19 @@ body:has(.dropdown.show) #progress-card {
 
     #top-navbar .nav-wrapper .form-header input[type="text"] {
         padding: 4px 8px !important;
-        font-size: 10px !important;
-        min-width: 60px !important;
+        font-size: 11px !important;
     }
 
     #top-navbar .nav-wrapper .form-header button {
         padding: 4px 8px !important;
-        font-size: 10px !important;
+        font-size: 11px !important;
     }
 
     #top-navbar .nav-wrapper .toggle-btn {
         padding: 4px 6px !important;
         min-width: 32px !important;
         height: 32px !important;
-        font-size: 10px !important;
+        font-size: 12px !important;
     }
 
     #top-navbar .nav-wrapper .dropdown .avatar {
@@ -514,73 +614,76 @@ body:has(.dropdown.show) #progress-card {
     }
 
     #top-navbar .nav-wrapper .dropdown .dropdown-menu {
-        min-width: 160px !important;
-        font-size: 12px !important;
+        right: 2px !important;
+        left: 2px !important;
     }
 
     #top-navbar .nav-wrapper .dropdown .dropdown-menu .dropdown-item {
-        padding: 6px 12px !important;
-        font-size: 11px !important;
+        padding: 0.5rem 1rem !important;
+        font-size: 13px !important;
     }
 
     #top-navbar .nav-wrapper .dropdown .dropdown-menu .btn-secondary {
-        padding: 4px 8px !important;
-        font-size: 10px !important;
+        margin: 0.25rem 1rem !important;
+        padding: 0.5rem 0.75rem !important;
+        font-size: 13px !important;
     }
 }
 
-/* Móviles extremadamente pequeños */
 @media (max-width: 360px) {
     #top-navbar {
-        width: 100vw !important;
+        padding: 2px 4px !important;
     }
 
     #top-navbar.toggle-active {
+        left: 0 !important;
         width: 100vw !important;
     }
 
     #top-navbar .nav-wrapper .form-header {
-        display: none !important;
-        /* Ocultar búsqueda en pantallas muy pequeñas */
+        flex: 0.6 !important;
     }
 
     #top-navbar .nav-wrapper .toggle-btn {
-        margin-right: auto !important;
+        padding: 2px 4px !important;
+        min-width: 28px !important;
+        height: 28px !important;
+        font-size: 10px !important;
     }
 
     #top-navbar .nav-wrapper .dropdown {
-        margin-left: 0 !important;
+        flex-shrink: 0 !important;
     }
 }
 
-/* Overlay para móviles */
+/* Overlay para navbar */
 .navbar-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: var(--overlay-bg);
-    z-index: 998;
-    opacity: 0;
-    visibility: hidden;
-    transition: all 0.3s ease;
-    backdrop-filter: blur(2px);
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    background: rgba(0, 0, 0, 0.5) !important;
+    z-index: 999 !important;
+    opacity: 0 !important;
+    visibility: hidden !important;
+    transition: all 0.3s ease !important;
+    pointer-events: none !important;
 }
 
 .navbar-overlay.active {
-    opacity: 1;
-    visibility: visible;
+    opacity: 1 !important;
+    visibility: visible !important;
+    pointer-events: auto !important;
 }
 
-/* Mejoras para touch devices */
+/* Optimizaciones para dispositivos táctiles */
 @media (hover: none) and (pointer: coarse) {
 
     #top-navbar .nav-wrapper .toggle-btn,
-    #top-navbar .nav-wrapper .form-header input[type="text"],
-    #top-navbar .nav-wrapper .form-header button {
-        min-width: 44px !important;
+    #top-navbar .nav-wrapper .dropdown .avatar {
         min-height: 44px !important;
+        min-width: 44px !important;
     }
 
     #top-navbar .nav-wrapper .dropdown .dropdown-item {
@@ -588,55 +691,70 @@ body:has(.dropdown.show) #progress-card {
     }
 
     #top-navbar .nav-wrapper .dropdown .dropdown-item:hover {
-        transform: none !important;
+        background: #f8f9fa !important;
     }
 
     #top-navbar .nav-wrapper .dropdown .dropdown-item:active {
-        background: rgba(186, 96, 34, 0.15) !important;
+        background: #e9ecef !important;
         transform: scale(0.98) !important;
     }
 }
 
-/* Estados especiales */
+/* Estado dim del navbar - ANULADO EN PÁGINAS DE EXAMEN */
 #top-navbar.dim {
-    opacity: 0.8;
-    pointer-events: none;
+    opacity: 0.7 !important;
+    pointer-events: none !important;
 }
 
+/* ANULAR LA CLASE DIM EN PÁGINAS DE EXAMEN */
+body:has(#quiz-form) #top-navbar.dim,
+body[data-exam-page="true"] #top-navbar.dim,
+body[data-page="quiz"] #top-navbar.dim,
+body[data-page="exam"] #top-navbar.dim {
+    opacity: 1 !important;
+    pointer-events: auto !important;
+    box-shadow: 0 4px 20px var(--navbar-shadow) !important;
+    background: linear-gradient(135deg, var(--navbar-bg) 0%, var(--navbar-bg-hover) 100%) !important;
+}
+
+/* Focus styles para accesibilidad */
 #top-navbar .nav-wrapper .toggle-btn:focus,
-#top-navbar .nav-wrapper .dropdown .avatar:focus {
-    outline: 2px solid rgba(255, 255, 255, 0.5) !important;
+#top-navbar .nav-wrapper .dropdown .avatar:focus,
+#top-navbar .nav-wrapper .form-header input[type="text"]:focus {
+    outline: 2px solid rgba(255, 255, 255, 0.8) !important;
     outline-offset: 2px !important;
 }
 
-/* Asegurar que todos los elementos del navbar sean accesibles */
+/* Asegurar que todos los elementos del navbar sean interactivos */
 #top-navbar * {
     box-sizing: border-box !important;
 }
 
-/* Optimizaciones de rendimiento */
+/* Mejoras de rendimiento */
 #top-navbar {
-    will-change: transform, opacity;
+    will-change: transform, opacity !important;
+    transform: translateZ(0) !important;
 }
 
 #top-navbar .nav-wrapper {
-    will-change: transform;
+    will-change: transform !important;
+    transform: translateZ(0) !important;
 }
 
 /* Estado de carga */
 #top-navbar.loading {
-    position: relative;
+    position: relative !important;
 }
 
 #top-navbar.loading::after {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    height: 2px;
-    background: linear-gradient(90deg, transparent, var(--navbar-text), transparent);
-    animation: loadingBar 1.5s ease-in-out infinite;
+    content: '' !important;
+    position: absolute !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 2px !important;
+    background: linear-gradient(90deg, transparent, var(--navbar-bg), transparent) !important;
+    animation: loadingBar 1.5s ease-in-out infinite !important;
 }
 
 @keyframes loadingBar {
@@ -655,35 +773,36 @@ body:has(.dropdown.show) #progress-card {
 
 /* Mejoras de accesibilidad */
 #top-navbar {
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
+    -webkit-font-smoothing: antialiased !important;
+    -moz-osx-font-smoothing: grayscale !important;
 }
 
 #top-navbar .nav-wrapper {
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
+    -webkit-font-smoothing: antialiased !important;
+    -moz-osx-font-smoothing: grayscale !important;
 }
 
-/* Optimizaciones para dispositivos de alta densidad */
+/* Soporte para pantallas de alta densidad */
 @media (-webkit-min-device-pixel-ratio: 2),
 (min-resolution: 192dpi) {
     #top-navbar {
-        -webkit-font-smoothing: antialiased;
-        -moz-osx-font-smoothing: grayscale;
+        -webkit-font-smoothing: antialiased !important;
+        -moz-osx-font-smoothing: grayscale !important;
     }
 }
 
-/* Mejoras específicas para dispositivos táctiles */
+/* Optimizaciones para dispositivos táctiles */
 @media (hover: none) and (pointer: coarse) {
 
     #top-navbar .nav-wrapper .toggle-btn,
-    #top-navbar .nav-wrapper .form-header input[type="text"],
+    #top-navbar .nav-wrapper .dropdown .avatar,
     #top-navbar .nav-wrapper .form-header button {
-        -webkit-tap-highlight-color: transparent;
+        touch-action: manipulation !important;
+        -webkit-tap-highlight-color: transparent !important;
     }
 }
 
-/* Estilos para el dropdown en portal */
+/* Estilos para dropdown menu con portal */
 .dropdown-menu-portal-styled {
     position: fixed !important;
     top: 60px !important;
@@ -693,78 +812,79 @@ body:has(.dropdown.show) #progress-card {
     border: none !important;
     border-radius: 12px !important;
     box-shadow: 0 8px 32px var(--dropdown-shadow) !important;
-    padding: 16px !important;
-    z-index: 999999 !important;
+    padding: 1rem 0 !important;
     backdrop-filter: blur(10px) !important;
-    animation: dropdownFadeIn 0.3s ease !important;
+    z-index: 1002 !important;
+    animation: dropdownFadeIn 0.3s ease-out !important;
 }
 
 .dropdown-menu-portal-styled .d-flex {
-    padding: 12px !important;
-    border-radius: 8px !important;
-    background: rgba(186, 96, 34, 0.05) !important;
-    margin-bottom: 12px !important;
+    padding: 0.75rem 1.5rem !important;
+    border-bottom: 1px solid #f0f0f0 !important;
 }
 
 .dropdown-menu-portal-styled .avatar-md {
-    width: 60px !important;
-    height: 60px !important;
-    border: 3px solid var(--navbar-bg) !important;
-    box-shadow: 0 4px 12px rgba(186, 96, 34, 0.2) !important;
+    width: 48px !important;
+    height: 48px !important;
+    border-radius: 50% !important;
+    border: 2px solid #e0e0e0 !important;
 }
 
 .dropdown-menu-portal-styled .small {
-    font-size: 12px !important;
     color: #666 !important;
-    margin-top: 8px !important;
-    text-align: center !important;
+    font-size: 0.875rem !important;
+    margin-top: 0.25rem !important;
 }
 
 .dropdown-menu-portal-styled hr {
-    margin: 12px 0 !important;
-    border-color: rgba(0, 0, 0, 0.1) !important;
+    margin: 0.5rem 0 !important;
+    border-color: #f0f0f0 !important;
 }
 
 .dropdown-menu-portal-styled .dropdown-item {
-    padding: 10px 12px !important;
-    border-radius: 6px !important;
+    padding: 0.75rem 1.5rem !important;
     color: #333 !important;
-    font-weight: 500 !important;
-    transition: all 0.2s ease !important;
     text-decoration: none !important;
+    transition: all 0.2s ease !important;
+    border: none !important;
+    background: transparent !important;
     display: flex !important;
     align-items: center !important;
+    gap: 0.75rem !important;
 }
 
 .dropdown-menu-portal-styled .dropdown-item:hover {
-    background: rgba(186, 96, 34, 0.1) !important;
+    background: #f8f9fa !important;
     color: var(--navbar-bg) !important;
     transform: translateX(4px) !important;
 }
 
 .dropdown-menu-portal-styled .dropdown-item i {
-    margin-right: 8px !important;
     width: 16px !important;
     text-align: center !important;
-    color: var(--navbar-bg) !important;
+    color: #666 !important;
+    transition: color 0.2s ease !important;
 }
 
 .dropdown-menu-portal-styled .dropdown-item:hover i {
-    transform: scale(1.1) !important;
+    color: var(--navbar-bg) !important;
 }
 
 .dropdown-menu-portal-styled .btn-secondary {
-    background: var(--navbar-bg) !important;
+    margin: 0.5rem 1.5rem !important;
+    width: calc(100% - 3rem) !important;
+    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%) !important;
     border: none !important;
-    color: var(--navbar-text) !important;
-    padding: 8px 16px !important;
-    border-radius: 6px !important;
+    border-radius: 8px !important;
+    color: white !important;
+    padding: 0.75rem 1rem !important;
     font-weight: 500 !important;
     transition: all 0.3s ease !important;
+    box-shadow: 0 2px 8px rgba(220, 53, 69, 0.2) !important;
 }
 
 .dropdown-menu-portal-styled .btn-secondary:hover {
-    background: var(--navbar-bg-hover) !important;
     transform: translateY(-2px) !important;
-    box-shadow: 0 4px 12px rgba(186, 96, 34, 0.3) !important;
+    box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3) !important;
+    background: linear-gradient(135deg, #c82333 0%, #bd2130 100%) !important;
 }

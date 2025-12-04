@@ -1,0 +1,209 @@
+/* ===== FORZAR MODO CLARO SIEMPRE - MÁXIMA PRIORIDAD ===== */
+/* Este archivo DEBE cargarse al final para sobrescribir TODO */
+
+/* Forzar color scheme light en el HTML */
+html {
+    color-scheme: light !important;
+}
+
+/* Anular CUALQUIER estilo oscuro del sistema - MÁXIMA ESPECIFICIDAD */
+@media (prefers-color-scheme: dark) {
+    /* Forzar HTML y Body */
+    html,
+    html[data-bs-theme="dark"],
+    html[data-bs-theme="auto"],
+    html[data-theme="dark"],
+    html[data-theme="auto"],
+    body,
+    body[data-bs-theme="dark"],
+    body[data-bs-theme="auto"] {
+        background-color: #ffffff !important;
+        background: #ffffff !important;
+        color: #000000 !important;
+        color-scheme: light !important;
+    }
+    
+    /* FORZAR #main y #main-content - MÁXIMA ESPECIFICIDAD POSIBLE */
+    #main,
+    #main[data-bs-theme="dark"],
+    #main[data-bs-theme="auto"],
+    body #main,
+    html #main,
+    body[data-bs-theme="dark"] #main,
+    html[data-bs-theme="dark"] #main {
+        background: #ffffff !important;
+        background-color: #ffffff !important;
+        color: #000000 !important;
+    }
+    
+    #main-content,
+    #main-content[data-bs-theme="dark"],
+    #main-content[data-bs-theme="auto"],
+    body #main-content,
+    html #main-content,
+    #main #main-content,
+    body #main #main-content,
+    html #main #main-content,
+    body[data-bs-theme="dark"] #main-content,
+    html[data-bs-theme="dark"] #main-content,
+    .container-fluid,
+    .container-fluid[data-bs-theme="dark"],
+    body .container-fluid,
+    #main .container-fluid {
+        background: #ffffff !important;
+        background-color: #ffffff !important;
+        color: #000000 !important;
+    }
+    
+    /* Anular variables CSS de Bootstrap para modo oscuro */
+    [data-bs-theme="dark"],
+    [data-bs-theme="dark"] *,
+    html[data-bs-theme="dark"],
+    html[data-bs-theme="dark"] * {
+        --bs-body-bg: #ffffff !important;
+        --bs-body-color: #000000 !important;
+        --bs-emphasis-color: #000000 !important;
+        --bs-secondary-color: #6c757d !important;
+        --bs-secondary-bg: #f8f9fa !important;
+        --bs-tertiary-color: #6c757d !important;
+        --bs-tertiary-bg: #f8f9fa !important;
+        --bs-border-color: #e0e0e0 !important;
+        --bs-heading-color: #000000 !important;
+        --bs-link-color: #000000 !important;
+        --bs-link-hover-color: #333333 !important;
+    }
+    
+    /* Forzar cards */
+    .card,
+    .card-body,
+    .card-header,
+    .card-footer,
+    [data-bs-theme="dark"] .card,
+    [data-bs-theme="dark"] .card-body {
+        background-color: #ffffff !important;
+        background: #ffffff !important;
+        color: #000000 !important;
+        border-color: #e0e0e0 !important;
+    }
+    
+    /* Forzar formularios */
+    .form-control,
+    .form-select,
+    input,
+    textarea,
+    select,
+    [data-bs-theme="dark"] .form-control,
+    [data-bs-theme="dark"] .form-select {
+        background-color: #ffffff !important;
+        color: #000000 !important;
+        border-color: #e0e0e0 !important;
+    }
+    
+    .form-control::placeholder,
+    .form-select::placeholder {
+        color: #999999 !important;
+    }
+    
+    /* Forzar texto */
+    body,
+    p,
+    h1, h2, h3, h4, h5, h6,
+    label,
+    .form-label,
+    .text-white,
+    .text-light,
+    [data-bs-theme="dark"] body,
+    [data-bs-theme="dark"] p {
+        color: #000000 !important;
+    }
+    
+    /* Forzar login card */
+    .login-card {
+        background: rgba(255, 255, 255, 0.95) !important;
+        border: 1px solid rgba(0, 0, 0, 0.1) !important;
+        color: #000000 !important;
+    }
+    
+    .login-container {
+        background-color: #ffffff !important;
+    }
+    
+    /* Forzar sidebar */
+    #side-nav {
+        background: linear-gradient(180deg, #ffffff 0%, #fafafa 100%) !important;
+        color: #000000 !important;
+    }
+    
+    /* Forzar navbar */
+    #top-navbar {
+        background: linear-gradient(135deg, #BA6022 0%, #A0521E 100%) !important;
+        color: #ffffff !important;
+    }
+    
+    /* Forzar tablas */
+    .table,
+    .table th,
+    .table td {
+        background-color: #ffffff !important;
+        color: #000000 !important;
+        border-color: #e0e0e0 !important;
+    }
+    
+    /* Forzar dropdowns */
+    .dropdown-menu {
+        background-color: #ffffff !important;
+        color: #000000 !important;
+        border-color: #e0e0e0 !important;
+    }
+    
+    .dropdown-item {
+        color: #000000 !important;
+    }
+    
+    .dropdown-item:hover {
+        background-color: #f8f9fa !important;
+        color: #000000 !important;
+    }
+    
+    /* Forzar modales */
+    .modal-content {
+        background-color: #ffffff !important;
+        color: #000000 !important;
+    }
+    
+    .modal-header,
+    .modal-body,
+    .modal-footer {
+        background-color: #ffffff !important;
+        color: #000000 !important;
+        border-color: #e0e0e0 !important;
+    }
+    
+    /* Forzar alertas */
+    .alert {
+        background-color: inherit !important;
+        color: inherit !important;
+    }
+    
+    /* Forzar breadcrumbs */
+    .breadcrumb {
+        background-color: #ffffff !important;
+        color: #000000 !important;
+    }
+    
+    .breadcrumb-item a {
+        color: #000000 !important;
+    }
+}
+
+/* Forzar modo claro incluso sin media query */
+html[data-bs-theme="dark"] #main,
+html[data-bs-theme="dark"] #main-content,
+html[data-bs-theme="auto"] #main,
+html[data-bs-theme="auto"] #main-content,
+body[data-bs-theme="dark"] #main,
+body[data-bs-theme="dark"] #main-content {
+    background-color: #ffffff !important;
+    color: #000000 !important;
+}
+

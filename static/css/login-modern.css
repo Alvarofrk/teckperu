@@ -382,24 +382,39 @@ body {
     }
 }
 
-/* Modo oscuro */
+/* Forzar modo claro siempre - anular modo oscuro del sistema */
 @media (prefers-color-scheme: dark) {
+    html {
+        color-scheme: light !important;
+    }
+    
+    body,
+    .login-container {
+        background-color: #ffffff !important;
+    }
+    
     .login-card {
-        background: rgba(30, 30, 30, 0.95);
-        border: 1px solid rgba(255, 255, 255, 0.1);
+        background: rgba(255, 255, 255, 0.95) !important;
+        border: 1px solid rgba(0, 0, 0, 0.1) !important;
+        color: #000000 !important;
     }
 
     .form-control {
-        background: rgba(50, 50, 50, 0.8);
-        border-color: #444;
-        color: var(--white);
+        background: #ffffff !important;
+        border-color: #e0e0e0 !important;
+        color: #000000 !important;
     }
 
     .form-control::placeholder {
-        color: #888;
+        color: #999999 !important;
     }
 
     .form-label {
-        color: var(--white);
+        color: #000000 !important;
+    }
+    
+    .login-title,
+    .login-subtitle {
+        color: #000000 !important;
     }
 }
