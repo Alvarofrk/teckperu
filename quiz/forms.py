@@ -1,5 +1,5 @@
 from django import forms
-from django.forms.widgets import RadioSelect, Textarea
+from django.forms.widgets import RadioSelect, Textarea, CheckboxInput
 from django.contrib.admin.widgets import FilteredSelectMultiple
 from django.utils.translation import gettext_lazy as _
 from django.forms.models import inlineformset_factory
@@ -50,13 +50,14 @@ class QuizAddForm(forms.ModelForm):
                 self.instance.question_set.all().select_subclasses()
             )
         
-        # Asegurar que los checkboxes tengan la clase correcta y sean visibles
-        for field_name in ['random_order', 'answers_at_end', 'exam_paper', 'single_attempt', 'draft']:
+        # Configurar checkboxes para que funcionen correctamente
+        checkbox_fields = ['random_order', 'answers_at_end', 'exam_paper', 'single_attempt', 'draft']
+        for field_name in checkbox_fields:
             if field_name in self.fields:
-                self.fields[field_name].widget.attrs.update({
+                self.fields[field_name].widget = CheckboxInput(attrs={
                     'class': 'form-check-input',
-                    'style': 'display: inline-block !important; visibility: visible !important; opacity: 1 !important;',
                 })
+                self.fields[field_name].required = False
 
     def save(self, commit=True):
         quiz = super(QuizAddForm, self).save(commit=False)

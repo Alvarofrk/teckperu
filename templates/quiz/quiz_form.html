@@ -45,20 +45,65 @@
                             <span class="danger">{{ form.questions.errors }}</span>
                             <small class="d-block text-muted">{% trans 'Mantén presionado' %} "Control", {% trans 'o' %} "Command" {% trans 'en un Mac, para seleccionar más de uno.' %}</small>
                         </div>
-                        <div class="form-group mb-3">
-                            {{ form.random_order|as_crispy_field }}
+                        <div class="form-check mb-3">
+                            {{ form.random_order }}
+                            <label class="form-check-label" for="{{ form.random_order.id_for_label }}">
+                                {{ form.random_order.label }}
+                            </label>
+                            {% if form.random_order.help_text %}
+                                <small class="form-text text-muted">{{ form.random_order.help_text }}</small>
+                            {% endif %}
+                            {% if form.random_order.errors %}
+                                <div class="text-danger">{{ form.random_order.errors }}</div>
+                            {% endif %}
                         </div>
-                        <div class="form-group mb-3">
-                            {{ form.answers_at_end|as_crispy_field }}
+                        <div class="form-check mb-3">
+                            {{ form.answers_at_end }}
+                            <label class="form-check-label" for="{{ form.answers_at_end.id_for_label }}">
+                                {{ form.answers_at_end.label }}
+                            </label>
+                            {% if form.answers_at_end.help_text %}
+                                <small class="form-text text-muted">{{ form.answers_at_end.help_text }}</small>
+                            {% endif %}
+                            {% if form.answers_at_end.errors %}
+                                <div class="text-danger">{{ form.answers_at_end.errors }}</div>
+                            {% endif %}
                         </div>
-                        <div class="form-group mb-3">
-                            {{ form.exam_paper|as_crispy_field }}
+                        <div class="form-check mb-3">
+                            {{ form.exam_paper }}
+                            <label class="form-check-label" for="{{ form.exam_paper.id_for_label }}">
+                                {{ form.exam_paper.label }}
+                            </label>
+                            {% if form.exam_paper.help_text %}
+                                <small class="form-text text-muted">{{ form.exam_paper.help_text }}</small>
+                            {% endif %}
+                            {% if form.exam_paper.errors %}
+                                <div class="text-danger">{{ form.exam_paper.errors }}</div>
+                            {% endif %}
                         </div>
-                        <div class="form-group mb-3">
-                            {{ form.single_attempt|as_crispy_field }}
+                        <div class="form-check mb-3">
+                            {{ form.single_attempt }}
+                            <label class="form-check-label" for="{{ form.single_attempt.id_for_label }}">
+                                {{ form.single_attempt.label }}
+                            </label>
+                            {% if form.single_attempt.help_text %}
+                                <small class="form-text text-muted">{{ form.single_attempt.help_text }}</small>
+                            {% endif %}
+                            {% if form.single_attempt.errors %}
+                                <div class="text-danger">{{ form.single_attempt.errors }}</div>
+                            {% endif %}
                         </div>
-                        <div class="form-group mb-3">
-                            {{ form.draft|as_crispy_field }}
+                        <div class="form-check mb-3">
+                            {{ form.draft }}
+                            <label class="form-check-label" for="{{ form.draft.id_for_label }}">
+                                {{ form.draft.label }}
+                            </label>
+                            {% if form.draft.help_text %}
+                                <small class="form-text text-muted">{{ form.draft.help_text }}</small>
+                            {% endif %}
+                            {% if form.draft.errors %}
+                                <div class="text-danger">{{ form.draft.errors }}</div>
+                            {% endif %}
                         </div>             
                     </div>
                 </div>
@@ -82,22 +127,39 @@
         opacity: 1 !important;
         cursor: pointer !important;
         position: relative !important;
+        pointer-events: auto !important;
+        -webkit-appearance: checkbox !important;
+        -moz-appearance: checkbox !important;
+        appearance: checkbox !important;
+    }
+    
+    .form-check-input:checked {
+        background-color: #0d6efd !important;
+        border-color: #0d6efd !important;
     }
     
     .form-check-label {
         cursor: pointer !important;
-        margin-left: 0 !important;
+        margin-left: 0.5rem !important;
+        user-select: none;
     }
     
     .form-check {
         padding-left: 0 !important;
         margin-bottom: 0.5rem !important;
+        display: flex !important;
+        align-items: flex-start !important;
     }
     
-    /* Asegurar que los checkboxes de crispy forms funcionen */
-    .form-group .form-check-input {
-        display: inline-block !important;
-        visibility: visible !important;
+    /* Hacer que el label también sea clickeable */
+    .form-check-label:hover {
+        color: #0d6efd;
+    }
+    
+    /* Asegurar que no haya elementos que bloqueen los clicks */
+    .form-check input[type="checkbox"] {
+        z-index: 1 !important;
+        pointer-events: auto !important;
     }
 </style>
 {% endblock %}
@@ -118,10 +180,24 @@
     document.addEventListener('DOMContentLoaded', function() {
         const checkboxes = document.querySelectorAll('input[type="checkbox"]');
         checkboxes.forEach(function(checkbox) {
+            // Asegurar que el checkbox sea visible y clickeable
             checkbox.style.display = 'inline-block';
             checkbox.style.visibility = 'visible';
             checkbox.style.opacity = '1';
             checkbox.style.position = 'relative';
+            checkbox.style.pointerEvents = 'auto';
+            checkbox.disabled = false;
+            
+            // Hacer que el label también active el checkbox al hacer click
+            const label = document.querySelector('label[for="' + checkbox.id + '"]');
+            if (label) {
+                label.style.cursor = 'pointer';
+                label.addEventListener('click', function(e) {
+                    if (e.target !== checkbox) {
+                        checkbox.click();
+                    }
+                });
+            }
         });
     });
 </script>
